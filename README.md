@@ -72,7 +72,7 @@ Tablas (opcional si usas nombres distintos). Ejemplo:
 ## 📦 Requisitos de entorno
 
 - Python 3.9+
-- `pandas`, `fastapi`, `uvicorn`, `supabase`
+- `pandas`, `fastapi`, `uvicorn`, `supabase`, `mcp`
 
 Instalación:
 ```bash
@@ -83,6 +83,19 @@ Ejecución local:
 ```bash
 uvicorn main:app --reload
 ```
+
+---
+
+## 🤖 MCP (agentes)
+
+Servidor MCP (stdio) para herramientas de agentes:
+```bash
+python mcp_server.py
+```
+
+Tool principal:
+- `calcular_sicetac_tool`  
+Si no pasas `mes`, se usa el mes más reciente disponible en `parametros_vigentes`.
 
 ---
 

@@ -2,3 +2,4 @@ fastapi
 pandas
 uvicorn
 supabase
+mcp
