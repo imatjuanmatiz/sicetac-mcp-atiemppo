@@ -29,22 +29,7 @@ Calcula el valor del viaje bajo el modelo SICETAC y devuelve contexto adicional 
 ```json
 {
   "SICETAC": { ... },
-  "VALOR_MERCADO_2025": "$3,050,000",
-  "INDICADORES_ORIGEN": {
-    "viajes_cargue": 620,
-    "viajes_descargue": 410,
-    "indice": 1.51
-  },
-  "INDICADORES_DESTINO": {
-    "viajes_cargue": 290,
-    "viajes_descargue": 612,
-    "indice": 0.47
-  },
-  "COMPETITIVIDAD": {
-    "nivel": "Media",
-    "empresas": 14,
-    "participacion": 38.2
-  }
+  "MODO_VIAJE": "CARGADO",
 }
 ```
 
@@ -52,11 +37,7 @@ Calcula el valor del viaje bajo el modelo SICETAC y devuelve contexto adicional 
 
 ## 📊 Datos utilizados
 
-| Archivo CSV | Descripción |
-|-------------|-------------|
-| `VALORES_CONSOLIDADOS_2025.csv` | Valor promedio por ruta y configuración (mercado 2025 consolidado) |
-| `indice_cargue_descargue_consolidado_04.csv` | Indicadores de viajes originados/descargados por municipio |
-| `competitividad_rutas_2025.csv` | Nivel de concentración empresarial por ruta/configuración |
+Solo se usa la información necesaria para el cálculo del modelo (rutas, vehículos, parámetros, costos, peajes, municipios).
 
 ---
 
@@ -74,10 +55,24 @@ curl -X POST http://localhost:8000/consulta \
 
 ---
 
+## 🔐 Configuración Supabase
+
+Variables mínimas:
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_KEY`)
+
+Tablas (opcional si usas nombres distintos). Ejemplo:
+- `SICETAC_TABLE_MUNICIPIOS`
+- `SICETAC_TABLE_VEHICULOS`
+- `SICETAC_TABLE_PARAMETROS`
+- `SICETAC_TABLE_COSTOS_FIJOS`
+- `SICETAC_TABLE_PEAJES`
+- `SICETAC_TABLE_RUTAS`
+
 ## 📦 Requisitos de entorno
 
 - Python 3.9+
-- `pandas`, `fastapi`, `uvicorn`, `openpyxl`
+- `pandas`, `fastapi`, `uvicorn`, `supabase`
 
 Instalación:
 ```bash

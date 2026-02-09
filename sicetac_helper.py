@@ -5,8 +5,11 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 class SICETACHelper:
-    def __init__(self, archivo_municipios):
-        self.df_municipios = pd.read_excel(archivo_municipios)
+    def __init__(self, municipios_source):
+        if isinstance(municipios_source, pd.DataFrame):
+            self.df_municipios = municipios_source.copy()
+        else:
+            self.df_municipios = pd.read_excel(municipios_source)
         self.columnas_municipios = ['nombre_oficial', 'variacion_1', 'variacion_2', 'variacion_3']
         self.codigo_municipio_col = 'codigo_dane'
 

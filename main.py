@@ -2,27 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 
-import pandas as pd
 from fastapi.responses import JSONResponse
+from supabase_data import get_table_df
 from sicetac_helper import SICETACHelper
 from modelo_sicetac import calcular_modelo_sicetac_extendido
 from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
-from contexto_helper import (
-    obtener_valores_promedio_mercado_por_llave,
-    obtener_indicadores,
-    evaluar_competitividad,
-    obtener_meses_disponibles_indicador,
-    obtener_bloqueos_ruta_por_id,
-    # nuevos helpers de modo
-    set_modo_viaje
-)
-
-# Importación robusta del set_modo_viaje (si no está, no rompe)
-try:
-    from contexto_helper import set_modo_viaje
-except ImportError:
-    def set_modo_viaje(_):
-        return None
 
 app = FastAPI(title="API SICETAC", version="1.5")
 
@@ -54,23 +38,14 @@ class ConsultaInput(BaseModel):
     modo_tiempos_logisticos: bool = False  # 0h / 4–8h / personalizado
 
 
-ARCHIVOS = {
-    "municipios": "municipios.xlsx",
-    "vehiculos": "CONFIGURACION_VEHICULAR_LIMPIO.xlsx",
-    "parametros": "MATRIZ_CAMBIOS_PARAMETROS_LIMPIO.xlsx",
-    "costos_fijos": "COSTO_FIJO_ACTUALIZADO.xlsx",
-    "peajes": "PEAJES_LIMPIO.xlsx",
-    "rutas": "RUTA_DISTANCIA_LIMPIO.xlsx"
-}
-
-# Carga fija
-helper = SICETACHelper(ARCHIVOS["municipios"])
-df_vehiculos = pd.read_excel(ARCHIVOS["vehiculos"])
-df_parametros = pd.read_excel(ARCHIVOS["parametros"])
-df_costos_fijos = pd.read_excel(ARCHIVOS["costos_fijos"])
-df_peajes = pd.read_excel(ARCHIVOS["peajes"])
-df_rutas = pd.read_excel(ARCHIVOS["rutas"])
-df_indicadores = pd.read_excel("indice_cargue_descargue_resumen_mensual.xlsx")
+# Carga fija desde Supabase
+df_municipios = get_table_df("municipios")
+helper = SICETACHelper(df_municipios)
+df_vehiculos = get_table_df("vehiculos")
+df_parametros = get_table_df("parametros")
+df_costos_fijos = get_table_df("costos_fijos")
+df_peajes = get_table_df("peajes")
+df_rutas = get_table_df("rutas")
 
 def convertir_nativos(d):
     if isinstance(d, dict):
@@ -142,9 +117,6 @@ def calcular_sicetac(data: ConsultaInput):
                 status_code=400,
                 detail=f"Mes '{data.mes}' no válido. Debe ser uno de: {meses_validos}"
             )
-
-        # --- Routing por modo ---
-        set_modo_viaje(data.modo_viaje)
 
         # Helper interno para ejecutar el modelo correcto
         def _ejecutar_modelo(horas_logisticas_modelo: float | None):
@@ -269,47 +241,9 @@ def calcular_sicetac(data: ConsultaInput):
         resultado = _normalizar_total(resultado)
         resultado_convertido = convertir_nativos(resultado) if resultado is not None else None
 
-        # Helpers contextuales robustos
-        try:
-            ruta_config = f"{cod_origen}-{cod_destino}-{data.vehiculo.strip().upper().replace('C', '')}"
-            historico_mercado = obtener_valores_promedio_mercado_por_llave(ruta_config)
-        except Exception:
-            historico_mercado = None
-
-        try:
-            indicadores_origen = obtener_indicadores(cod_origen, vehiculo_upper)
-        except Exception:
-            indicadores_origen = None
-
-        try:
-            indicadores_destino = obtener_indicadores(cod_destino, vehiculo_upper)
-        except Exception:
-            indicadores_destino = None
-
-        try:
-            competitividad = evaluar_competitividad(cod_origen, cod_destino, vehiculo_upper)
-        except Exception:
-            competitividad = None
-
-        try:
-            meses_indicadores_origen = obtener_meses_disponibles_indicador(df_indicadores, cod_origen, vehiculo_upper)
-        except Exception:
-            meses_indicadores_origen = None
-
-        try:
-            meses_indicadores_destino = obtener_meses_disponibles_indicador(df_indicadores, cod_destino, vehiculo_upper)
-        except Exception:
-            meses_indicadores_destino = None
-
         respuesta = {
             "SICETAC": resultado_convertido,
             "MODO_VIAJE": data.modo_viaje.upper(),
-            "HISTORICO_VALOR_MERCADO": historico_mercado if historico_mercado else [],
-            "INDICADORES_ORIGEN": indicadores_origen,
-            "INDICADORES_DESTINO": indicadores_destino,
-            "COMPETITIVIDAD": competitividad,
-            "MESES_INDICADORES_ORIGEN": meses_indicadores_origen,
-            "MESES_INDICADORES_DESTINO": meses_indicadores_destino,
         }
 
         if escenarios_tiempos is not None:

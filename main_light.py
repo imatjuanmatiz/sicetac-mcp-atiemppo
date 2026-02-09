@@ -2,19 +2,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 
-import pandas as pd
+from supabase_data import get_table_df
 from sicetac_helper import SICETACHelper
 from modelo_sicetac import calcular_modelo_sicetac_extendido
 from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
-from contexto_helper import obtener_valores_promedio_mercado_por_llave
-
-# Importación robusta del set_modo_viaje
-try:
-    from contexto_helper import set_modo_viaje
-except ImportError:
-    def set_modo_viaje(_):
-        return None
-
 app = FastAPI(title="API SICETAC LIGHT", version="1.0")
 
 
@@ -41,22 +32,14 @@ class ConsultaInput(BaseModel):
     modo_tiempos_logisticos: bool = False  # ignorado en versión light
 
 
-ARCHIVOS = {
-    "municipios": "municipios.xlsx",
-    "vehiculos": "CONFIGURACION_VEHICULAR_LIMPIO.xlsx",
-    "parametros": "MATRIZ_CAMBIOS_PARAMETROS_LIMPIO.xlsx",
-    "costos_fijos": "COSTO_FIJO_ACTUALIZADO.xlsx",
-    "peajes": "PEAJES_LIMPIO.xlsx",
-    "rutas": "RUTA_DISTANCIA_LIMPIO.xlsx",
-}
-
-# Carga fija (igual que en el main completo)
-helper = SICETACHelper(ARCHIVOS["municipios"])
-df_vehiculos = pd.read_excel(ARCHIVOS["vehiculos"])
-df_parametros = pd.read_excel(ARCHIVOS["parametros"])
-df_costos_fijos = pd.read_excel(ARCHIVOS["costos_fijos"])
-df_peajes = pd.read_excel(ARCHIVOS["peajes"])
-df_rutas = pd.read_excel(ARCHIVOS["rutas"])
+# Carga fija (igual que en el main completo) desde Supabase
+df_municipios = get_table_df("municipios")
+helper = SICETACHelper(df_municipios)
+df_vehiculos = get_table_df("vehiculos")
+df_parametros = get_table_df("parametros")
+df_costos_fijos = get_table_df("costos_fijos")
+df_peajes = get_table_df("peajes")
+df_rutas = get_table_df("rutas")
 
 
 def convertir_nativos(d):

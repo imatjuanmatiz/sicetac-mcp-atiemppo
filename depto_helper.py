@@ -2,8 +2,11 @@ import pandas as pd
 from difflib import get_close_matches
 
 class DeptoHelper:
-    def __init__(self, archivo):
-        self.df = pd.read_excel(archivo)
+    def __init__(self, source):
+        if isinstance(source, pd.DataFrame):
+            self.df = source.copy()
+        else:
+            self.df = pd.read_excel(source)
         self.variantes = [col for col in self.df.columns if col.startswith('VARIANTE') or col == 'DEPARTAMENTO']
         self.col_id = 'ID DEPTO'
         
