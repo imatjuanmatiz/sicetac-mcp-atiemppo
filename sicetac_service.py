@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel
+import time
 
 from supabase_data import get_table_df
 from sicetac_helper import SICETACHelper
@@ -85,6 +87,10 @@ def _get_dataframes():
 
 _RUTAS_INDEX: dict[tuple[str, str], list[pd.Series]] | None = None
 _PEAJES_INDEX: dict[tuple[str, str], list[float]] | None = None
+_LAST_REFRESH_TS: float | None = None
+_CACHE_TTL_SECONDS = int(float(
+    (os.getenv("SICETAC_CACHE_TTL_SECONDS") or str(7 * 24 * 3600))
+))
 
 
 def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Series]]:
@@ -131,6 +137,25 @@ def _get_peajes_index(df_peajes: pd.DataFrame) -> dict[tuple[str, str], list[flo
     return _PEAJES_INDEX
 
 
+def _refresh_cache(force: bool = False) -> None:
+    global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX
+    now = time.time()
+    if not force and _LAST_REFRESH_TS is not None:
+        if (now - _LAST_REFRESH_TS) < _CACHE_TTL_SECONDS:
+            return
+
+    # Limpiar cache de tablas Supabase
+    try:
+        get_table_df.cache_clear()
+    except Exception:
+        pass
+
+    # Limpiar índices
+    _RUTAS_INDEX = None
+    _PEAJES_INDEX = None
+    _LAST_REFRESH_TS = now
+
+
 def _latest_mes(df_parametros: pd.DataFrame) -> int | None:
     if df_parametros is None or df_parametros.empty or "MES" not in df_parametros.columns:
         return None
@@ -141,6 +166,7 @@ def _latest_mes(df_parametros: pd.DataFrame) -> int | None:
 
 
 def calcular_sicetac(data: ConsultaInput) -> dict:
+    _refresh_cache()
     df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
 
     if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
@@ -366,6 +392,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     """
     Calcula totales para 2, 4 y 8 horas logísticas con respuesta mínima.
     """
+    _refresh_cache()
     df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
 
     if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:

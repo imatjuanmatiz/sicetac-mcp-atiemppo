@@ -58,6 +58,11 @@ Devuelve `{"status":"ok"}` para health checks.
 
 ---
 
+### POST `/refresh`
+Fuerza recarga de cache (rutas/peajes). Útil cuando actualizas tablas.
+
+---
+
 ## 📊 Datos utilizados
 
 Solo se usa la información necesaria para el cálculo del modelo (rutas, vehículos, parámetros, costos, peajes, municipios).
@@ -88,6 +93,16 @@ Variables mínimas:
 Configura orígenes permitidos con:
 - `CORS_ORIGINS` (ej: `https://miapp.com,https://otro.com`)  
 Por defecto `*`.
+
+## 🧠 Cache
+La cache se recarga cada `SICETAC_CACHE_TTL_SECONDS` (default: 7 días).
+Puedes forzar recarga con `POST /refresh`.
+
+## 🤖 Cliente Node (agentes)
+Ejemplo rápido:
+```bash
+SICETAC_API_URL="https://sicetac-api-mcp.onrender.com" node agent_client.js "Bogotá" "Barranquilla"
+```
 
 Tablas (opcional si usas nombres distintos). Ejemplo:
 - `SICETAC_TABLE_MUNICIPIOS`

@@ -9,6 +9,7 @@ from sicetac_service import (
     SicetacError,
     calcular_sicetac as calcular_sicetac_service,
     calcular_sicetac_resumen,
+    _refresh_cache,
 )
 
 app = FastAPI(title="API SICETAC", version="1.5")
@@ -58,3 +59,9 @@ def calcular_sicetac_resumen_endpoint(data: ConsultaInput):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/refresh")
+def refresh_cache():
+    _refresh_cache(force=True)
+    return {"status": "ok", "refreshed": True}
