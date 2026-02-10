@@ -59,6 +59,29 @@ def _fetch_table_all(table: str, page_size: int = 1000) -> List[Dict[str, Any]]:
     return rows
 
 
+def _alias_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Crea alias de columnas en MAYÚSCULA y minúscula para tolerar cambios de casing.
+    También normaliza espacios -> '_' en los alias.
+    """
+    if df is None or df.empty:
+        return df
+
+    cols = list(df.columns)
+    for col in cols:
+        base = str(col).strip().replace(" ", "_")
+        lower = base.lower()
+        upper = base.upper()
+
+        if base not in df.columns:
+            df[base] = df[col]
+        if lower not in df.columns:
+            df[lower] = df[col]
+        if upper not in df.columns:
+            df[upper] = df[col]
+    return df
+
+
 @lru_cache(maxsize=None)
 def get_table_df(key: str) -> pd.DataFrame:
     table = TABLES.get(key, key)
@@ -66,7 +89,9 @@ def get_table_df(key: str) -> pd.DataFrame:
         rows = _fetch_table_all(table)
         if not rows:
             return pd.DataFrame()
-        return pd.DataFrame(rows)
+        df = pd.DataFrame(rows)
+        df = _alias_columns(df)
+        return df
     except Exception as e:
         logger.warning(f"⚠️ No se pudo cargar tabla {table}: {e}")
         return pd.DataFrame()
