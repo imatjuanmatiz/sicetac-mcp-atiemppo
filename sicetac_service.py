@@ -97,24 +97,25 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
 
     cod_origen = origen_info["codigo_dane"]
     cod_destino = destino_info["codigo_dane"]
+    cod_origen_str = str(cod_origen).strip()
+    cod_destino_str = str(cod_destino).strip()
 
-    ruta_key = f"{cod_origen}-{cod_destino}"
-    ruta = df_rutas[df_rutas["RUTA"] == ruta_key]
-    if ruta.empty:
-        ruta_key_rev = f"{cod_destino}-{cod_origen}"
-        ruta = df_rutas[df_rutas["RUTA"] == ruta_key_rev]
+    ruta_key = f"{cod_origen_str}-{cod_destino_str}"
+    ruta_key_rev = f"{cod_destino_str}-{cod_origen_str}"
 
+    ruta = pd.DataFrame()
+    if "RUTA" in df_rutas.columns:
+        ruta_col = df_rutas["RUTA"].astype(str).str.strip()
+        ruta = df_rutas[ruta_col == ruta_key]
+        if ruta.empty:
+            ruta = df_rutas[ruta_col == ruta_key_rev]
     # Fallback por códigos si no existe columna RUTA o no hubo match
     if ruta.empty and "CODIGO_DANE_ORIGEN" in df_rutas.columns and "CODIGO_DANE_DESTINO" in df_rutas.columns:
-        ruta = df_rutas[
-            (df_rutas["CODIGO_DANE_ORIGEN"] == cod_origen) &
-            (df_rutas["CODIGO_DANE_DESTINO"] == cod_destino)
-        ]
+        col_origen_str = df_rutas["CODIGO_DANE_ORIGEN"].astype(str).str.strip()
+        col_destino_str = df_rutas["CODIGO_DANE_DESTINO"].astype(str).str.strip()
+        ruta = df_rutas[(col_origen_str == cod_origen_str) & (col_destino_str == cod_destino_str)]
         if ruta.empty:
-            ruta = df_rutas[
-                (df_rutas["CODIGO_DANE_ORIGEN"] == cod_destino) &
-                (df_rutas["CODIGO_DANE_DESTINO"] == cod_origen)
-            ]
+            ruta = df_rutas[(col_origen_str == cod_destino_str) & (col_destino_str == cod_origen_str)]
 
     manual_distancias = None
     if ruta.empty:
