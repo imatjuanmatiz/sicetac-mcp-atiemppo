@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from sicetac_service import ConsultaInput, SicetacError, calcular_sicetac
+from sicetac_service import (
+    ConsultaInput,
+    SicetacError,
+    calcular_sicetac,
+    calcular_sicetac_resumen,
+)
 
 try:
     from mcp.server.fastmcp import FastMCP
@@ -31,6 +36,7 @@ def calcular_sicetac_tool(
     km_despavimentado: float = 0,
     modo_viaje: str = "CARGADO",
     modo_tiempos_logisticos: bool = False,
+    resumen: bool = True,
 ):
     """
     Calcula el modelo SICETAC usando datos de Supabase.
@@ -54,7 +60,10 @@ def calcular_sicetac_tool(
             km_despavimentado=km_despavimentado,
             modo_viaje=modo_viaje,
             modo_tiempos_logisticos=modo_tiempos_logisticos,
+            resumen=resumen,
         )
+        if resumen:
+            return calcular_sicetac_resumen(payload)
         return calcular_sicetac(payload)
     except SicetacError as ex:
         return {"error": ex.detail, "status_code": ex.status_code}
