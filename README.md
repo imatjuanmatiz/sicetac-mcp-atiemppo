@@ -12,10 +12,20 @@ Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resum
 {
   "origen": "Bogotá",
   "destino": "Medellín",
-  "vehiculo": "3S3",
+  "vehiculo": "C3S3",
   "mes": 202504,
   "carroceria": "GENERAL",
-  "resumen": true
+  "resumen": true,
+  "modo_viaje": "CARGADO",
+  "valor_peaje_manual": 0,
+  "horas_logisticas": null,
+  "horas_logisticas_personalizadas": null,
+  "tarifa_standby": 150000,
+  "km_plano": 0,
+  "km_ondulado": 0,
+  "km_montanoso": 0,
+  "km_urbano": 0,
+  "km_despavimentado": 0
 }
 ```
 
@@ -31,6 +41,20 @@ Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resum
   "totales": { "H2": 123456, "H4": 234567, "H8": 345678 }
 }
 ```
+
+#### Resumen vs Detalle
+- **Resumen (default):** `resumen: true`
+- **Detalle completo:** `resumen: false`
+
+---
+
+### POST `/consulta_resumen`
+Endpoint explícito de resumen (H2/H4/H8), útil para agentes.
+
+---
+
+### GET `/health`
+Devuelve `{"status":"ok"}` para health checks.
 
 ---
 
@@ -59,6 +83,11 @@ curl -X POST http://localhost:8000/consulta \
 Variables mínimas:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_KEY`)
+
+## 🌐 CORS
+Configura orígenes permitidos con:
+- `CORS_ORIGINS` (ej: `https://miapp.com,https://otro.com`)  
+Por defecto `*`.
 
 Tablas (opcional si usas nombres distintos). Ejemplo:
 - `SICETAC_TABLE_MUNICIPIOS`
