@@ -56,6 +56,20 @@ def _convertir_nativos(d: Any):
     return d
 
 
+def _clean_id(x) -> str:
+    s = str(x).strip()
+    # Si viene como float entero (ej: 5001000.0), conviértelo a int sin ceros añadidos
+    try:
+        f = float(s)
+        if f.is_integer():
+            return str(int(f))
+    except Exception:
+        pass
+    if s.endswith(".0") and s[:-2].isdigit():
+        return s[:-2]
+    return s
+
+
 def _get_dataframes():
     df_municipios = get_table_df("municipios")
     df_vehiculos = get_table_df("vehiculos")
@@ -64,6 +78,29 @@ def _get_dataframes():
     df_peajes = get_table_df("peajes")
     df_rutas = get_table_df("rutas")
     return df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas
+
+
+_RUTAS_INDEX: dict[tuple[str, str], list[pd.Series]] | None = None
+
+
+def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Series]]:
+    global _RUTAS_INDEX
+    if _RUTAS_INDEX is not None:
+        return _RUTAS_INDEX
+    if df_rutas is None or df_rutas.empty:
+        _RUTAS_INDEX = {}
+        return _RUTAS_INDEX
+
+    if "CODIGO_DANE_ORIGEN" not in df_rutas.columns or "CODIGO_DANE_DESTINO" not in df_rutas.columns:
+        _RUTAS_INDEX = {}
+        return _RUTAS_INDEX
+
+    index: dict[tuple[str, str], list[pd.Series]] = {}
+    for _, row in df_rutas.iterrows():
+        key = (_clean_id(row["CODIGO_DANE_ORIGEN"]), _clean_id(row["CODIGO_DANE_DESTINO"]))
+        index.setdefault(key, []).append(row)
+    _RUTAS_INDEX = index
+    return _RUTAS_INDEX
 
 
 def _latest_mes(df_parametros: pd.DataFrame) -> int | None:
@@ -98,53 +135,24 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     cod_origen = origen_info["codigo_dane"]
     cod_destino = destino_info["codigo_dane"]
 
-    def _to_id_str(x) -> str:
-        s = str(x).strip()
-        # Si viene como float entero (ej: 5001000.0), conviértelo a int sin ceros añadidos
-        try:
-            f = float(s)
-            if f.is_integer():
-                return str(int(f))
-        except Exception:
-            pass
-        return s
+    cod_origen_str = _clean_id(cod_origen)
+    cod_destino_str = _clean_id(cod_destino)
 
-    cod_origen_str = _to_id_str(cod_origen)
-    cod_destino_str = _to_id_str(cod_destino)
-
-    ruta_key = f"{cod_origen_str}-{cod_destino_str}"
-    ruta_key_rev = f"{cod_destino_str}-{cod_origen_str}"
-
-    ruta = pd.DataFrame()
-    if "RUTA" in df_rutas.columns:
-        def _norm_ruta(s: str) -> str:
-            s = str(s).strip().replace(" ", "")
-            if "-" not in s:
-                return _to_id_str(s)
-            parts = s.split("-", 1)
-            return f"{_to_id_str(parts[0])}-{_to_id_str(parts[1])}"
-
-        ruta_col = df_rutas["RUTA"].astype(str).map(_norm_ruta)
-        ruta = df_rutas[ruta_col == ruta_key]
-        if ruta.empty:
-            ruta = df_rutas[ruta_col == ruta_key_rev]
-    # Fallback por códigos si no existe columna RUTA o no hubo match
-    if ruta.empty and "CODIGO_DANE_ORIGEN" in df_rutas.columns and "CODIGO_DANE_DESTINO" in df_rutas.columns:
-        col_origen_str = df_rutas["CODIGO_DANE_ORIGEN"].astype(str).map(_to_id_str)
-        col_destino_str = df_rutas["CODIGO_DANE_DESTINO"].astype(str).map(_to_id_str)
-        ruta = df_rutas[(col_origen_str == cod_origen_str) & (col_destino_str == cod_destino_str)]
-        if ruta.empty:
-            ruta = df_rutas[(col_origen_str == cod_destino_str) & (col_destino_str == cod_origen_str)]
+    rutas_index = _get_rutas_index(df_rutas)
+    ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+    if not ruta_rows:
+        ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+    ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
 
     manual_distancias = None
     if ruta.empty:
         if any([data.km_plano, data.km_ondulado, data.km_montañoso, data.km_urbano, data.km_despavimentado]):
             manual_distancias = {
-                "KM_PLANO": data.km_plano,
-                "KM_ONDULADO": data.km_ondulado,
-                "KM_MONTAÑOSO": data.km_montañoso,
-                "KM_URBANO": data.km_urbano,
-                "KM_DESPAVIMENTADO": data.km_despavimentado,
+                "km_plano": data.km_plano,
+                "km_ondulado": data.km_ondulado,
+                "km_montanoso": data.km_montañoso,
+                "km_urbano": data.km_urbano,
+                "km_despavimentado": data.km_despavimentado,
             }
         else:
             raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
@@ -155,18 +163,18 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     def _distancias_from_ruta(row):
         if row is None:
             return manual_distancias or {
-                "KM_PLANO": 0,
-                "KM_ONDULADO": 0,
-                "KM_MONTAÑOSO": 0,
-                "KM_URBANO": 0,
-                "KM_DESPAVIMENTADO": 0,
+                "km_plano": 0,
+                "km_ondulado": 0,
+                "km_montanoso": 0,
+                "km_urbano": 0,
+                "km_despavimentado": 0,
             }
         return {
-            "KM_PLANO": row.get("KM_PLANO", 0),
-            "KM_ONDULADO": row.get("KM_ONDULADO", 0),
-            "KM_MONTAÑOSO": row.get("KM_MONTAÑOSO", 0),
-            "KM_URBANO": row.get("KM_URBANO", 0),
-            "KM_DESPAVIMENTADO": row.get("KM_DESPAVIMENTADO", 0),
+            "km_plano": row.get("KM_PLANO", 0),
+            "km_ondulado": row.get("KM_ONDULADO", 0),
+            "km_montanoso": row.get("KM_MONTAÑOSO", 0),
+            "km_urbano": row.get("KM_URBANO", 0),
+            "km_despavimentado": row.get("KM_DESPAVIMENTADO", 0),
         }
 
     vehiculo_upper = data.vehiculo.strip().upper().replace("C", "")
