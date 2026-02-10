@@ -8,7 +8,8 @@ def calcular_modelo_sicetac_extendido_vacio(
     origen, destino, configuracion, serie, distancias,
     valor_peaje_manual, matriz_parametros, matriz_costos_fijos,
     matriz_vehicular, rutas_df, peajes_df,
-    carroceria_especial=None, ruta_oficial=None, horas_logisticas=None
+    carroceria_especial=None, ruta_oficial=None, horas_logisticas=None,
+    valor_peaje_override=None
 ):
     # --- 1. Parámetros base por tipo de vehículo y mes ---
     fila_param = matriz_parametros[
@@ -66,7 +67,9 @@ def calcular_modelo_sicetac_extendido_vacio(
     costo_combustible = round(total_combustible * valor_acpm, 2)
 
     # --- 7. Peajes ---
-    if ruta_oficial is not None:
+    if valor_peaje_override is not None:
+        valor_peaje = valor_peaje_override
+    elif ruta_oficial is not None:
         id_sice = ruta_oficial['ID_SICE']
         ejes = fila_conf['EJES_CONFIGURACION']
         fila_peaje = peajes_df[

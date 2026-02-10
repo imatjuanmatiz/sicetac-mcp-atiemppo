@@ -81,6 +81,7 @@ def _get_dataframes():
 
 
 _RUTAS_INDEX: dict[tuple[str, str], list[pd.Series]] | None = None
+_PEAJES_INDEX: dict[tuple[str, str], list[float]] | None = None
 
 
 def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Series]]:
@@ -101,6 +102,30 @@ def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Se
         index.setdefault(key, []).append(row)
     _RUTAS_INDEX = index
     return _RUTAS_INDEX
+
+
+def _get_peajes_index(df_peajes: pd.DataFrame) -> dict[tuple[str, str], list[float]]:
+    global _PEAJES_INDEX
+    if _PEAJES_INDEX is not None:
+        return _PEAJES_INDEX
+    if df_peajes is None or df_peajes.empty:
+        _PEAJES_INDEX = {}
+        return _PEAJES_INDEX
+
+    if "ID_SICE" not in df_peajes.columns or "EJES_CONFIGURACION" not in df_peajes.columns:
+        _PEAJES_INDEX = {}
+        return _PEAJES_INDEX
+
+    index: dict[tuple[str, str], list[float]] = {}
+    for _, row in df_peajes.iterrows():
+        key = (_clean_id(row["ID_SICE"]), _clean_id(row["EJES_CONFIGURACION"]))
+        try:
+            valor = float(row.get("VALOR_PEAJE", 0))
+        except Exception:
+            valor = 0.0
+        index.setdefault(key, []).append(valor)
+    _PEAJES_INDEX = index
+    return _PEAJES_INDEX
 
 
 def _latest_mes(df_parametros: pd.DataFrame) -> int | None:
@@ -185,12 +210,28 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             f"Vehículo '{data.vehiculo}' no encontrado. Opciones válidas: {', '.join(vehiculos_validos)}"
         )
 
+    fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == data.vehiculo].iloc[0]
+    ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
+
+    peajes_index = _get_peajes_index(df_peajes)
+
     meses_validos = df_parametros["MES"].unique().tolist()
     if int(mes_usar) not in meses_validos:
         raise SicetacError(400, f"Mes '{mes_usar}' no válido. Debe ser uno de: {meses_validos}")
 
+    def _peaje_for_ruta(ruta_row) -> float:
+        if ruta_row is None:
+            return float(data.valor_peaje_manual or 0)
+        id_sice = _clean_id(ruta_row.get("ID_SICE"))
+        valores = peajes_index.get((id_sice, ejes_conf), [])
+        if not valores:
+            return float(data.valor_peaje_manual or 0)
+        # Si hay múltiples, tomamos el primero (si quieres, puedo cambiar a suma)
+        return float(valores[0])
+
     def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
         distancias = _distancias_from_ruta(ruta_row)
+        valor_peaje_override = _peaje_for_ruta(ruta_row)
         if data.modo_viaje.upper() == "VACIO":
             return calcular_modelo_sicetac_extendido_vacio(
                 origen=data.origen,
@@ -207,6 +248,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
                 carroceria_especial=data.carroceria,
                 ruta_oficial=ruta_row,
                 horas_logisticas=horas_logisticas_modelo,
+                valor_peaje_override=valor_peaje_override,
             )
         return calcular_modelo_sicetac_extendido(
             origen=data.origen,
@@ -223,6 +265,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             carroceria_especial=data.carroceria,
             ruta_oficial=ruta_row,
             horas_logisticas=horas_logisticas_modelo,
+            valor_peaje_override=valor_peaje_override,
         )
 
     def _normalizar_total(res: dict | None):
