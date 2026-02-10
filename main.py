@@ -70,6 +70,14 @@ def refresh_cache():
 @app.post("/consulta_texto")
 def calcular_sicetac_texto(data: ConsultaInput):
     try:
+        def _format_cop(value):
+            try:
+                v = float(value)
+            except Exception:
+                return str(value)
+            # Formato COP sin decimales, con separadores
+            return f\"${v:,.0f}\".replace(\",\", \".\")
+
         if data.resumen:
             r = calcular_sicetac_resumen(data)
             if "variantes" in r:
@@ -78,14 +86,14 @@ def calcular_sicetac_texto(data: ConsultaInput):
                     tot = v.get("totales", {})
                     partes.append(
                         f"{v.get('NOMBRE_SICE','RUTA')} (ID {v.get('ID_SICE')}): "
-                        f"H2 {tot.get('H2')}, H4 {tot.get('H4')}, H8 {tot.get('H8')}"
+                        f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                     )
                 texto = " | ".join(partes)
             else:
                 tot = r.get("totales", {})
                 texto = (
                     f"{r.get('origen')}->{r.get('destino')} {r.get('configuracion')} "
-                    f"H2 {tot.get('H2')}, H4 {tot.get('H4')}, H8 {tot.get('H8')}"
+                    f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                 )
             return {"texto": texto}
         else:
@@ -93,7 +101,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
             s = r.get("SICETAC", {})
             texto = (
                 f"{s.get('origen')}->{s.get('destino')} {s.get('configuracion')} "
-                f"total {s.get('total_viaje')}"
+                f"total {_format_cop(s.get('total_viaje'))}"
             )
             return {"texto": texto}
     except HTTPException as ex:
