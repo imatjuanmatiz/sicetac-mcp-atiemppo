@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -10,7 +11,9 @@ from sicetac_service import (
     calcular_sicetac as calcular_sicetac_service,
     calcular_sicetac_resumen,
     _refresh_cache,
+    generar_snapshot,
 )
+from supabase_data import get_client
 
 app = FastAPI(title="API SICETAC", version="1.5")
 
@@ -106,6 +109,41 @@ def calcular_sicetac_texto(data: ConsultaInput):
             return {"texto": texto}
     except HTTPException as ex:
         raise ex
+    except SicetacError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@app.post("/snapshot/generate")
+def snapshot_generate():
+    try:
+        df = generar_snapshot(horas=[0, 2, 4, 8])
+        if df.empty:
+            return JSONResponse(content={"error": "Snapshot vacío"}, status_code=500)
+
+        # Nombre del archivo
+        mes = int(df["mes"].iloc[0]) if "mes" in df.columns else "latest"
+        filename = f"sicetac_snapshot_{mes}_all.xlsx"
+
+        # Exportar a Excel en memoria
+        buf = BytesIO()
+        df.to_excel(buf, index=False)
+        buf.seek(0)
+
+        client = get_client()
+        bucket = client.storage.from_("snapshots")
+
+        # Upload (upsert)
+        bucket.upload(
+            filename,
+            buf.getvalue(),
+            {"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "upsert": True},
+        )
+
+        public_url = bucket.get_public_url(filename)
+
+        return {"ok": True, "file": filename, "url": public_url}
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:

@@ -575,3 +575,113 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
+
+
+def generar_snapshot(
+    horas: list[int] | None = None,
+    carroceria: str = "GENERAL",
+    modo_viaje: str = "CARGADO",
+) -> pd.DataFrame:
+    """
+    Genera snapshot para todas las rutas y vehículos.
+    """
+    _refresh_cache()
+    df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
+
+    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
+        raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
+
+    if horas is None:
+        horas = [0, 2, 4, 8]
+
+    mes_usar = _latest_mes(df_parametros)
+    if mes_usar is None:
+        raise SicetacError(500, "No se pudo determinar el MES más reciente.")
+
+    peajes_index = _get_peajes_index(df_peajes)
+
+    nombre_mpio = {}
+    if "CODIGO_DANE" in df_municipios.columns and "NOMBRE_OFICIAL" in df_municipios.columns:
+        for _, row in df_municipios.iterrows():
+            nombre_mpio[_clean_id(row["CODIGO_DANE"])] = str(row["NOMBRE_OFICIAL"]).strip()
+
+    vehiculos = df_vehiculos["TIPO_VEHICULO"].astype(str).unique().tolist()
+
+    def _peaje_for(ruta_row, ejes_conf: str) -> float:
+        id_sice = _clean_id(ruta_row.get("ID_SICE"))
+        valores = peajes_index.get((id_sice, ejes_conf), [])
+        return float(valores[0]) if valores else 0.0
+
+    rows = []
+    for _, ruta_row in df_rutas.iterrows():
+        cod_origen = _clean_id(ruta_row.get("CODIGO_DANE_ORIGEN"))
+        cod_destino = _clean_id(ruta_row.get("CODIGO_DANE_DESTINO"))
+
+        distancias = {
+            "km_plano": ruta_row.get("KM_PLANO", 0),
+            "km_ondulado": ruta_row.get("KM_ONDULADO", 0),
+            "km_montanoso": ruta_row.get("KM_MONTAÑOSO", 0),
+            "km_urbano": ruta_row.get("KM_URBANO", 0),
+            "km_despavimentado": ruta_row.get("KM_DESPAVIMENTADO", 0),
+        }
+
+        for vehiculo in vehiculos:
+            fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == vehiculo].iloc[0]
+            ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
+            valor_peaje = _peaje_for(ruta_row, ejes_conf)
+
+            totales = {}
+            for h in horas:
+                if modo_viaje.upper() == "VACIO":
+                    res = calcular_modelo_sicetac_extendido_vacio(
+                        origen=nombre_mpio.get(cod_origen, cod_origen),
+                        destino=nombre_mpio.get(cod_destino, cod_destino),
+                        configuracion=vehiculo,
+                        serie=int(mes_usar),
+                        distancias=distancias,
+                        valor_peaje_manual=0,
+                        matriz_parametros=df_parametros,
+                        matriz_costos_fijos=df_costos_fijos,
+                        matriz_vehicular=df_vehiculos,
+                        rutas_df=df_rutas,
+                        peajes_df=df_peajes,
+                        carroceria_especial=carroceria,
+                        ruta_oficial=ruta_row,
+                        horas_logisticas=h,
+                        valor_peaje_override=valor_peaje,
+                    )
+                else:
+                    res = calcular_modelo_sicetac_extendido(
+                        origen=nombre_mpio.get(cod_origen, cod_origen),
+                        destino=nombre_mpio.get(cod_destino, cod_destino),
+                        configuracion=vehiculo,
+                        serie=int(mes_usar),
+                        distancias=distancias,
+                        valor_peaje_manual=0,
+                        matriz_parametros=df_parametros,
+                        matriz_costos_fijos=df_costos_fijos,
+                        matriz_vehicular=df_vehiculos,
+                        rutas_df=df_rutas,
+                        peajes_df=df_peajes,
+                        carroceria_especial=carroceria,
+                        ruta_oficial=ruta_row,
+                        horas_logisticas=h,
+                        valor_peaje_override=valor_peaje,
+                    )
+                total = res.get("total_viaje") or res.get("total_viaje_vacio")
+                totales[f"H{h}"] = float(total) if total is not None else None
+
+            rows.append({
+                "mes": int(mes_usar),
+                "codigo_origen": cod_origen,
+                "codigo_destino": cod_destino,
+                "origen_nombre": nombre_mpio.get(cod_origen),
+                "destino_nombre": nombre_mpio.get(cod_destino),
+                "vehiculo": vehiculo,
+                "id_sice": ruta_row.get("ID_SICE"),
+                "nombre_sice": ruta_row.get("NOMBRE_SICE"),
+                "valor_peaje": valor_peaje,
+                **totales,
+            })
+
+    return pd.DataFrame(rows)
