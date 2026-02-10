@@ -1,14 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
-from sicetac_service import ConsultaInput, SicetacError, calcular_sicetac
+from sicetac_service import ConsultaInput, SicetacError, calcular_sicetac as calcular_sicetac_service
 
 app = FastAPI(title="API SICETAC", version="1.5")
 
 @app.post("/consulta")
-def calcular_sicetac(data: ConsultaInput):
+def calcular_sicetac_endpoint(data: ConsultaInput):
     try:
-        respuesta = calcular_sicetac(data)
+        respuesta = calcular_sicetac_service(data)
         return JSONResponse(content=respuesta)
 
     except HTTPException as ex:
