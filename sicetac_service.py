@@ -357,3 +357,156 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         respuesta["MODO_TIEMPOS_LOGISTICOS"] = True
         respuesta["ESCENARIOS_TIEMPOS_LOGISTICOS"] = escenarios_tiempos
     return respuesta
+
+
+def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
+    """
+    Calcula totales para 2, 4 y 8 horas logísticas con respuesta mínima.
+    """
+    df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
+
+    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
+        raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
+
+    helper = SICETACHelper(df_municipios)
+
+    mes_usar = data.mes
+    if mes_usar is None:
+        mes_usar = _latest_mes(df_parametros)
+    if mes_usar is None:
+        raise SicetacError(500, "No se pudo determinar el MES más reciente.")
+
+    origen_info = helper.buscar_municipio(data.origen)
+    destino_info = helper.buscar_municipio(data.destino)
+
+    if not origen_info or not destino_info:
+        raise SicetacError(404, "Origen o destino no encontrado")
+
+    cod_origen_str = _clean_id(origen_info["codigo_dane"])
+    cod_destino_str = _clean_id(destino_info["codigo_dane"])
+
+    rutas_index = _get_rutas_index(df_rutas)
+    ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+    if not ruta_rows:
+        ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+    ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
+
+    manual_distancias = None
+    if ruta.empty:
+        if any([data.km_plano, data.km_ondulado, data.km_montañoso, data.km_urbano, data.km_despavimentado]):
+            manual_distancias = {
+                "km_plano": data.km_plano,
+                "km_ondulado": data.km_ondulado,
+                "km_montanoso": data.km_montañoso,
+                "km_urbano": data.km_urbano,
+                "km_despavimentado": data.km_despavimentado,
+            }
+        else:
+            raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+        fila_ruta = None
+    else:
+        fila_ruta = ruta.iloc[0]
+
+    def _distancias_from_ruta(row):
+        if row is None:
+            return manual_distancias or {
+                "km_plano": 0,
+                "km_ondulado": 0,
+                "km_montanoso": 0,
+                "km_urbano": 0,
+                "km_despavimentado": 0,
+            }
+        return {
+            "km_plano": row.get("KM_PLANO", 0),
+            "km_ondulado": row.get("KM_ONDULADO", 0),
+            "km_montanoso": row.get("KM_MONTAÑOSO", 0),
+            "km_urbano": row.get("KM_URBANO", 0),
+            "km_despavimentado": row.get("KM_DESPAVIMENTADO", 0),
+        }
+
+    vehiculo_upper = data.vehiculo.strip().upper().replace("C", "")
+    vehiculos_validos = df_vehiculos["TIPO_VEHICULO"].astype(str).str.upper().str.replace("C", "").unique()
+    if vehiculo_upper not in vehiculos_validos:
+        raise SicetacError(
+            400,
+            f"Vehículo '{data.vehiculo}' no encontrado. Opciones válidas: {', '.join(vehiculos_validos)}"
+        )
+
+    meses_validos = df_parametros["MES"].unique().tolist()
+    if int(mes_usar) not in meses_validos:
+        raise SicetacError(400, f"Mes '{mes_usar}' no válido. Debe ser uno de: {meses_validos}")
+
+    fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == data.vehiculo].iloc[0]
+    ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
+    peajes_index = _get_peajes_index(df_peajes)
+
+    def _peaje_for_ruta(ruta_row) -> float:
+        if ruta_row is None:
+            return float(data.valor_peaje_manual or 0)
+        id_sice = _clean_id(ruta_row.get("ID_SICE"))
+        valores = peajes_index.get((id_sice, ejes_conf), [])
+        if not valores:
+            return float(data.valor_peaje_manual or 0)
+        return float(valores[0])
+
+    def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
+        distancias = _distancias_from_ruta(ruta_row)
+        valor_peaje_override = _peaje_for_ruta(ruta_row)
+        if data.modo_viaje.upper() == "VACIO":
+            return calcular_modelo_sicetac_extendido_vacio(
+                origen=data.origen,
+                destino=data.destino,
+                configuracion=data.vehiculo,
+                serie=int(mes_usar),
+                distancias=distancias,
+                valor_peaje_manual=data.valor_peaje_manual,
+                matriz_parametros=df_parametros,
+                matriz_costos_fijos=df_costos_fijos,
+                matriz_vehicular=df_vehiculos,
+                rutas_df=df_rutas,
+                peajes_df=df_peajes,
+                carroceria_especial=data.carroceria,
+                ruta_oficial=ruta_row,
+                horas_logisticas=horas_logisticas_modelo,
+                valor_peaje_override=valor_peaje_override,
+            )
+        return calcular_modelo_sicetac_extendido(
+            origen=data.origen,
+            destino=data.destino,
+            configuracion=data.vehiculo,
+            serie=int(mes_usar),
+            distancias=distancias,
+            valor_peaje_manual=data.valor_peaje_manual,
+            matriz_parametros=df_parametros,
+            matriz_costos_fijos=df_costos_fijos,
+            matriz_vehicular=df_vehiculos,
+            rutas_df=df_rutas,
+            peajes_df=df_peajes,
+            carroceria_especial=data.carroceria,
+            ruta_oficial=ruta_row,
+            horas_logisticas=horas_logisticas_modelo,
+            valor_peaje_override=valor_peaje_override,
+        )
+
+    def _normalizar_total(res: dict | None):
+        if res is None:
+            return None
+        if "total_viaje" not in res and "total_viaje_vacio" in res:
+            res["total_viaje"] = res["total_viaje_vacio"]
+        return res
+
+    horas_objetivo = [2, 4, 8]
+    totales = {}
+    for h in horas_objetivo:
+        res = _normalizar_total(_ejecutar_modelo(h, ruta_row=fila_ruta))
+        totales[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+
+    return {
+        "origen": data.origen,
+        "destino": data.destino,
+        "configuracion": data.vehiculo,
+        "mes": int(mes_usar),
+        "carroceria": data.carroceria,
+        "modo_viaje": data.modo_viaje.upper(),
+        "totales": totales,
+    }
