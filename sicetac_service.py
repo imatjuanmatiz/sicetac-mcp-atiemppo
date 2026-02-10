@@ -499,10 +499,45 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         return res
 
     horas_objetivo = [2, 4, 8]
-    totales = {}
-    for h in horas_objetivo:
-        res = _normalizar_total(_ejecutar_modelo(h, ruta_row=fila_ruta))
-        totales[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+
+    def _totales_para_ruta(ruta_row):
+        tot = {}
+        for h in horas_objetivo:
+            res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
+            tot[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+        return tot
+
+    if ruta.empty:
+        totales = _totales_para_ruta(None)
+        return {
+            "origen": data.origen,
+            "destino": data.destino,
+            "configuracion": data.vehiculo,
+            "mes": int(mes_usar),
+            "carroceria": data.carroceria,
+            "modo_viaje": data.modo_viaje.upper(),
+            "totales": totales,
+        }
+
+    if len(ruta) == 1:
+        totales = _totales_para_ruta(fila_ruta)
+        return {
+            "origen": data.origen,
+            "destino": data.destino,
+            "configuracion": data.vehiculo,
+            "mes": int(mes_usar),
+            "carroceria": data.carroceria,
+            "modo_viaje": data.modo_viaje.upper(),
+            "totales": totales,
+        }
+
+    variantes = []
+    for _, r in ruta.iterrows():
+        variantes.append({
+            "NOMBRE_SICE": r.get("NOMBRE_SICE"),
+            "ID_SICE": r.get("ID_SICE"),
+            "totales": _totales_para_ruta(r),
+        })
 
     return {
         "origen": data.origen,
@@ -511,5 +546,5 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         "mes": int(mes_usar),
         "carroceria": data.carroceria,
         "modo_viaje": data.modo_viaje.upper(),
-        "totales": totales,
+        "variantes": variantes,
     }
