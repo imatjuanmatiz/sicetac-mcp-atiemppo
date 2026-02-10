@@ -65,3 +65,40 @@ def health():
 def refresh_cache():
     _refresh_cache(force=True)
     return {"status": "ok", "refreshed": True}
+
+
+@app.post("/consulta_texto")
+def calcular_sicetac_texto(data: ConsultaInput):
+    try:
+        if data.resumen:
+            r = calcular_sicetac_resumen(data)
+            if "variantes" in r:
+                partes = []
+                for v in r["variantes"]:
+                    tot = v.get("totales", {})
+                    partes.append(
+                        f"{v.get('NOMBRE_SICE','RUTA')} (ID {v.get('ID_SICE')}): "
+                        f"H2 {tot.get('H2')}, H4 {tot.get('H4')}, H8 {tot.get('H8')}"
+                    )
+                texto = " | ".join(partes)
+            else:
+                tot = r.get("totales", {})
+                texto = (
+                    f"{r.get('origen')}->{r.get('destino')} {r.get('configuracion')} "
+                    f"H2 {tot.get('H2')}, H4 {tot.get('H4')}, H8 {tot.get('H8')}"
+                )
+            return {"texto": texto}
+        else:
+            r = calcular_sicetac_service(data)
+            s = r.get("SICETAC", {})
+            texto = (
+                f"{s.get('origen')}->{s.get('destino')} {s.get('configuracion')} "
+                f"total {s.get('total_viaje')}"
+            )
+            return {"texto": texto}
+    except HTTPException as ex:
+        raise ex
+    except SicetacError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)

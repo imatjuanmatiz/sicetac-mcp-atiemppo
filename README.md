@@ -63,6 +63,15 @@ Fuerza recarga de cache (rutas/peajes). Útil cuando actualizas tablas.
 
 ---
 
+### POST `/consulta_texto`
+Devuelve una respuesta corta para WhatsApp/agent.  
+Ejemplo:
+```json
+{"texto":"Bogotá->Barranquilla C3S3 H2 7077856.42, H4 7229067.31, H8 7531476.19"}
+```
+
+---
+
 ## 📊 Datos utilizados
 
 Solo se usa la información necesaria para el cálculo del modelo (rutas, vehículos, parámetros, costos, peajes, municipios).
