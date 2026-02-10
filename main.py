@@ -76,7 +76,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
             except Exception:
                 return str(value)
             # Formato COP sin decimales, con separadores
-            return f\"${v:,.0f}\".replace(\",\", \".\")
+            return f"${v:,.0f}".replace(",", ".")
 
         if data.resumen:
             r = calcular_sicetac_resumen(data)
