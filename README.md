@@ -5,7 +5,7 @@ Esta API expone un modelo de cálculo de costos operativos bajo la metodología 
 ## 🚀 Endpoints
 
 ### POST `/consulta`
-Calcula el valor del viaje bajo el modelo SICETAC y devuelve contexto adicional de mercado y operación.
+Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resumen (totales para 2/4/8h logísticas).
 
 #### Body (JSON)
 ```json
@@ -15,21 +15,20 @@ Calcula el valor del viaje bajo el modelo SICETAC y devuelve contexto adicional 
   "vehiculo": "3S3",
   "mes": 202504,
   "carroceria": "GENERAL",
-  "valor_peaje_manual": 0.0,
-  "horas_logisticas": null,
-  "km_plano": 0,
-  "km_ondulado": 0,
-  "km_montañoso": 0,
-  "km_urbano": 0,
-  "km_despavimentado": 0
+  "resumen": true
 }
 ```
 
 #### Respuesta (JSON)
 ```json
 {
-  "SICETAC": { ... },
-  "MODO_VIAJE": "CARGADO",
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "configuracion": "C3S3",
+  "mes": 202504,
+  "carroceria": "GENERAL",
+  "modo_viaje": "CARGADO",
+  "totales": { "H2": 123456, "H4": 234567, "H8": 345678 }
 }
 ```
 

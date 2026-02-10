@@ -13,7 +13,10 @@ app = FastAPI(title="API SICETAC", version="1.5")
 @app.post("/consulta")
 def calcular_sicetac_endpoint(data: ConsultaInput):
     try:
-        respuesta = calcular_sicetac_service(data)
+        if data.resumen:
+            respuesta = calcular_sicetac_resumen(data)
+        else:
+            respuesta = calcular_sicetac_service(data)
         return JSONResponse(content=respuesta)
 
     except HTTPException as ex:

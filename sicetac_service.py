@@ -39,6 +39,9 @@ class ConsultaInput(BaseModel):
     # NUEVO: modo escenarios de tiempos logísticos
     modo_tiempos_logisticos: bool = False
 
+    # NUEVO: respuesta resumida (por defecto True)
+    resumen: bool = True
+
 
 @dataclass
 class SicetacError(Exception):
