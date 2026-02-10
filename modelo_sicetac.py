@@ -1,5 +1,5 @@
 
-mapeo_columnas_actualizado = {'plano': {'velocidad': 'PLANO VELOCIDAD PROMEDIO  CARGADO', 'consumo': 'PLANO CONSUMO DE COMBUSTIBLE  CARGADO'}, 'ondulado': {'velocidad': 'ONDULADO VELOCIDAD PROMEDIO CARGADO', 'consumo': 'ONDULADO CONSUMO DE COMBUSTIBLE CARGADO'}, 'montaña': {'velocidad': 'MONTAÑA VELOCIDAD PROMEDIO CARGADO', 'consumo': 'MONTAÑA CONSUMO DE COMBUSTIBLE CARGADO'}, 'urbano': {'velocidad': 'RECORRIDO URBANO VELOCIDAD PROMEDIO CARGADO', 'consumo': 'RECORRIDO URBANO CONSUMO DE COMBUSTIBLE CARGADO'}, 'despavimentado': {'velocidad': 'AFIRMADO VELOCIDAD PROMEDIO CARGADO', 'consumo': 'AFIRMADO CONSUMO DE COMBUSTIBLE CARGADO'}}
+mapeo_columnas_actualizado = {'plano': {'velocidad': 'vel_plano_cargado', 'consumo': 'consumo_plano_cargado'}, 'ondulado': {'velocidad': 'vel_ondulado_cargado', 'consumo': 'consumo_ondulado_cargado'}, 'montaña': {'velocidad': 'vel_montana_cargado', 'consumo': 'consumo_montana_cargado'}, 'urbano': {'velocidad': 'vel_urbano_cargado', 'consumo': 'consumo_urbano_cargado'}, 'despavimentado': {'velocidad': 'vel_afirmado_cargado', 'consumo': 'consumo_afirmado_cargado'}}
 
 
 import pandas as pd
@@ -27,11 +27,11 @@ def calcular_modelo_sicetac_extendido(
     detalle = {}
 
     mapeo_columnas = {
-        'plano': distancias.get('KM_PLANO', 0),
-        'ondulado': distancias.get('KM_ONDULADO', 0),
-        'montaña': distancias.get('KM_MONTAÑOSO', 0),
-        'urbano': distancias.get('KM_URBANO', 0),
-        'despavimentado': distancias.get('KM_DESPAVIMENTADO', 0)
+        'plano': distancias.get('km_plano', 0),
+        'ondulado': distancias.get('km_ondulado', 0),
+        'montaña': distancias.get('km_montanoso', 0),
+        'urbano': distancias.get('km_urbano', 0),
+        'despavimentado': distancias.get('km_despavimentado', 0)
     }
 
     for tipo, km in mapeo_columnas.items():
