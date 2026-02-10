@@ -606,6 +606,7 @@ def generar_snapshot(
             nombre_mpio[_clean_id(row["CODIGO_DANE"])] = str(row["NOMBRE_OFICIAL"]).strip()
 
     vehiculos = df_vehiculos["TIPO_VEHICULO"].astype(str).unique().tolist()
+    vehiculos = [v for v in vehiculos if str(v).strip().upper() != "V3"]
 
     def _peaje_for(ruta_row, ejes_conf: str) -> float:
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
