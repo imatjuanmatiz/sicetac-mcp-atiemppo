@@ -97,22 +97,41 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
 
     cod_origen = origen_info["codigo_dane"]
     cod_destino = destino_info["codigo_dane"]
-    cod_origen_str = str(cod_origen).strip()
-    cod_destino_str = str(cod_destino).strip()
+
+    def _to_id_str(x) -> str:
+        s = str(x).strip()
+        # Si viene como float entero (ej: 5001000.0), conviértelo a int sin ceros añadidos
+        try:
+            f = float(s)
+            if f.is_integer():
+                return str(int(f))
+        except Exception:
+            pass
+        return s
+
+    cod_origen_str = _to_id_str(cod_origen)
+    cod_destino_str = _to_id_str(cod_destino)
 
     ruta_key = f"{cod_origen_str}-{cod_destino_str}"
     ruta_key_rev = f"{cod_destino_str}-{cod_origen_str}"
 
     ruta = pd.DataFrame()
     if "RUTA" in df_rutas.columns:
-        ruta_col = df_rutas["RUTA"].astype(str).str.strip()
+        def _norm_ruta(s: str) -> str:
+            s = str(s).strip().replace(" ", "")
+            if "-" not in s:
+                return _to_id_str(s)
+            parts = s.split("-", 1)
+            return f"{_to_id_str(parts[0])}-{_to_id_str(parts[1])}"
+
+        ruta_col = df_rutas["RUTA"].astype(str).map(_norm_ruta)
         ruta = df_rutas[ruta_col == ruta_key]
         if ruta.empty:
             ruta = df_rutas[ruta_col == ruta_key_rev]
     # Fallback por códigos si no existe columna RUTA o no hubo match
     if ruta.empty and "CODIGO_DANE_ORIGEN" in df_rutas.columns and "CODIGO_DANE_DESTINO" in df_rutas.columns:
-        col_origen_str = df_rutas["CODIGO_DANE_ORIGEN"].astype(str).str.strip()
-        col_destino_str = df_rutas["CODIGO_DANE_DESTINO"].astype(str).str.strip()
+        col_origen_str = df_rutas["CODIGO_DANE_ORIGEN"].astype(str).map(_to_id_str)
+        col_destino_str = df_rutas["CODIGO_DANE_DESTINO"].astype(str).map(_to_id_str)
         ruta = df_rutas[(col_origen_str == cod_origen_str) & (col_destino_str == cod_destino_str)]
         if ruta.empty:
             ruta = df_rutas[(col_origen_str == cod_destino_str) & (col_destino_str == cod_origen_str)]
