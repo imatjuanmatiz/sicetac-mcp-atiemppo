@@ -79,6 +79,48 @@ def _alias_columns(df: pd.DataFrame) -> pd.DataFrame:
             df[lower] = df[col]
         if upper not in df.columns:
             df[upper] = df[col]
+
+        # Alias con espacios (ej: COSTO FIJO)
+        space_upper = base.replace("_", " ").upper()
+        space_lower = base.replace("_", " ").lower()
+        if space_upper not in df.columns:
+            df[space_upper] = df[col]
+        if space_lower not in df.columns:
+            df[space_lower] = df[col]
+
+    # Alias manuales para nombres esperados por el modelo
+    manual = {
+        "tipo_vehiculo": "TIPO_VEHICULO",
+        "mes_codigo": "MES",
+        "tipo_carroceria": "TIPO_CARROCERIA",
+        "costo_fijo": "COSTO FIJO",
+        "costos_variables": "COSTOS VARIABLES",
+        "valor_combustible_galon_acpm": "VALOR COMBUSTIBLE GALÓN ACPM",
+        "id_sice": "ID_SICE",
+        "ejes_configuracion": "EJES_CONFIGURACION",
+        "valor_peaje": "VALOR_PEAJE",
+        "ruta": "RUTA",
+        "nombre_sice": "NOMBRE_SICE",
+        "km_plano": "KM_PLANO",
+        "km_ondulado": "KM_ONDULADO",
+        "km_montanoso": "KM_MONTAÑOSO",
+        "km_urbano": "KM_URBANO",
+        "km_despavimentado": "KM_DESPAVIMENTADO",
+        "codigo_dane": "CODIGO_DANE",
+        "codigo_dane_origen": "CODIGO_DANE_ORIGEN",
+        "codigo_dane_destino": "CODIGO_DANE_DESTINO",
+        "nombre_oficial": "NOMBRE_OFICIAL",
+        "variacion_1": "VARIACION_1",
+        "variacion_2": "VARIACION_2",
+        "variacion_3": "VARIACION_3",
+    }
+    for src, dst in manual.items():
+        if src in df.columns and dst not in df.columns:
+            df[dst] = df[src]
+
+    # Alias de acentos especiales si vienen sin tildes
+    if "VALOR COMBUSTIBLE GALON ACPM" in df.columns and "VALOR COMBUSTIBLE GALÓN ACPM" not in df.columns:
+        df["VALOR COMBUSTIBLE GALÓN ACPM"] = df["VALOR COMBUSTIBLE GALON ACPM"]
     return df
 
 

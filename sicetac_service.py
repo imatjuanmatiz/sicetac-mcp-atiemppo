@@ -98,20 +98,28 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     cod_origen = origen_info["codigo_dane"]
     cod_destino = destino_info["codigo_dane"]
 
-    ruta = df_rutas[
-        (df_rutas["codigo_dane_origen"] == cod_origen) &
-        (df_rutas["codigo_dane_destino"] == cod_destino)
-    ]
+    ruta_key = f"{cod_origen}-{cod_destino}"
+    ruta = df_rutas[df_rutas["RUTA"] == ruta_key]
     if ruta.empty:
-        ruta = df_rutas[
-            (df_rutas["codigo_dane_origen"] == cod_destino) &
-            (df_rutas["codigo_dane_destino"] == cod_origen)
-        ]
+        ruta_key_rev = f"{cod_destino}-{cod_origen}"
+        ruta = df_rutas[df_rutas["RUTA"] == ruta_key_rev]
 
+    # Fallback por códigos si no existe columna RUTA o no hubo match
+    if ruta.empty and "CODIGO_DANE_ORIGEN" in df_rutas.columns and "CODIGO_DANE_DESTINO" in df_rutas.columns:
+        ruta = df_rutas[
+            (df_rutas["CODIGO_DANE_ORIGEN"] == cod_origen) &
+            (df_rutas["CODIGO_DANE_DESTINO"] == cod_destino)
+        ]
+        if ruta.empty:
+            ruta = df_rutas[
+                (df_rutas["CODIGO_DANE_ORIGEN"] == cod_destino) &
+                (df_rutas["CODIGO_DANE_DESTINO"] == cod_origen)
+            ]
+
+    manual_distancias = None
     if ruta.empty:
         if any([data.km_plano, data.km_ondulado, data.km_montañoso, data.km_urbano, data.km_despavimentado]):
-            fila_ruta = None
-            distancias = {
+            manual_distancias = {
                 "KM_PLANO": data.km_plano,
                 "KM_ONDULADO": data.km_ondulado,
                 "KM_MONTAÑOSO": data.km_montañoso,
@@ -120,14 +128,25 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             }
         else:
             raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+        fila_ruta = None
     else:
         fila_ruta = ruta.iloc[0]
-        distancias = {
-            "KM_PLANO": fila_ruta.get("KM_PLANO", 0),
-            "KM_ONDULADO": fila_ruta.get("KM_ONDULADO", 0),
-            "KM_MONTAÑOSO": fila_ruta.get("KM_MONTAÑOSO", 0),
-            "KM_URBANO": fila_ruta.get("KM_URBANO", 0),
-            "KM_DESPAVIMENTADO": fila_ruta.get("KM_DESPAVIMENTADO", 0),
+
+    def _distancias_from_ruta(row):
+        if row is None:
+            return manual_distancias or {
+                "KM_PLANO": 0,
+                "KM_ONDULADO": 0,
+                "KM_MONTAÑOSO": 0,
+                "KM_URBANO": 0,
+                "KM_DESPAVIMENTADO": 0,
+            }
+        return {
+            "KM_PLANO": row.get("KM_PLANO", 0),
+            "KM_ONDULADO": row.get("KM_ONDULADO", 0),
+            "KM_MONTAÑOSO": row.get("KM_MONTAÑOSO", 0),
+            "KM_URBANO": row.get("KM_URBANO", 0),
+            "KM_DESPAVIMENTADO": row.get("KM_DESPAVIMENTADO", 0),
         }
 
     vehiculo_upper = data.vehiculo.strip().upper().replace("C", "")
@@ -142,7 +161,8 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     if int(mes_usar) not in meses_validos:
         raise SicetacError(400, f"Mes '{mes_usar}' no válido. Debe ser uno de: {meses_validos}")
 
-    def _ejecutar_modelo(horas_logisticas_modelo: float | None):
+    def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
+        distancias = _distancias_from_ruta(ruta_row)
         if data.modo_viaje.upper() == "VACIO":
             return calcular_modelo_sicetac_extendido_vacio(
                 origen=data.origen,
@@ -157,7 +177,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
                 rutas_df=df_rutas,
                 peajes_df=df_peajes,
                 carroceria_especial=data.carroceria,
-                ruta_oficial=fila_ruta,
+                ruta_oficial=ruta_row,
                 horas_logisticas=horas_logisticas_modelo,
             )
         return calcular_modelo_sicetac_extendido(
@@ -173,7 +193,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             rutas_df=df_rutas,
             peajes_df=df_peajes,
             carroceria_especial=data.carroceria,
-            ruta_oficial=fila_ruta,
+            ruta_oficial=ruta_row,
             horas_logisticas=horas_logisticas_modelo,
         )
 
@@ -188,8 +208,8 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     escenarios_tiempos = None
 
     if data.modo_tiempos_logisticos:
-        res_movilizacion = _normalizar_total(_ejecutar_modelo(0))
-        res_sicetac = _normalizar_total(_ejecutar_modelo(None))
+        res_movilizacion = _normalizar_total(_ejecutar_modelo(0, ruta_row=fila_ruta))
+        res_sicetac = _normalizar_total(_ejecutar_modelo(None, ruta_row=fila_ruta))
 
         res_personalizado = None
         if data.horas_logisticas_personalizadas is not None:
@@ -197,7 +217,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             horas_base = min(horas_usuario, 8.0)
             horas_extra = max(horas_usuario - 8.0, 0.0)
 
-            res_base = _normalizar_total(_ejecutar_modelo(horas_base))
+            res_base = _normalizar_total(_ejecutar_modelo(horas_base, ruta_row=fila_ruta))
             if res_base is not None:
                 res_personalizado = _convertir_nativos(res_base)
                 costo_standby = round(horas_extra * float(data.tarifa_standby), 2)
@@ -223,7 +243,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             horas_base = min(horas_usuario, 8.0)
             horas_extra = max(horas_usuario - 8.0, 0.0)
 
-            res_base = _normalizar_total(_ejecutar_modelo(horas_base))
+            res_base = _normalizar_total(_ejecutar_modelo(horas_base, ruta_row=fila_ruta))
             resultado = res_base
 
             if resultado is not None and horas_extra > 0:
@@ -239,7 +259,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
                     "total_viaje_ajustado": round(total_viaje + costo_standby, 2),
                 })
         else:
-            resultado = _normalizar_total(_ejecutar_modelo(data.horas_logisticas))
+            resultado = _normalizar_total(_ejecutar_modelo(data.horas_logisticas, ruta_row=fila_ruta))
 
     resultado = _normalizar_total(resultado)
     resultado_convertido = _convertir_nativos(resultado) if resultado is not None else None
@@ -248,6 +268,20 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         "SICETAC": resultado_convertido,
         "MODO_VIAJE": data.modo_viaje.upper(),
     }
+    if len(ruta) > 1:
+        variantes = []
+        for _, r in ruta.iterrows():
+            try:
+                res_var = _normalizar_total(_ejecutar_modelo(data.horas_logisticas, ruta_row=r))
+                variantes.append({
+                    "NOMBRE_SICE": r.get("NOMBRE_SICE"),
+                    "ID_SICE": r.get("ID_SICE"),
+                    "RESULTADO": _convertir_nativos(res_var) if res_var is not None else None,
+                })
+            except Exception:
+                continue
+        if variantes:
+            respuesta["SICETAC_VARIANTES"] = variantes
     if escenarios_tiempos is not None:
         respuesta["MODO_TIEMPOS_LOGISTICOS"] = True
         respuesta["ESCENARIOS_TIEMPOS_LOGISTICOS"] = escenarios_tiempos
