@@ -21,6 +21,7 @@ class ConsultaInput(BaseModel):
     mes: int | None = None
     carroceria: str = "GENERAL"
     valor_peaje_manual: float = 0.0
+    valor_peajes_manual: float = 0.0
 
     # LEGACY: sigue existiendo para no romper nada
     horas_logisticas: float | None = None
@@ -34,6 +35,7 @@ class ConsultaInput(BaseModel):
     km_plano: float = 0
     km_ondulado: float = 0
     km_montañoso: float = 0
+    km_montanoso: float = 0
     km_urbano: float = 0
     km_despavimentado: float = 0
     modo_viaje: str = "CARGADO"
@@ -43,6 +45,9 @@ class ConsultaInput(BaseModel):
 
     # NUEVO: respuesta resumida (por defecto True)
     resumen: bool = True
+
+    # NUEVO: modo manual puro (sin buscar municipios/rutas)
+    manual_mode: bool = False
 
 
 @dataclass
@@ -165,6 +170,26 @@ def _latest_mes(df_parametros: pd.DataFrame) -> int | None:
         return None
 
 
+def _manual_km_montanoso(data: ConsultaInput) -> float:
+    # Compatibilidad de nombres: km_montañoso (legacy) y km_montanoso (nuevo).
+    return float(getattr(data, "km_montanoso", 0) or getattr(data, "km_montañoso", 0) or 0)
+
+
+def _manual_valor_peaje(data: ConsultaInput) -> float:
+    # Compatibilidad de nombres: valor_peaje_manual (legacy) y valor_peajes_manual (nuevo).
+    return float(getattr(data, "valor_peajes_manual", 0) or getattr(data, "valor_peaje_manual", 0) or 0)
+
+
+def _has_manual_distances(data: ConsultaInput) -> bool:
+    return any([
+        float(getattr(data, "km_plano", 0) or 0),
+        float(getattr(data, "km_ondulado", 0) or 0),
+        float(_manual_km_montanoso(data) or 0),
+        float(getattr(data, "km_urbano", 0) or 0),
+        float(getattr(data, "km_despavimentado", 0) or 0),
+    ])
+
+
 def calcular_sicetac(data: ConsultaInput) -> dict:
     _refresh_cache()
     df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
@@ -180,49 +205,55 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     if mes_usar is None:
         raise SicetacError(500, "No se pudo determinar el MES más reciente.")
 
-    origen_info = helper.buscar_municipio(data.origen)
-    destino_info = helper.buscar_municipio(data.destino)
+    manual_mode = bool(getattr(data, "manual_mode", False))
+    manual_distancias = {
+        "km_plano": float(getattr(data, "km_plano", 0) or 0),
+        "km_ondulado": float(getattr(data, "km_ondulado", 0) or 0),
+        "km_montanoso": float(_manual_km_montanoso(data) or 0),
+        "km_urbano": float(getattr(data, "km_urbano", 0) or 0),
+        "km_despavimentado": float(getattr(data, "km_despavimentado", 0) or 0),
+    }
 
-    if not origen_info or not destino_info:
-        raise SicetacError(404, "Origen o destino no encontrado")
+    for _k, _v in manual_distancias.items():
+        if _v < 0:
+            raise SicetacError(400, f"Distancia manual inválida en {_k}: no puede ser negativa")
 
-    cod_origen = origen_info["codigo_dane"]
-    cod_destino = destino_info["codigo_dane"]
+    manual_peaje = _manual_valor_peaje(data)
+    if manual_peaje < 0:
+        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual no puede ser negativo")
 
-    cod_origen_str = _clean_id(cod_origen)
-    cod_destino_str = _clean_id(cod_destino)
-
-    rutas_index = _get_rutas_index(df_rutas)
-    ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
-    if not ruta_rows:
-        ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
-    ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
-
-    manual_distancias = None
-    if ruta.empty:
-        if any([data.km_plano, data.km_ondulado, data.km_montañoso, data.km_urbano, data.km_despavimentado]):
-            manual_distancias = {
-                "km_plano": data.km_plano,
-                "km_ondulado": data.km_ondulado,
-                "km_montanoso": data.km_montañoso,
-                "km_urbano": data.km_urbano,
-                "km_despavimentado": data.km_despavimentado,
-            }
-        else:
-            raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+    if manual_mode:
+        ruta = pd.DataFrame()
         fila_ruta = None
     else:
-        fila_ruta = ruta.iloc[0]
+        origen_info = helper.buscar_municipio(data.origen)
+        destino_info = helper.buscar_municipio(data.destino)
+
+        if not origen_info or not destino_info:
+            raise SicetacError(404, "Origen o destino no encontrado")
+
+        cod_origen = origen_info["codigo_dane"]
+        cod_destino = destino_info["codigo_dane"]
+
+        cod_origen_str = _clean_id(cod_origen)
+        cod_destino_str = _clean_id(cod_destino)
+
+        rutas_index = _get_rutas_index(df_rutas)
+        ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+        if not ruta_rows:
+            ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+        ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
+
+        if ruta.empty:
+            if not _has_manual_distances(data):
+                raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+            fila_ruta = None
+        else:
+            fila_ruta = ruta.iloc[0]
 
     def _distancias_from_ruta(row):
         if row is None:
-            return manual_distancias or {
-                "km_plano": 0,
-                "km_ondulado": 0,
-                "km_montanoso": 0,
-                "km_urbano": 0,
-                "km_despavimentado": 0,
-            }
+            return manual_distancias
         return {
             "km_plano": row.get("KM_PLANO", 0),
             "km_ondulado": row.get("KM_ONDULADO", 0),
@@ -250,11 +281,11 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
 
     def _peaje_for_ruta(ruta_row) -> float:
         if ruta_row is None:
-            return float(data.valor_peaje_manual or 0)
+            return float(manual_peaje or 0)
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
         if not valores:
-            return float(data.valor_peaje_manual or 0)
+            return float(manual_peaje or 0)
         # Si hay múltiples, tomamos el primero (si quieres, puedo cambiar a suma)
         return float(valores[0])
 
@@ -368,6 +399,17 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         "SICETAC": resultado_convertido,
         "MODO_VIAJE": data.modo_viaje.upper(),
     }
+    if manual_mode:
+        respuesta["manual_mode_applied"] = True
+        respuesta["manual_input"] = {
+            "total_km": round(sum(manual_distancias.values()), 2),
+            "km_plano": manual_distancias["km_plano"],
+            "km_ondulado": manual_distancias["km_ondulado"],
+            "km_montanoso": manual_distancias["km_montanoso"],
+            "km_urbano": manual_distancias["km_urbano"],
+            "km_despavimentado": manual_distancias["km_despavimentado"],
+            "valor_peajes_manual": float(manual_peaje),
+        }
     if len(ruta) > 1:
         variantes = []
         for _, r in ruta.iterrows():
@@ -406,46 +448,52 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     if mes_usar is None:
         raise SicetacError(500, "No se pudo determinar el MES más reciente.")
 
-    origen_info = helper.buscar_municipio(data.origen)
-    destino_info = helper.buscar_municipio(data.destino)
+    manual_mode = bool(getattr(data, "manual_mode", False))
+    manual_distancias = {
+        "km_plano": float(getattr(data, "km_plano", 0) or 0),
+        "km_ondulado": float(getattr(data, "km_ondulado", 0) or 0),
+        "km_montanoso": float(_manual_km_montanoso(data) or 0),
+        "km_urbano": float(getattr(data, "km_urbano", 0) or 0),
+        "km_despavimentado": float(getattr(data, "km_despavimentado", 0) or 0),
+    }
 
-    if not origen_info or not destino_info:
-        raise SicetacError(404, "Origen o destino no encontrado")
+    for _k, _v in manual_distancias.items():
+        if _v < 0:
+            raise SicetacError(400, f"Distancia manual inválida en {_k}: no puede ser negativa")
 
-    cod_origen_str = _clean_id(origen_info["codigo_dane"])
-    cod_destino_str = _clean_id(destino_info["codigo_dane"])
+    manual_peaje = _manual_valor_peaje(data)
+    if manual_peaje < 0:
+        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual no puede ser negativo")
 
-    rutas_index = _get_rutas_index(df_rutas)
-    ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
-    if not ruta_rows:
-        ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
-    ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
-
-    manual_distancias = None
-    if ruta.empty:
-        if any([data.km_plano, data.km_ondulado, data.km_montañoso, data.km_urbano, data.km_despavimentado]):
-            manual_distancias = {
-                "km_plano": data.km_plano,
-                "km_ondulado": data.km_ondulado,
-                "km_montanoso": data.km_montañoso,
-                "km_urbano": data.km_urbano,
-                "km_despavimentado": data.km_despavimentado,
-            }
-        else:
-            raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+    if manual_mode:
+        ruta = pd.DataFrame()
         fila_ruta = None
     else:
-        fila_ruta = ruta.iloc[0]
+        origen_info = helper.buscar_municipio(data.origen)
+        destino_info = helper.buscar_municipio(data.destino)
+
+        if not origen_info or not destino_info:
+            raise SicetacError(404, "Origen o destino no encontrado")
+
+        cod_origen_str = _clean_id(origen_info["codigo_dane"])
+        cod_destino_str = _clean_id(destino_info["codigo_dane"])
+
+        rutas_index = _get_rutas_index(df_rutas)
+        ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+        if not ruta_rows:
+            ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+        ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
+
+        if ruta.empty:
+            if not _has_manual_distances(data):
+                raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+            fila_ruta = None
+        else:
+            fila_ruta = ruta.iloc[0]
 
     def _distancias_from_ruta(row):
         if row is None:
-            return manual_distancias or {
-                "km_plano": 0,
-                "km_ondulado": 0,
-                "km_montanoso": 0,
-                "km_urbano": 0,
-                "km_despavimentado": 0,
-            }
+            return manual_distancias
         return {
             "km_plano": row.get("KM_PLANO", 0),
             "km_ondulado": row.get("KM_ONDULADO", 0),
@@ -472,11 +520,11 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
 
     def _peaje_for_ruta(ruta_row) -> float:
         if ruta_row is None:
-            return float(data.valor_peaje_manual or 0)
+            return float(manual_peaje or 0)
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
         if not valores:
-            return float(data.valor_peaje_manual or 0)
+            return float(manual_peaje or 0)
         return float(valores[0])
 
     def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
@@ -536,7 +584,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
 
     if ruta.empty:
         totales = _totales_para_ruta(None)
-        return {
+        respuesta = {
             "origen": data.origen,
             "destino": data.destino,
             "configuracion": data.vehiculo,
@@ -545,10 +593,22 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
+        if manual_mode:
+            respuesta["manual_mode_applied"] = True
+            respuesta["manual_input"] = {
+                "total_km": round(sum(manual_distancias.values()), 2),
+                "km_plano": manual_distancias["km_plano"],
+                "km_ondulado": manual_distancias["km_ondulado"],
+                "km_montanoso": manual_distancias["km_montanoso"],
+                "km_urbano": manual_distancias["km_urbano"],
+                "km_despavimentado": manual_distancias["km_despavimentado"],
+                "valor_peajes_manual": float(manual_peaje),
+            }
+        return respuesta
 
     if len(ruta) == 1:
         totales = _totales_para_ruta(fila_ruta)
-        return {
+        respuesta = {
             "origen": data.origen,
             "destino": data.destino,
             "configuracion": data.vehiculo,
@@ -557,6 +617,18 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
+        if manual_mode:
+            respuesta["manual_mode_applied"] = True
+            respuesta["manual_input"] = {
+                "total_km": round(sum(manual_distancias.values()), 2),
+                "km_plano": manual_distancias["km_plano"],
+                "km_ondulado": manual_distancias["km_ondulado"],
+                "km_montanoso": manual_distancias["km_montanoso"],
+                "km_urbano": manual_distancias["km_urbano"],
+                "km_despavimentado": manual_distancias["km_despavimentado"],
+                "valor_peajes_manual": float(manual_peaje),
+            }
+        return respuesta
 
     variantes = []
     for _, r in ruta.iterrows():
@@ -566,7 +638,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "totales": _totales_para_ruta(r),
         })
 
-    return {
+    respuesta = {
         "origen": data.origen,
         "destino": data.destino,
         "configuracion": data.vehiculo,
@@ -575,6 +647,18 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
+    if manual_mode:
+        respuesta["manual_mode_applied"] = True
+        respuesta["manual_input"] = {
+            "total_km": round(sum(manual_distancias.values()), 2),
+            "km_plano": manual_distancias["km_plano"],
+            "km_ondulado": manual_distancias["km_ondulado"],
+            "km_montanoso": manual_distancias["km_montanoso"],
+            "km_urbano": manual_distancias["km_urbano"],
+            "km_despavimentado": manual_distancias["km_despavimentado"],
+            "valor_peajes_manual": float(manual_peaje),
+        }
+    return respuesta
 
 
 def generar_snapshot(
