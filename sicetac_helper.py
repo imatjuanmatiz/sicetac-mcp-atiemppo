@@ -1,6 +1,7 @@
 import pandas as pd
 from difflib import get_close_matches
 import logging
+import re
 
 logging.basicConfig(level=logging.INFO)
 
@@ -12,6 +13,17 @@ class SICETACHelper:
             self.df_municipios = pd.read_excel(municipios_source)
         self.columnas_municipios = ['nombre_oficial', 'variacion_1', 'variacion_2', 'variacion_3']
         self.codigo_municipio_col = 'codigo_dane'
+
+    def _clean_code(self, value):
+        raw = str(value or "").strip()
+        if not raw:
+            return None
+        digits = re.sub(r"\D", "", raw)
+        if digits:
+            return digits
+        if raw.endswith(".0"):
+            raw = raw[:-2]
+        return raw or None
 
     def buscar_municipio(self, nombre_input):
         resultado = self._buscar_codigo(
@@ -27,6 +39,51 @@ class SICETACHelper:
             logging.warning(f"✘ Municipio NO encontrado: {nombre_input}")
         return resultado
 
+    def buscar_municipio_por_codigo(self, codigo_input):
+        codigo = self._clean_code(codigo_input)
+        if not codigo:
+            return None
+
+        if self.codigo_municipio_col not in self.df_municipios.columns:
+            logging.warning("✘ Columna codigo_dane no disponible en municipios")
+            return None
+
+        serie_codigos = self.df_municipios[self.codigo_municipio_col].map(self._clean_code)
+        match = self.df_municipios[serie_codigos == codigo]
+        if match.empty:
+            logging.warning(f"✘ Municipio NO encontrado por código: {codigo_input}")
+            return None
+
+        row = match.iloc[0]
+        result = {self.codigo_municipio_col: self._clean_code(row[self.codigo_municipio_col])}
+        for c in ['departamento', 'nombre_oficial']:
+            if c in row:
+                result[c] = row[c]
+        result['matched_by_code'] = True
+        logging.info(f"✔ Municipio encontrado por código: {result}")
+        return result
+
+    def resolver_municipio_input(self, nombre_input=None, codigo_input=None):
+        if codigo_input is not None and str(codigo_input).strip():
+            resultado = self.buscar_municipio_por_codigo(codigo_input)
+            if resultado:
+                resultado['resolution_mode'] = 'code'
+                if nombre_input is not None and str(nombre_input).strip():
+                    resultado['input_nombre'] = str(nombre_input).strip()
+                return resultado
+
+        if nombre_input is not None and str(nombre_input).strip():
+            resultado = self.buscar_municipio(nombre_input)
+            if resultado:
+                resultado[self.codigo_municipio_col] = self._clean_code(resultado[self.codigo_municipio_col])
+                resultado['resolution_mode'] = 'name'
+                resultado['input_nombre'] = str(nombre_input).strip()
+                if codigo_input is not None and str(codigo_input).strip():
+                    resultado['input_codigo'] = self._clean_code(codigo_input)
+                return resultado
+
+        return None
+
     def _buscar_codigo(self, df, nombre_input, columnas_nombres, codigo_col, extra_cols=None):
         nombre_input = str(nombre_input).strip().upper()
         for col in columnas_nombres:
@@ -34,7 +91,7 @@ class SICETACHelper:
                 match = df[df[col].astype(str).str.upper().fillna('') == nombre_input]
                 if not match.empty:
                     row = match.iloc[0]
-                    result = {codigo_col: row[codigo_col]}
+                    result = {codigo_col: self._clean_code(row[codigo_col])}
                     if extra_cols:
                         for c in extra_cols:
                             if c in row:
@@ -49,7 +106,7 @@ class SICETACHelper:
                     match = df[df[col].astype(str).str.upper() == cercanos[0]]
                     if not match.empty:
                         row = match.iloc[0]
-                        result = {codigo_col: row[codigo_col]}
+                        result = {codigo_col: self._clean_code(row[codigo_col])}
                         if extra_cols:
                             for c in extra_cols:
                                 if c in row:

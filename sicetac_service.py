@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+import re
 from typing import Any
 
 import pandas as pd
@@ -15,8 +16,10 @@ from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
 
 
 class ConsultaInput(BaseModel):
-    origen: str
-    destino: str
+    origen: str | None = None
+    destino: str | None = None
+    codigo_dane_origen: str | None = None
+    codigo_dane_destino: str | None = None
     vehiculo: str = "C3S3"
     mes: int | None = None
     carroceria: str = "GENERAL"
@@ -67,17 +70,69 @@ def _convertir_nativos(d: Any):
 
 
 def _clean_id(x) -> str:
-    s = str(x).strip()
-    # Si viene como float entero (ej: 5001000.0), conviértelo a int sin ceros añadidos
-    try:
-        f = float(s)
-        if f.is_integer():
-            return str(int(f))
-    except Exception:
-        pass
+    s = str(x or "").strip()
+    if not s:
+        return ""
+    digits = re.sub(r"\D", "", s)
+    if digits:
+        return digits
     if s.endswith(".0") and s[:-2].isdigit():
         return s[:-2]
     return s
+
+
+def _display_name(input_value: str | None, resolved_name: str | None) -> str:
+    text = str(input_value or "").strip()
+    if text:
+        return text
+    return str(resolved_name or "").strip()
+
+
+def _resolved_route_payload(
+    *,
+    origen_input: str | None,
+    destino_input: str | None,
+    origen_info: dict[str, Any] | None,
+    destino_info: dict[str, Any] | None,
+) -> dict[str, Any]:
+    cod_origen = _clean_id(origen_info.get("codigo_dane")) if origen_info else ""
+    cod_destino = _clean_id(destino_info.get("codigo_dane")) if destino_info else ""
+    return {
+        "input_origen": str(origen_input or "").strip() or None,
+        "input_destino": str(destino_input or "").strip() or None,
+        "codigo_dane_origen": cod_origen or None,
+        "codigo_dane_destino": cod_destino or None,
+        "origen_nombre": origen_info.get("nombre_oficial") if origen_info else None,
+        "destino_nombre": destino_info.get("nombre_oficial") if destino_info else None,
+        "origen_departamento": origen_info.get("departamento") if origen_info else None,
+        "destino_departamento": destino_info.get("departamento") if destino_info else None,
+        "origen_resolution_mode": origen_info.get("resolution_mode") if origen_info else None,
+        "destino_resolution_mode": destino_info.get("resolution_mode") if destino_info else None,
+        "route_code": f"{cod_origen}-{cod_destino}" if cod_origen and cod_destino else None,
+    }
+
+
+def _resolve_route_inputs(data: ConsultaInput, helper: SICETACHelper) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], str, str]:
+    origen_info = helper.resolver_municipio_input(data.origen, data.codigo_dane_origen)
+    destino_info = helper.resolver_municipio_input(data.destino, data.codigo_dane_destino)
+
+    if not origen_info or not destino_info:
+        raise SicetacError(404, "Origen o destino no encontrado")
+
+    resolved_route = _resolved_route_payload(
+        origen_input=data.origen,
+        destino_input=data.destino,
+        origen_info=origen_info,
+        destino_info=destino_info,
+    )
+    origen_display = _display_name(data.origen, origen_info.get("nombre_oficial"))
+    destino_display = _display_name(data.destino, destino_info.get("nombre_oficial"))
+    return origen_info, destino_info, resolved_route, origen_display, destino_display
+
+
+def _attach_resolved_route(payload: dict[str, Any], resolved_route: dict[str, Any]) -> dict[str, Any]:
+    payload["resolved_route"] = resolved_route
+    return payload
 
 
 def _get_dataframes():
@@ -225,18 +280,13 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     if manual_mode:
         ruta = pd.DataFrame()
         fila_ruta = None
+        resolved_route = None
+        origen_display = _display_name(data.origen, None)
+        destino_display = _display_name(data.destino, None)
     else:
-        origen_info = helper.buscar_municipio(data.origen)
-        destino_info = helper.buscar_municipio(data.destino)
-
-        if not origen_info or not destino_info:
-            raise SicetacError(404, "Origen o destino no encontrado")
-
-        cod_origen = origen_info["codigo_dane"]
-        cod_destino = destino_info["codigo_dane"]
-
-        cod_origen_str = _clean_id(cod_origen)
-        cod_destino_str = _clean_id(cod_destino)
+        origen_info, destino_info, resolved_route, origen_display, destino_display = _resolve_route_inputs(data, helper)
+        cod_origen_str = _clean_id(origen_info["codigo_dane"])
+        cod_destino_str = _clean_id(destino_info["codigo_dane"])
 
         rutas_index = _get_rutas_index(df_rutas)
         ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
@@ -294,8 +344,8 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         valor_peaje_override = _peaje_for_ruta(ruta_row)
         if data.modo_viaje.upper() == "VACIO":
             return calcular_modelo_sicetac_extendido_vacio(
-                origen=data.origen,
-                destino=data.destino,
+                origen=origen_display,
+                destino=destino_display,
                 configuracion=data.vehiculo,
                 serie=int(mes_usar),
                 distancias=distancias,
@@ -311,8 +361,8 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
                 valor_peaje_override=valor_peaje_override,
             )
         return calcular_modelo_sicetac_extendido(
-            origen=data.origen,
-            destino=data.destino,
+            origen=origen_display,
+            destino=destino_display,
             configuracion=data.vehiculo,
             serie=int(mes_usar),
             distancias=distancias,
@@ -427,6 +477,8 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     if escenarios_tiempos is not None:
         respuesta["MODO_TIEMPOS_LOGISTICOS"] = True
         respuesta["ESCENARIOS_TIEMPOS_LOGISTICOS"] = escenarios_tiempos
+    if resolved_route:
+        _attach_resolved_route(respuesta, resolved_route)
     return respuesta
 
 
@@ -468,13 +520,11 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     if manual_mode:
         ruta = pd.DataFrame()
         fila_ruta = None
+        resolved_route = None
+        origen_display = _display_name(data.origen, None)
+        destino_display = _display_name(data.destino, None)
     else:
-        origen_info = helper.buscar_municipio(data.origen)
-        destino_info = helper.buscar_municipio(data.destino)
-
-        if not origen_info or not destino_info:
-            raise SicetacError(404, "Origen o destino no encontrado")
-
+        origen_info, destino_info, resolved_route, origen_display, destino_display = _resolve_route_inputs(data, helper)
         cod_origen_str = _clean_id(origen_info["codigo_dane"])
         cod_destino_str = _clean_id(destino_info["codigo_dane"])
 
@@ -532,8 +582,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         valor_peaje_override = _peaje_for_ruta(ruta_row)
         if data.modo_viaje.upper() == "VACIO":
             return calcular_modelo_sicetac_extendido_vacio(
-                origen=data.origen,
-                destino=data.destino,
+                origen=origen_display,
+                destino=destino_display,
                 configuracion=data.vehiculo,
                 serie=int(mes_usar),
                 distancias=distancias,
@@ -549,8 +599,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 valor_peaje_override=valor_peaje_override,
             )
         return calcular_modelo_sicetac_extendido(
-            origen=data.origen,
-            destino=data.destino,
+            origen=origen_display,
+            destino=destino_display,
             configuracion=data.vehiculo,
             serie=int(mes_usar),
             distancias=distancias,
@@ -585,8 +635,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     if ruta.empty:
         totales = _totales_para_ruta(None)
         respuesta = {
-            "origen": data.origen,
-            "destino": data.destino,
+            "origen": origen_display,
+            "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
             "carroceria": data.carroceria,
@@ -604,13 +654,15 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "km_despavimentado": manual_distancias["km_despavimentado"],
                 "valor_peajes_manual": float(manual_peaje),
             }
+        if resolved_route:
+            _attach_resolved_route(respuesta, resolved_route)
         return respuesta
 
     if len(ruta) == 1:
         totales = _totales_para_ruta(fila_ruta)
         respuesta = {
-            "origen": data.origen,
-            "destino": data.destino,
+            "origen": origen_display,
+            "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
             "carroceria": data.carroceria,
@@ -628,6 +680,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "km_despavimentado": manual_distancias["km_despavimentado"],
                 "valor_peajes_manual": float(manual_peaje),
             }
+        if resolved_route:
+            _attach_resolved_route(respuesta, resolved_route)
         return respuesta
 
     variantes = []
@@ -639,8 +693,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         })
 
     respuesta = {
-        "origen": data.origen,
-        "destino": data.destino,
+        "origen": origen_display,
+        "destino": destino_display,
         "configuracion": data.vehiculo,
         "mes": int(mes_usar),
         "carroceria": data.carroceria,
@@ -658,6 +712,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "km_despavimentado": manual_distancias["km_despavimentado"],
             "valor_peajes_manual": float(manual_peaje),
         }
+    if resolved_route:
+        _attach_resolved_route(respuesta, resolved_route)
     return respuesta
 
 

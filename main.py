@@ -15,7 +15,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client
 
-app = FastAPI(title="API SICETAC", version="1.5")
+app = FastAPI(title="API SICETAC", version="1.6")
 
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]

@@ -7,6 +7,12 @@ Esta API expone un modelo de cálculo de costos operativos bajo la metodología 
 ### POST `/consulta`
 Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resumen (totales para 2/4/8h logísticas).
 
+El endpoint acepta dos modos compatibles de identificación de ruta:
+- por nombre: `origen` y `destino`
+- por código DANE textual: `codigo_dane_origen` y `codigo_dane_destino`
+
+Si llegan ambos, la API prioriza los códigos y devuelve la resolución efectiva en `resolved_route`.
+
 #### Body (JSON)
 ```json
 {
@@ -29,6 +35,17 @@ Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resum
 }
 ```
 
+#### Body por código DANE
+```json
+{
+  "codigo_dane_origen": "11001000",
+  "codigo_dane_destino": "5001000",
+  "vehiculo": "C3S3",
+  "mes": 202504,
+  "resumen": true
+}
+```
+
 #### Respuesta (JSON)
 ```json
 {
@@ -38,7 +55,16 @@ Calcula el valor del viaje bajo el modelo SICETAC. Por defecto devuelve un resum
   "mes": 202504,
   "carroceria": "GENERAL",
   "modo_viaje": "CARGADO",
-  "totales": { "H2": 123456, "H4": 234567, "H8": 345678 }
+  "totales": { "H2": 123456, "H4": 234567, "H8": 345678 },
+  "resolved_route": {
+    "codigo_dane_origen": "11001000",
+    "codigo_dane_destino": "5001000",
+    "origen_nombre": "BOGOTÁ, D.C.",
+    "destino_nombre": "MEDELLIN",
+    "route_code": "11001000-5001000",
+    "origen_resolution_mode": "name",
+    "destino_resolution_mode": "name"
+  }
 }
 ```
 
@@ -86,6 +112,17 @@ curl -X POST http://localhost:8000/consulta \
         "origen": "Bogotá",
         "destino": "Medellín",
         "vehiculo": "3S3",
+        "mes": 202504
+      }'
+```
+
+```bash
+curl -X POST http://localhost:8000/consulta \
+  -H "Content-Type: application/json" \
+  -d '{
+        "codigo_dane_origen": "63001000",
+        "codigo_dane_destino": "76001000",
+        "vehiculo": "C3S3",
         "mes": 202504
       }'
 ```
