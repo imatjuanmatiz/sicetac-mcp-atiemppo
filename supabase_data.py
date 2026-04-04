@@ -30,6 +30,8 @@ TABLES: Dict[str, str] = {
     "costos_fijos": os.getenv("SICETAC_TABLE_COSTOS_FIJOS", "costos_fijos_vigentes"),
     "peajes": os.getenv("SICETAC_TABLE_PEAJES", "peajes_vigentes"),
     "rutas": os.getenv("SICETAC_TABLE_RUTAS", "rutas"),
+    "sicetac_movilizacion": os.getenv("SICETAC_TABLE_SICETAC_MOVILIZACION", "sicetac_movilizacion_vigentes"),
+    "sicetac_valorhora": os.getenv("SICETAC_TABLE_SICETAC_VALORHORA", "sicetac_valorhora_vigentes"),
     # Tablas mínimas para el cálculo del modelo
 }
 
@@ -113,6 +115,9 @@ def _alias_columns(df: pd.DataFrame) -> pd.DataFrame:
         "variacion_1": "VARIACION_1",
         "variacion_2": "VARIACION_2",
         "variacion_3": "VARIACION_3",
+        "configuracion_analisis": "CONFIGURACION_ANALISIS",
+        "configuracion_sicetac_lookup": "CONFIGURACION_SICETAC_LOOKUP",
+        "rutasid": "RUTASID",
     }
     for src, dst in manual.items():
         if src in df.columns and dst not in df.columns:

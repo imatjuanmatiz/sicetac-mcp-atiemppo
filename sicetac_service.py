@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import os
 import re
 from typing import Any
+import unicodedata
 
 import pandas as pd
 from pydantic import BaseModel
@@ -57,6 +58,93 @@ class ConsultaInput(BaseModel):
 class SicetacError(Exception):
     status_code: int
     detail: str
+
+
+SICE_COLUMN_OPTIONS: list[dict[str, str]] = [
+    {
+        "column": "GENERAL_ESTACAS_CARGADO",
+        "label": "General - Estacas",
+        "aliases": "GENERAL|GENERAL ESTACAS|GENERAL - ESTACAS|GENERAL ESTACA|GENERAL - ESTIBA",
+    },
+    {
+        "column": "GENERAL_FURGON_CARGADO",
+        "label": "General - Furgon",
+        "aliases": "FURGON GENERAL|GENERAL FURGON|GENERAL - FURGON",
+    },
+    {
+        "column": "GENERAL_ESTIBAS_CARGADO",
+        "label": "General - Estibas",
+        "aliases": "ESTIBA|ESTIBAS|GENERAL ESTIBAS|GENERAL - ESTIBAS",
+    },
+    {
+        "column": "GENERAL_PLATAFORMA_CARGADO",
+        "label": "General - Plataforma",
+        "aliases": "PLATAFORMA|GENERAL PLATAFORMA|GENERAL - PLATAFORMA|GENERA - PLATAFORMA",
+    },
+    {
+        "column": "CONTENEDOR_PORTACONTENEDORES_CARGADO",
+        "label": "Portacontenedores",
+        "aliases": "PORTACONTENEDORES|PORTA CONTENEDORES|CONTENEDOR PORTACONTENEDORES",
+    },
+    {
+        "column": "CARGA_REFRIGERADA_FURGON_REFRIGERADO_CARGADO",
+        "label": "Furgon Refrigerado",
+        "aliases": "FURGON REFRIGERADO|CARGA REFRIGERADA|REFRIGERADO",
+    },
+    {
+        "column": "GRANEL_SOLIDO_ESTACAS_CARGADO",
+        "label": "Granel Solido - Estacas",
+        "aliases": "ESTACAS GRANEL SOLIDO|GRANEL SOLIDO ESTACAS|GRANEL SOLIDO - ESTACAS",
+    },
+    {
+        "column": "GRANEL_SOLIDO_FURGON_CARGADO",
+        "label": "Granel Solido - Furgon",
+        "aliases": "FURGON GRANEL SOLIDO|GRANEL SOLIDO FURGON|GRANEL SOLIDO - FURGON",
+    },
+    {
+        "column": "GRANEL_SOLIDO_VOLCO_CARGADO",
+        "label": "Granel Solido - Volco",
+        "aliases": "VOLCO|GRANEL SOLIDO VOLCO|GRANEL SOLIDO - VOLCO",
+    },
+    {
+        "column": "GRANEL_SOLIDO_ESTIBAS_CARGADO",
+        "label": "Granel Solido - Estibas",
+        "aliases": "ESTIBAS GRANEL SOLIDO|GRANEL SOLIDO ESTIBAS|GRANEL SOLIDO - ESTIBAS",
+    },
+    {
+        "column": "GRANEL_SOLIDO_PLATAFORMA_CARGADO",
+        "label": "Granel Solido - Plataforma",
+        "aliases": "PLATAFORMA GRANEL SOLIDO|GRANEL SOLIDO PLATAFORMA|GRANEL SOLIDO - PLATAFORMA",
+    },
+    {
+        "column": "GRANEL_LIQUIDO_TANQUE_CARGADO",
+        "label": "Granel Liquido - Tanque",
+        "aliases": "TANQUE - GRANEL LIQUIDO|TANQUE GRANEL LIQUIDO|GRANEL LIQUIDO TANQUE|GRANEL LQUIDO TANQUE",
+    },
+]
+
+
+def _normalize_lookup_text(value: str | None) -> str:
+    text = str(value or "").strip().upper()
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+_SICE_COLUMN_MAP: dict[str, dict[str, str]] = {}
+for item in SICE_COLUMN_OPTIONS:
+    _SICE_COLUMN_MAP[item["column"]] = item
+    _SICE_COLUMN_MAP[_normalize_lookup_text(item["label"])] = item
+    for alias in item["aliases"].split("|"):
+        _SICE_COLUMN_MAP[_normalize_lookup_text(alias)] = item
+
+
+def get_sice_column_options() -> list[dict[str, str]]:
+    return [
+        {"column": item["column"].lower(), "label": item["label"]}
+        for item in SICE_COLUMN_OPTIONS
+    ]
 
 
 def _convertir_nativos(d: Any):
@@ -142,15 +230,29 @@ def _get_dataframes():
     df_costos_fijos = get_table_df("costos_fijos")
     df_peajes = get_table_df("peajes")
     df_rutas = get_table_df("rutas")
-    return df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas
+    df_sicetac_movilizacion = get_table_df("sicetac_movilizacion")
+    df_sicetac_valorhora = get_table_df("sicetac_valorhora")
+    return (
+        df_municipios,
+        df_vehiculos,
+        df_parametros,
+        df_costos_fijos,
+        df_peajes,
+        df_rutas,
+        df_sicetac_movilizacion,
+        df_sicetac_valorhora,
+    )
 
 
 _RUTAS_INDEX: dict[tuple[str, str], list[pd.Series]] | None = None
 _PEAJES_INDEX: dict[tuple[str, str], list[float]] | None = None
+_MOVILIZACION_INDEX: dict[tuple[str, str, str], list[pd.Series]] | None = None
+_VALORHORA_INDEX: dict[str, pd.Series] | None = None
 _LAST_REFRESH_TS: float | None = None
 _CACHE_TTL_SECONDS = int(float(
     (os.getenv("SICETAC_CACHE_TTL_SECONDS") or str(7 * 24 * 3600))
 ))
+_USE_CONSOLIDATED_LOOKUP = (os.getenv("SICETAC_USE_CONSOLIDATED_LOOKUP", "true").strip().lower() != "false")
 
 
 def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Series]]:
@@ -197,8 +299,49 @@ def _get_peajes_index(df_peajes: pd.DataFrame) -> dict[tuple[str, str], list[flo
     return _PEAJES_INDEX
 
 
+def _get_movilizacion_index(df_movilizacion: pd.DataFrame) -> dict[tuple[str, str, str], list[pd.Series]]:
+    global _MOVILIZACION_INDEX
+    if _MOVILIZACION_INDEX is not None:
+        return _MOVILIZACION_INDEX
+    if df_movilizacion is None or df_movilizacion.empty:
+        _MOVILIZACION_INDEX = {}
+        return _MOVILIZACION_INDEX
+
+    required = {"ORIGEN", "DESTINO", "CONFIGURACION"}
+    if not required.issubset(set(df_movilizacion.columns)):
+        _MOVILIZACION_INDEX = {}
+        return _MOVILIZACION_INDEX
+
+    index: dict[tuple[str, str, str], list[pd.Series]] = {}
+    for _, row in df_movilizacion.iterrows():
+        key = (
+            _clean_id(row["ORIGEN"]),
+            _clean_id(row["DESTINO"]),
+            str(row["CONFIGURACION"]).strip().upper(),
+        )
+        index.setdefault(key, []).append(row)
+    _MOVILIZACION_INDEX = index
+    return _MOVILIZACION_INDEX
+
+
+def _get_valorhora_index(df_valorhora: pd.DataFrame) -> dict[str, pd.Series]:
+    global _VALORHORA_INDEX
+    if _VALORHORA_INDEX is not None:
+        return _VALORHORA_INDEX
+    if df_valorhora is None or df_valorhora.empty or "CONFIGURACION" not in df_valorhora.columns:
+        _VALORHORA_INDEX = {}
+        return _VALORHORA_INDEX
+
+    index: dict[str, pd.Series] = {}
+    for _, row in df_valorhora.iterrows():
+        key = str(row["CONFIGURACION"]).strip().upper()
+        index[key] = row
+    _VALORHORA_INDEX = index
+    return _VALORHORA_INDEX
+
+
 def _refresh_cache(force: bool = False) -> None:
-    global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX
+    global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX, _MOVILIZACION_INDEX, _VALORHORA_INDEX
     now = time.time()
     if not force and _LAST_REFRESH_TS is not None:
         if (now - _LAST_REFRESH_TS) < _CACHE_TTL_SECONDS:
@@ -213,6 +356,8 @@ def _refresh_cache(force: bool = False) -> None:
     # Limpiar índices
     _RUTAS_INDEX = None
     _PEAJES_INDEX = None
+    _MOVILIZACION_INDEX = None
+    _VALORHORA_INDEX = None
     _LAST_REFRESH_TS = now
 
 
@@ -245,9 +390,96 @@ def _has_manual_distances(data: ConsultaInput) -> bool:
     ])
 
 
+def _configuracion_lookup(fila_conf: pd.Series, vehiculo: str) -> str:
+    value = (
+        fila_conf.get("CONFIGURACION_SICETAC_LOOKUP")
+        or fila_conf.get("configuracion_sicetac_lookup")
+        or fila_conf.get("CONFIGURACION_ANALISIS")
+        or fila_conf.get("EJES_CONFIGURACION")
+        or vehiculo
+    )
+    return str(value).strip().upper()
+
+
+def _carroceria_option(carroceria: str) -> dict[str, str] | None:
+    return _SICE_COLUMN_MAP.get(_normalize_lookup_text(carroceria))
+
+
+def _lookup_sicetac_totales(
+    *,
+    cod_origen_str: str,
+    cod_destino_str: str,
+    configuracion_lookup: str,
+    carroceria: str,
+    df_movilizacion: pd.DataFrame,
+    df_valorhora: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    if not _USE_CONSOLIDATED_LOOKUP:
+        return []
+
+    carroceria_option = _carroceria_option(carroceria)
+    if not carroceria_option:
+        return []
+    lookup_col = carroceria_option["column"]
+
+    mov_index = _get_movilizacion_index(df_movilizacion)
+    vh_index = _get_valorhora_index(df_valorhora)
+
+    route_key = (cod_origen_str, cod_destino_str, configuracion_lookup)
+    rows = mov_index.get(route_key, [])
+    if not rows:
+        reverse_key = (cod_destino_str, cod_origen_str, configuracion_lookup)
+        rows = mov_index.get(reverse_key, [])
+    vh_row = vh_index.get(configuracion_lookup)
+
+    if not rows or vh_row is None:
+        return []
+
+    try:
+        valor_hora = float(vh_row.get(lookup_col))
+    except Exception:
+        return []
+
+    if pd.isna(valor_hora):
+        return []
+
+    resolved: list[dict[str, Any]] = []
+    for row in rows:
+        try:
+            movilizacion = float(row.get(lookup_col))
+        except Exception:
+            continue
+        if pd.isna(movilizacion):
+            continue
+        resolved.append(
+            {
+                "rutasid": _clean_id(row.get("RUTASID")),
+                "movilizacion": movilizacion,
+                "valor_hora": valor_hora,
+                "totales": {
+                    "H2": round(movilizacion + (2 * valor_hora), 2),
+                    "H4": round(movilizacion + (4 * valor_hora), 2),
+                    "H8": round(movilizacion + (8 * valor_hora), 2),
+                },
+                "lookup_column": lookup_col.lower(),
+                "lookup_label": carroceria_option["label"],
+            }
+        )
+    return resolved
+
+
 def calcular_sicetac(data: ConsultaInput) -> dict:
     _refresh_cache()
-    df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
+    (
+        df_municipios,
+        df_vehiculos,
+        df_parametros,
+        df_costos_fijos,
+        df_peajes,
+        df_rutas,
+        df_sicetac_movilizacion,
+        df_sicetac_valorhora,
+    ) = _get_dataframes()
 
     if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
         raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
@@ -487,7 +719,16 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     Calcula totales para 2, 4 y 8 horas logísticas con respuesta mínima.
     """
     _refresh_cache()
-    df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
+    (
+        df_municipios,
+        df_vehiculos,
+        df_parametros,
+        df_costos_fijos,
+        df_peajes,
+        df_rutas,
+        df_sicetac_movilizacion,
+        df_sicetac_valorhora,
+    ) = _get_dataframes()
 
     if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
         raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
@@ -566,7 +807,75 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
 
     fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == data.vehiculo].iloc[0]
     ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
+    configuracion_lookup = _configuracion_lookup(fila_conf, data.vehiculo)
     peajes_index = _get_peajes_index(df_peajes)
+
+    if (
+        not manual_mode
+        and data.modo_viaje.upper() == "CARGADO"
+        and ruta is not None
+        and not ruta.empty
+    ):
+        lookup_rows = _lookup_sicetac_totales(
+            cod_origen_str=cod_origen_str,
+            cod_destino_str=cod_destino_str,
+            configuracion_lookup=configuracion_lookup,
+            carroceria=data.carroceria,
+            df_movilizacion=df_sicetac_movilizacion,
+            df_valorhora=df_sicetac_valorhora,
+        )
+        if lookup_rows:
+            if len(lookup_rows) == 1:
+                respuesta = {
+                    "origen": origen_display,
+                    "destino": destino_display,
+                    "configuracion": data.vehiculo,
+                    "configuracion_analisis": configuracion_lookup,
+                    "mes": int(mes_usar),
+                    "carroceria": data.carroceria,
+                    "modo_viaje": data.modo_viaje.upper(),
+                    "totales": lookup_rows[0]["totales"],
+                    "metodo": "lookup_consolidado",
+                    "detalle_lookup": {
+                        "rutasid": lookup_rows[0]["rutasid"],
+                        "movilizacion": lookup_rows[0]["movilizacion"],
+                        "valor_hora": lookup_rows[0]["valor_hora"],
+                        "columna_usada": lookup_rows[0]["lookup_column"],
+                        "opcion_servicio": lookup_rows[0]["lookup_label"],
+                    },
+                }
+                if resolved_route:
+                    _attach_resolved_route(respuesta, resolved_route)
+                return respuesta
+
+            variantes = []
+            for idx, item in enumerate(lookup_rows, start=1):
+                variantes.append({
+                    "NOMBRE_SICE": f"RUTASID {item['rutasid']}" if item["rutasid"] else f"Ruta {idx}",
+                    "RUTASID": item["rutasid"],
+                    "totales": item["totales"],
+                    "detalle_lookup": {
+                        "movilizacion": item["movilizacion"],
+                        "valor_hora": item["valor_hora"],
+                        "columna_usada": item["lookup_column"],
+                        "opcion_servicio": item["lookup_label"],
+                    },
+                })
+
+            respuesta = {
+                "origen": origen_display,
+                "destino": destino_display,
+                "configuracion": data.vehiculo,
+                "configuracion_analisis": configuracion_lookup,
+                "mes": int(mes_usar),
+                "carroceria": data.carroceria,
+                "modo_viaje": data.modo_viaje.upper(),
+                "metodo": "lookup_consolidado",
+                "variantes": variantes,
+            }
+            if resolved_route:
+                _attach_resolved_route(respuesta, resolved_route)
+            return respuesta
 
     def _peaje_for_ruta(ruta_row) -> float:
         if ruta_row is None:
@@ -726,7 +1035,16 @@ def generar_snapshot(
     Genera snapshot para todas las rutas y vehículos.
     """
     _refresh_cache()
-    df_municipios, df_vehiculos, df_parametros, df_costos_fijos, df_peajes, df_rutas = _get_dataframes()
+    (
+        df_municipios,
+        df_vehiculos,
+        df_parametros,
+        df_costos_fijos,
+        df_peajes,
+        df_rutas,
+        _df_sicetac_movilizacion,
+        _df_sicetac_valorhora,
+    ) = _get_dataframes()
 
     if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
         raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")

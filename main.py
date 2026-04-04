@@ -12,6 +12,7 @@ from sicetac_service import (
     calcular_sicetac_resumen,
     _refresh_cache,
     generar_snapshot,
+    get_sice_column_options,
 )
 from supabase_data import get_client
 
@@ -62,6 +63,11 @@ def calcular_sicetac_resumen_endpoint(data: ConsultaInput):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/opciones/carrocerias")
+def opciones_carrocerias():
+    return {"carrocerias": get_sice_column_options()}
 
 
 @app.post("/refresh")
