@@ -10,7 +10,11 @@ import pandas as pd
 from pydantic import BaseModel
 import time
 
-from supabase_data import get_table_df
+from supabase_data import (
+    get_sicetac_movilizacion_df,
+    get_sicetac_valorhora_df,
+    get_table_df,
+)
 from sicetac_helper import SICETACHelper
 from modelo_sicetac import calcular_modelo_sicetac_extendido
 from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
@@ -230,8 +234,9 @@ def _get_dataframes():
     df_costos_fijos = get_table_df("costos_fijos")
     df_peajes = get_table_df("peajes")
     df_rutas = get_table_df("rutas")
-    df_sicetac_movilizacion = get_table_df("sicetac_movilizacion")
-    df_sicetac_valorhora = get_table_df("sicetac_valorhora")
+    # SICETAC consolidado se consulta por lookup puntual para no cargar 116k filas en memoria.
+    df_sicetac_movilizacion = pd.DataFrame()
+    df_sicetac_valorhora = pd.DataFrame()
     return (
         df_municipios,
         df_vehiculos,
@@ -246,8 +251,6 @@ def _get_dataframes():
 
 _RUTAS_INDEX: dict[tuple[str, str], list[pd.Series]] | None = None
 _PEAJES_INDEX: dict[tuple[str, str], list[float]] | None = None
-_MOVILIZACION_INDEX: dict[tuple[str, str, str], list[pd.Series]] | None = None
-_VALORHORA_INDEX: dict[str, pd.Series] | None = None
 _LAST_REFRESH_TS: float | None = None
 _CACHE_TTL_SECONDS = int(float(
     (os.getenv("SICETAC_CACHE_TTL_SECONDS") or str(7 * 24 * 3600))
@@ -299,49 +302,8 @@ def _get_peajes_index(df_peajes: pd.DataFrame) -> dict[tuple[str, str], list[flo
     return _PEAJES_INDEX
 
 
-def _get_movilizacion_index(df_movilizacion: pd.DataFrame) -> dict[tuple[str, str, str], list[pd.Series]]:
-    global _MOVILIZACION_INDEX
-    if _MOVILIZACION_INDEX is not None:
-        return _MOVILIZACION_INDEX
-    if df_movilizacion is None or df_movilizacion.empty:
-        _MOVILIZACION_INDEX = {}
-        return _MOVILIZACION_INDEX
-
-    required = {"ORIGEN", "DESTINO", "CONFIGURACION"}
-    if not required.issubset(set(df_movilizacion.columns)):
-        _MOVILIZACION_INDEX = {}
-        return _MOVILIZACION_INDEX
-
-    index: dict[tuple[str, str, str], list[pd.Series]] = {}
-    for _, row in df_movilizacion.iterrows():
-        key = (
-            _clean_id(row["ORIGEN"]),
-            _clean_id(row["DESTINO"]),
-            str(row["CONFIGURACION"]).strip().upper(),
-        )
-        index.setdefault(key, []).append(row)
-    _MOVILIZACION_INDEX = index
-    return _MOVILIZACION_INDEX
-
-
-def _get_valorhora_index(df_valorhora: pd.DataFrame) -> dict[str, pd.Series]:
-    global _VALORHORA_INDEX
-    if _VALORHORA_INDEX is not None:
-        return _VALORHORA_INDEX
-    if df_valorhora is None or df_valorhora.empty or "CONFIGURACION" not in df_valorhora.columns:
-        _VALORHORA_INDEX = {}
-        return _VALORHORA_INDEX
-
-    index: dict[str, pd.Series] = {}
-    for _, row in df_valorhora.iterrows():
-        key = str(row["CONFIGURACION"]).strip().upper()
-        index[key] = row
-    _VALORHORA_INDEX = index
-    return _VALORHORA_INDEX
-
-
 def _refresh_cache(force: bool = False) -> None:
-    global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX, _MOVILIZACION_INDEX, _VALORHORA_INDEX
+    global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX
     now = time.time()
     if not force and _LAST_REFRESH_TS is not None:
         if (now - _LAST_REFRESH_TS) < _CACHE_TTL_SECONDS:
@@ -352,12 +314,18 @@ def _refresh_cache(force: bool = False) -> None:
         get_table_df.cache_clear()
     except Exception:
         pass
+    try:
+        get_sicetac_movilizacion_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_sicetac_valorhora_df.cache_clear()
+    except Exception:
+        pass
 
     # Limpiar índices
     _RUTAS_INDEX = None
     _PEAJES_INDEX = None
-    _MOVILIZACION_INDEX = None
-    _VALORHORA_INDEX = None
     _LAST_REFRESH_TS = now
 
 
@@ -411,8 +379,6 @@ def _lookup_sicetac_totales(
     cod_destino_str: str,
     configuracion_lookup: str,
     carroceria: str,
-    df_movilizacion: pd.DataFrame,
-    df_valorhora: pd.DataFrame,
 ) -> list[dict[str, Any]]:
     if not _USE_CONSOLIDATED_LOOKUP:
         return []
@@ -422,18 +388,14 @@ def _lookup_sicetac_totales(
         return []
     lookup_col = carroceria_option["column"]
 
-    mov_index = _get_movilizacion_index(df_movilizacion)
-    vh_index = _get_valorhora_index(df_valorhora)
+    df_rows = get_sicetac_movilizacion_df(cod_origen_str, cod_destino_str, configuracion_lookup)
+    if df_rows.empty:
+        df_rows = get_sicetac_movilizacion_df(cod_destino_str, cod_origen_str, configuracion_lookup)
+    df_valorhora = get_sicetac_valorhora_df(configuracion_lookup)
 
-    route_key = (cod_origen_str, cod_destino_str, configuracion_lookup)
-    rows = mov_index.get(route_key, [])
-    if not rows:
-        reverse_key = (cod_destino_str, cod_origen_str, configuracion_lookup)
-        rows = mov_index.get(reverse_key, [])
-    vh_row = vh_index.get(configuracion_lookup)
-
-    if not rows or vh_row is None:
+    if df_rows.empty or df_valorhora.empty:
         return []
+    vh_row = df_valorhora.iloc[0]
 
     try:
         valor_hora = float(vh_row.get(lookup_col))
@@ -444,7 +406,7 @@ def _lookup_sicetac_totales(
         return []
 
     resolved: list[dict[str, Any]] = []
-    for row in rows:
+    for _, row in df_rows.iterrows():
         try:
             movilizacion = float(row.get(lookup_col))
         except Exception:
@@ -617,69 +579,83 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             res["total_viaje"] = res["total_viaje_vacio"]
         return res
 
-    resultado = None
-    escenarios_tiempos = None
+    horas_objetivo = [2, 4, 8]
 
-    if data.modo_tiempos_logisticos:
-        res_movilizacion = _normalizar_total(_ejecutar_modelo(0, ruta_row=fila_ruta))
-        res_sicetac = _normalizar_total(_ejecutar_modelo(None, ruta_row=fila_ruta))
+    def _totales_para_ruta(ruta_row):
+        tot = {}
+        for h in horas_objetivo:
+            res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
+            tot[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+        return tot
 
-        res_personalizado = None
-        if data.horas_logisticas_personalizadas is not None:
-            horas_usuario = float(data.horas_logisticas_personalizadas)
-            horas_base = min(horas_usuario, 8.0)
-            horas_extra = max(horas_usuario - 8.0, 0.0)
-
-            res_base = _normalizar_total(_ejecutar_modelo(horas_base, ruta_row=fila_ruta))
-            if res_base is not None:
-                res_personalizado = _convertir_nativos(res_base)
-                costo_standby = round(horas_extra * float(data.tarifa_standby), 2)
-                total_viaje = float(res_personalizado.get("total_viaje", 0))
-                res_personalizado.update({
-                    "horas_logisticas_usuario": horas_usuario,
-                    "horas_logisticas_base": horas_base,
-                    "horas_standby_adicionales": horas_extra,
-                    "tarifa_standby": float(data.tarifa_standby),
-                    "costo_standby": costo_standby,
-                    "total_viaje_ajustado": round(total_viaje + costo_standby, 2),
-                })
-
-        escenarios_tiempos = {
-            "MOVILIZACION": _convertir_nativos(res_movilizacion) if res_movilizacion else None,
-            "SICETAC_DEFECTO": _convertir_nativos(res_sicetac) if res_sicetac else None,
-            "PERSONALIZADO": res_personalizado,
+    if ruta.empty:
+        totales = _totales_para_ruta(None)
+        respuesta = {
+            "origen": origen_display,
+            "destino": destino_display,
+            "configuracion": data.vehiculo,
+            "mes": int(mes_usar),
+            "carroceria": data.carroceria,
+            "modo_viaje": data.modo_viaje.upper(),
+            "totales": totales,
         }
-        resultado = res_sicetac or res_movilizacion or res_personalizado
-    else:
-        if data.horas_logisticas_personalizadas is not None:
-            horas_usuario = float(data.horas_logisticas_personalizadas)
-            horas_base = min(horas_usuario, 8.0)
-            horas_extra = max(horas_usuario - 8.0, 0.0)
+        if manual_mode:
+            respuesta["manual_mode_applied"] = True
+            respuesta["manual_input"] = {
+                "total_km": round(sum(manual_distancias.values()), 2),
+                "km_plano": manual_distancias["km_plano"],
+                "km_ondulado": manual_distancias["km_ondulado"],
+                "km_montanoso": manual_distancias["km_montanoso"],
+                "km_urbano": manual_distancias["km_urbano"],
+                "km_despavimentado": manual_distancias["km_despavimentado"],
+                "valor_peajes_manual": float(manual_peaje),
+            }
+        if resolved_route:
+            _attach_resolved_route(respuesta, resolved_route)
+        return respuesta
 
-            res_base = _normalizar_total(_ejecutar_modelo(horas_base, ruta_row=fila_ruta))
-            resultado = res_base
+    if len(ruta) == 1:
+        totales = _totales_para_ruta(fila_ruta)
+        respuesta = {
+            "origen": origen_display,
+            "destino": destino_display,
+            "configuracion": data.vehiculo,
+            "mes": int(mes_usar),
+            "carroceria": data.carroceria,
+            "modo_viaje": data.modo_viaje.upper(),
+            "totales": totales,
+        }
+        if manual_mode:
+            respuesta["manual_mode_applied"] = True
+            respuesta["manual_input"] = {
+                "total_km": round(sum(manual_distancias.values()), 2),
+                "km_plano": manual_distancias["km_plano"],
+                "km_ondulado": manual_distancias["km_ondulado"],
+                "km_montanoso": manual_distancias["km_montanoso"],
+                "km_urbano": manual_distancias["km_urbano"],
+                "km_despavimentado": manual_distancias["km_despavimentado"],
+                "valor_peajes_manual": float(manual_peaje),
+            }
+        if resolved_route:
+            _attach_resolved_route(respuesta, resolved_route)
+        return respuesta
 
-            if resultado is not None and horas_extra > 0:
-                resultado = _convertir_nativos(resultado)
-                costo_standby = round(horas_extra * float(data.tarifa_standby), 2)
-                total_viaje = float(resultado.get("total_viaje", 0))
-                resultado.update({
-                    "horas_logisticas_usuario": horas_usuario,
-                    "horas_logisticas_base": horas_base,
-                    "horas_standby_adicionales": horas_extra,
-                    "tarifa_standby": float(data.tarifa_standby),
-                    "costo_standby": costo_standby,
-                    "total_viaje_ajustado": round(total_viaje + costo_standby, 2),
-                })
-        else:
-            resultado = _normalizar_total(_ejecutar_modelo(data.horas_logisticas, ruta_row=fila_ruta))
-
-    resultado = _normalizar_total(resultado)
-    resultado_convertido = _convertir_nativos(resultado) if resultado is not None else None
+    variantes = []
+    for _, r in ruta.iterrows():
+        variantes.append({
+            "NOMBRE_SICE": r.get("NOMBRE_SICE"),
+            "ID_SICE": r.get("ID_SICE"),
+            "totales": _totales_para_ruta(r),
+        })
 
     respuesta = {
-        "SICETAC": resultado_convertido,
-        "MODO_VIAJE": data.modo_viaje.upper(),
+        "origen": origen_display,
+        "destino": destino_display,
+        "configuracion": data.vehiculo,
+        "mes": int(mes_usar),
+        "carroceria": data.carroceria,
+        "modo_viaje": data.modo_viaje.upper(),
+        "variantes": variantes,
     }
     if manual_mode:
         respuesta["manual_mode_applied"] = True
@@ -692,23 +668,6 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             "km_despavimentado": manual_distancias["km_despavimentado"],
             "valor_peajes_manual": float(manual_peaje),
         }
-    if len(ruta) > 1:
-        variantes = []
-        for _, r in ruta.iterrows():
-            try:
-                res_var = _normalizar_total(_ejecutar_modelo(data.horas_logisticas, ruta_row=r))
-                variantes.append({
-                    "NOMBRE_SICE": r.get("NOMBRE_SICE"),
-                    "ID_SICE": r.get("ID_SICE"),
-                    "RESULTADO": _convertir_nativos(res_var) if res_var is not None else None,
-                })
-            except Exception:
-                continue
-        if variantes:
-            respuesta["SICETAC_VARIANTES"] = variantes
-    if escenarios_tiempos is not None:
-        respuesta["MODO_TIEMPOS_LOGISTICOS"] = True
-        respuesta["ESCENARIOS_TIEMPOS_LOGISTICOS"] = escenarios_tiempos
     if resolved_route:
         _attach_resolved_route(respuesta, resolved_route)
     return respuesta
@@ -821,8 +780,6 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             cod_destino_str=cod_destino_str,
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
-            df_movilizacion=df_sicetac_movilizacion,
-            df_valorhora=df_sicetac_valorhora,
         )
         if lookup_rows:
             if len(lookup_rows) == 1:
