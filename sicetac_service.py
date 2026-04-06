@@ -430,6 +430,22 @@ def _lookup_sicetac_totales(
     return resolved
 
 
+def _route_metadata_map(ruta: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    if ruta is None or ruta.empty:
+        return {}
+    metadata: dict[str, dict[str, Any]] = {}
+    for _, row in ruta.iterrows():
+        rutasid = _clean_id(row.get("ID_SICE"))
+        if not rutasid:
+            continue
+        metadata[rutasid] = {
+            "nombre_sice": row.get("NOMBRE_SICE"),
+            "ruta": row.get("RUTA"),
+            "id_sice": row.get("ID_SICE"),
+        }
+    return metadata
+
+
 def calcular_sicetac(data: ConsultaInput) -> dict:
     _refresh_cache()
     (
@@ -775,6 +791,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         and ruta is not None
         and not ruta.empty
     ):
+        route_metadata = _route_metadata_map(ruta)
         lookup_rows = _lookup_sicetac_totales(
             cod_origen_str=cod_origen_str,
             cod_destino_str=cod_destino_str,
@@ -795,6 +812,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     "metodo": "lookup_consolidado",
                     "detalle_lookup": {
                         "rutasid": lookup_rows[0]["rutasid"],
+                        "nombre_sice": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("nombre_sice"),
+                        "ruta": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("ruta"),
                         "movilizacion": lookup_rows[0]["movilizacion"],
                         "valor_hora": lookup_rows[0]["valor_hora"],
                         "columna_usada": lookup_rows[0]["lookup_column"],
@@ -807,9 +826,12 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
 
             variantes = []
             for idx, item in enumerate(lookup_rows, start=1):
+                route_info = route_metadata.get(item["rutasid"], {})
                 variantes.append({
-                    "NOMBRE_SICE": f"RUTASID {item['rutasid']}" if item["rutasid"] else f"Ruta {idx}",
+                    "NOMBRE_SICE": route_info.get("nombre_sice") or (f"RUTASID {item['rutasid']}" if item["rutasid"] else f"Ruta {idx}"),
                     "RUTASID": item["rutasid"],
+                    "RUTA": route_info.get("ruta"),
+                    "ID_SICE": route_info.get("id_sice") or item["rutasid"],
                     "totales": item["totales"],
                     "detalle_lookup": {
                         "movilizacion": item["movilizacion"],
