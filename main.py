@@ -14,7 +14,7 @@ from sicetac_service import (
     generar_snapshot,
     get_sice_column_options,
 )
-from supabase_data import get_client
+from supabase_data import get_client, get_table_df
 
 app = FastAPI(title="API SICETAC", version="1.6")
 
@@ -68,6 +68,28 @@ def health():
 @app.get("/opciones/carrocerias")
 def opciones_carrocerias():
     return {"carrocerias": get_sice_column_options()}
+
+
+@app.get("/municipios")
+def listar_municipios():
+    try:
+        df_municipios = get_table_df("municipios")
+        if df_municipios.empty:
+            return {"municipios": []}
+
+        columnas = [
+            col
+            for col in ["codigo_dane", "nombre_oficial", "variacion_1", "variacion_2", "variacion_3", "departamento"]
+            if col in df_municipios.columns
+        ]
+        records = (
+            df_municipios[columnas]
+            .fillna("")
+            .to_dict(orient="records")
+        )
+        return {"municipios": records}
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @app.post("/refresh")
