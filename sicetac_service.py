@@ -13,6 +13,7 @@ import time
 from supabase_data import (
     get_sicetac_movilizacion_df,
     get_sicetac_valorhora_df,
+    get_valor_plaza_df,
     get_table_df,
 )
 from sicetac_helper import SICETACHelper
@@ -224,6 +225,111 @@ def _resolve_route_inputs(data: ConsultaInput, helper: SICETACHelper) -> tuple[d
 
 def _attach_resolved_route(payload: dict[str, Any], resolved_route: dict[str, Any]) -> dict[str, Any]:
     payload["resolved_route"] = resolved_route
+    return payload
+
+
+def _valor_plaza_selector(carroceria: str | None) -> tuple[str, str, str | None]:
+    normalized = _normalize_lookup_text(carroceria)
+    if "REFRIGERADO" in normalized or "FRIO" in normalized:
+        return ("valor_en_plaza_refrigerada", "Refrigerada", "fuente_refrigerada")
+    return ("valor_en_plaza_carga_normal", "Carga normal", "fuente_carga_normal")
+
+
+def _mes_label(mes_codigo: Any) -> str:
+    digits = re.sub(r"\D", "", str(mes_codigo or ""))
+    if len(digits) >= 6:
+        return f"{digits[:4]}-{digits[4:6]}"
+    return str(mes_codigo or "")
+
+
+def _build_valor_plaza_summary(
+    *,
+    route_code: str | None,
+    configuracion_lookup: str | None,
+    carroceria: str | None,
+    max_months: int = 3,
+) -> dict[str, Any] | None:
+    route_norm = str(route_code or "").strip()
+    configuracion_norm = str(configuracion_lookup or "").strip().upper()
+    if not route_norm or not configuracion_norm:
+        return None
+
+    df_plaza = get_valor_plaza_df(route_norm, configuracion_norm)
+    if df_plaza.empty:
+        return None
+
+    preferred_column, label, preferred_source_column = _valor_plaza_selector(carroceria)
+    fallback_column = "valor_en_plaza_carga_normal"
+    fallback_source_column = "fuente_carga_normal"
+
+    meses: list[dict[str, Any]] = []
+    valores: list[float] = []
+    fallback_used = False
+
+    for _, row in df_plaza.iterrows():
+        valor = row.get(preferred_column)
+        fuente = row.get(preferred_source_column)
+        tipo_utilizado = label
+
+        if pd.isna(valor) or valor in (None, ""):
+            if preferred_column != fallback_column:
+                valor = row.get(fallback_column)
+                fuente = row.get(fallback_source_column)
+                tipo_utilizado = "Carga normal"
+                fallback_used = True
+
+        try:
+            valor_float = float(valor)
+        except Exception:
+            continue
+        if pd.isna(valor_float):
+            continue
+
+        meses.append(
+            {
+                "mes_codigo": int(row.get("mes_codigo")) if not pd.isna(row.get("mes_codigo")) else row.get("mes_codigo"),
+                "mes_label": _mes_label(row.get("mes_codigo")),
+                "valor": valor_float,
+                "fuente": str(fuente).strip() or None,
+                "tipo_carga_usado": tipo_utilizado,
+            }
+        )
+        valores.append(valor_float)
+        if len(meses) >= max_months:
+            break
+
+    if not meses:
+        return None
+
+    promedio = sum(valores) / len(valores)
+    return {
+        "route_code": route_norm,
+        "configuracion_analisis": configuracion_norm,
+        "tipo_carga_label": label,
+        "tipo_carga_column": preferred_column,
+        "fallback_to_carga_normal": fallback_used,
+        "meses": meses,
+        "promedio_ultimos_meses": promedio,
+    }
+
+
+def _attach_valor_plaza(
+    payload: dict[str, Any],
+    *,
+    resolved_route: dict[str, Any] | None,
+    configuracion_lookup: str | None,
+    carroceria: str | None,
+) -> dict[str, Any]:
+    if not resolved_route:
+        return payload
+    route_code = resolved_route.get("route_code")
+    plaza = _build_valor_plaza_summary(
+        route_code=route_code,
+        configuracion_lookup=configuracion_lookup,
+        carroceria=carroceria,
+    )
+    if plaza:
+        payload["valor_plaza"] = plaza
     return payload
 
 
@@ -822,6 +928,12 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 }
                 if resolved_route:
                     _attach_resolved_route(respuesta, resolved_route)
+                _attach_valor_plaza(
+                    respuesta,
+                    resolved_route=resolved_route,
+                    configuracion_lookup=configuracion_lookup,
+                    carroceria=data.carroceria,
+                )
                 return respuesta
 
             variantes = []
@@ -854,6 +966,12 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             }
             if resolved_route:
                 _attach_resolved_route(respuesta, resolved_route)
+            _attach_valor_plaza(
+                respuesta,
+                resolved_route=resolved_route,
+                configuracion_lookup=configuracion_lookup,
+                carroceria=data.carroceria,
+            )
             return respuesta
 
     def _peaje_for_ruta(ruta_row) -> float:
@@ -944,6 +1062,12 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             }
         if resolved_route:
             _attach_resolved_route(respuesta, resolved_route)
+        _attach_valor_plaza(
+            respuesta,
+            resolved_route=resolved_route,
+            configuracion_lookup=configuracion_lookup,
+            carroceria=data.carroceria,
+        )
         return respuesta
 
     if len(ruta) == 1:
@@ -967,9 +1091,15 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "km_urbano": manual_distancias["km_urbano"],
                 "km_despavimentado": manual_distancias["km_despavimentado"],
                 "valor_peajes_manual": float(manual_peaje),
-            }
+        }
         if resolved_route:
             _attach_resolved_route(respuesta, resolved_route)
+        _attach_valor_plaza(
+            respuesta,
+            resolved_route=resolved_route,
+            configuracion_lookup=configuracion_lookup,
+            carroceria=data.carroceria,
+        )
         return respuesta
 
     variantes = []
@@ -1002,6 +1132,12 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         }
     if resolved_route:
         _attach_resolved_route(respuesta, resolved_route)
+    _attach_valor_plaza(
+        respuesta,
+        resolved_route=resolved_route,
+        configuracion_lookup=configuracion_lookup,
+        carroceria=data.carroceria,
+    )
     return respuesta
 
 

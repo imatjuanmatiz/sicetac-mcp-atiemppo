@@ -16,7 +16,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="1.6")
+app = FastAPI(title="API SICETAC", version="1.7")
 
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
@@ -68,6 +68,29 @@ def health():
 @app.get("/opciones/carrocerias")
 def opciones_carrocerias():
     return {"carrocerias": get_sice_column_options()}
+
+
+@app.get("/opciones/vehiculos")
+def opciones_vehiculos():
+    try:
+        df_vehiculos = get_table_df("vehiculos")
+        if df_vehiculos.empty:
+            return {"vehiculos": []}
+
+        columnas = [
+            col
+            for col in ["tipo_vehiculo", "configuracion_analisis", "detalle_tipo_vehiculo", "ejes_configuracion"]
+            if col in df_vehiculos.columns
+        ]
+        records = (
+            df_vehiculos[columnas]
+            .fillna("")
+            .drop_duplicates()
+            .to_dict(orient="records")
+        )
+        return {"vehiculos": records}
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @app.get("/municipios")

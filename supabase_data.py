@@ -32,6 +32,7 @@ TABLES: Dict[str, str] = {
     "rutas": os.getenv("SICETAC_TABLE_RUTAS", "rutas"),
     "sicetac_movilizacion": os.getenv("SICETAC_TABLE_SICETAC_MOVILIZACION", "sicetac_movilizacion_vigentes"),
     "sicetac_valorhora": os.getenv("SICETAC_TABLE_SICETAC_VALORHORA", "sicetac_valorhora_vigentes"),
+    "valor_plaza": os.getenv("SICETAC_TABLE_VALOR_PLAZA", "valor_en_plaza_mensual_descriptiva"),
     # Tablas mínimas para el cálculo del modelo
 }
 
@@ -210,4 +211,31 @@ def get_sicetac_movilizacion_df(origen: str, destino: str, configuracion: str) -
         logger.warning(
             f"⚠️ No se pudo consultar movilización {origen_norm}->{destino_norm} / {configuracion_norm}: {e}"
         )
+        return pd.DataFrame()
+
+
+@lru_cache(maxsize=4096)
+def get_valor_plaza_df(route_code: str, configuracion: str) -> pd.DataFrame:
+    table = TABLES.get("valor_plaza", "valor_en_plaza_mensual_descriptiva")
+    route_norm = str(route_code or "").strip()
+    configuracion_norm = str(configuracion or "").strip().upper()
+    if not route_norm or not configuracion_norm:
+        return pd.DataFrame()
+    try:
+        rows = _fetch_table_filtered(
+            table,
+            filters=[
+                ("ruta", "eq", route_norm),
+                ("configuracion", "ilike", configuracion_norm),
+            ],
+        )
+        if not rows:
+            return pd.DataFrame()
+        df = _alias_columns(pd.DataFrame(rows))
+        if "mes_codigo" in df.columns:
+            df["mes_codigo"] = pd.to_numeric(df["mes_codigo"], errors="coerce")
+            df = df.sort_values(by="mes_codigo", ascending=False, na_position="last")
+        return df
+    except Exception as e:
+        logger.warning(f"⚠️ No se pudo consultar valor plaza {route_norm} / {configuracion_norm}: {e}")
         return pd.DataFrame()
