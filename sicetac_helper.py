@@ -2,6 +2,7 @@ import pandas as pd
 from difflib import get_close_matches
 import logging
 import re
+import unicodedata
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,6 +25,26 @@ class SICETACHelper:
         if raw.endswith(".0"):
             raw = raw[:-2]
         return raw or None
+
+    def _normalize_name(self, value):
+        text = str(value or "").strip().upper()
+        text = unicodedata.normalize("NFKD", text)
+        text = "".join(ch for ch in text if not unicodedata.combining(ch))
+        text = re.sub(r"\s+", " ", text)
+        return text
+
+    def _candidate_priority(self, row, matched_col, original_input):
+        nombre_oficial = self._normalize_name(row.get("nombre_oficial"))
+        original_norm = self._normalize_name(original_input)
+        score = 0
+        if matched_col == "nombre_oficial":
+            score += 100
+        if nombre_oficial == original_norm:
+            score += 50
+        if " " not in nombre_oficial:
+            score += 10
+        score -= len(nombre_oficial) / 100.0
+        return score
 
     def buscar_municipio(self, nombre_input):
         resultado = self._buscar_codigo(
@@ -85,27 +106,41 @@ class SICETACHelper:
         return None
 
     def _buscar_codigo(self, df, nombre_input, columnas_nombres, codigo_col, extra_cols=None):
-        nombre_input = str(nombre_input).strip().upper()
+        nombre_input = str(nombre_input).strip()
+        nombre_input_norm = self._normalize_name(nombre_input)
+        exact_candidates = []
         for col in columnas_nombres:
             if col in df.columns:
-                match = df[df[col].astype(str).str.upper().fillna('') == nombre_input]
+                normalized_col = df[col].map(self._normalize_name)
+                match = df[normalized_col == nombre_input_norm]
                 if not match.empty:
-                    row = match.iloc[0]
-                    result = {codigo_col: self._clean_code(row[codigo_col])}
-                    if extra_cols:
-                        for c in extra_cols:
-                            if c in row:
-                                result[c] = row[c]
-                    return result
+                    for _, row in match.iterrows():
+                        exact_candidates.append((self._candidate_priority(row, col, nombre_input), row))
+
+        if exact_candidates:
+            exact_candidates.sort(key=lambda item: item[0], reverse=True)
+            row = exact_candidates[0][1]
+            result = {codigo_col: self._clean_code(row[codigo_col])}
+            if extra_cols:
+                for c in extra_cols:
+                    if c in row:
+                        result[c] = row[c]
+            return result
 
         for col in columnas_nombres:
             if col in df.columns:
-                opciones = df[col].dropna().astype(str).str.upper().unique().tolist()
-                cercanos = get_close_matches(nombre_input, opciones, n=1, cutoff=0.8)
+                opciones = df[col].dropna().astype(str).map(self._normalize_name).unique().tolist()
+                cercanos = get_close_matches(nombre_input_norm, opciones, n=1, cutoff=0.8)
                 if cercanos:
-                    match = df[df[col].astype(str).str.upper() == cercanos[0]]
+                    normalized_col = df[col].map(self._normalize_name)
+                    match = df[normalized_col == cercanos[0]]
                     if not match.empty:
-                        row = match.iloc[0]
+                        ranked = sorted(
+                            [(self._candidate_priority(row, col, nombre_input), row) for _, row in match.iterrows()],
+                            key=lambda item: item[0],
+                            reverse=True,
+                        )
+                        row = ranked[0][1]
                         result = {codigo_col: self._clean_code(row[codigo_col])}
                         if extra_cols:
                             for c in extra_cols:
