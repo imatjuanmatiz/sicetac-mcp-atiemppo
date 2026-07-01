@@ -8,8 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sicetac_service import (
     ConsultaInput,
     SicetacError,
+    adjuntar_peajes_a_respuesta,
     calcular_sicetac as calcular_sicetac_service,
     calcular_sicetac_resumen,
+    consulta_solicita_peajes,
     _refresh_cache,
     generar_snapshot,
     get_sice_column_options,
@@ -17,7 +19,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="1.9")
+app = FastAPI(title="API SICETAC", version="2.0")
 
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
@@ -37,6 +39,8 @@ def calcular_sicetac_endpoint(data: ConsultaInput):
             respuesta = calcular_sicetac_resumen(data)
         else:
             respuesta = calcular_sicetac_service(data)
+        if consulta_solicita_peajes(data):
+            respuesta = adjuntar_peajes_a_respuesta(respuesta, data.vehiculo)
         return JSONResponse(content=respuesta)
 
     except HTTPException as ex:
@@ -51,6 +55,8 @@ def calcular_sicetac_endpoint(data: ConsultaInput):
 def calcular_sicetac_resumen_endpoint(data: ConsultaInput):
     try:
         respuesta = calcular_sicetac_resumen(data)
+        if consulta_solicita_peajes(data):
+            respuesta = adjuntar_peajes_a_respuesta(respuesta, data.vehiculo)
         return JSONResponse(content=respuesta)
 
     except HTTPException as ex:
@@ -145,14 +151,23 @@ def calcular_sicetac_texto(data: ConsultaInput):
 
         if data.resumen:
             r = calcular_sicetac_resumen(data)
+            if consulta_solicita_peajes(data):
+                r = adjuntar_peajes_a_respuesta(r, data.vehiculo)
             if "variantes" in r:
                 partes = []
                 for v in r["variantes"]:
                     tot = v.get("totales", {})
-                    partes.append(
+                    linea = (
                         f"{v.get('NOMBRE_SICE','RUTA')} (ID {v.get('ID_SICE')}): "
                         f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                     )
+                    resumen_peajes = v.get("peajes_resumen")
+                    if resumen_peajes:
+                        linea += (
+                            f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
+                            f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
+                        )
+                    partes.append(linea)
                 texto = " | ".join(partes)
             else:
                 tot = r.get("totales", {})
@@ -160,14 +175,28 @@ def calcular_sicetac_texto(data: ConsultaInput):
                     f"{r.get('origen')}->{r.get('destino')} {r.get('configuracion')} "
                     f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                 )
+                resumen_peajes = r.get("peajes_resumen")
+                if resumen_peajes:
+                    texto += (
+                        f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
+                        f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
+                    )
             return {"texto": texto}
         else:
             r = calcular_sicetac_service(data)
+            if consulta_solicita_peajes(data):
+                r = adjuntar_peajes_a_respuesta(r, data.vehiculo)
             s = r.get("SICETAC", {})
             texto = (
                 f"{s.get('origen')}->{s.get('destino')} {s.get('configuracion')} "
                 f"total {_format_cop(s.get('total_viaje'))}"
             )
+            resumen_peajes = r.get("peajes_resumen")
+            if resumen_peajes:
+                texto += (
+                    f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
+                    f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
+                )
             return {"texto": texto}
     except HTTPException as ex:
         raise ex

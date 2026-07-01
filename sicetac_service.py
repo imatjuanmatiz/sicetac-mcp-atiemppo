@@ -60,6 +60,11 @@ class ConsultaInput(BaseModel):
     # NUEVO: modo manual puro (sin buscar municipios/rutas)
     manual_mode: bool = False
 
+    # NUEVO: incluir detalle de peajes en la respuesta de consulta.
+    peajes: bool = False
+    incluir_peajes: bool = False
+    detalle_peajes: bool = False
+
 
 @dataclass
 class SicetacError(Exception):
@@ -253,6 +258,85 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
         "resumen": resumen,
         "detalle": detalle,
     })
+
+
+def consulta_solicita_peajes(data: ConsultaInput) -> bool:
+    return bool(
+        getattr(data, "peajes", False)
+        or getattr(data, "incluir_peajes", False)
+        or getattr(data, "detalle_peajes", False)
+    )
+
+
+def _extraer_id_sice(payload: dict[str, Any]) -> int | None:
+    candidates = [
+        payload.get("ID_SICE"),
+        payload.get("id_sice"),
+        payload.get("RUTASID"),
+        payload.get("rutasid"),
+        (payload.get("detalle_lookup") or {}).get("rutasid")
+        if isinstance(payload.get("detalle_lookup"), dict)
+        else None,
+        (payload.get("detalle_lookup") or {}).get("id_sice")
+        if isinstance(payload.get("detalle_lookup"), dict)
+        else None,
+    ]
+    for value in candidates:
+        try:
+            if value is None or str(value).strip() == "":
+                continue
+            return int(float(str(value).strip()))
+        except Exception:
+            continue
+    return None
+
+
+def _resumen_peajes_config(detalle: dict[str, Any], configuracion: str | None) -> dict[str, Any] | None:
+    resumen = detalle.get("resumen") if isinstance(detalle, dict) else None
+    if not isinstance(resumen, dict):
+        return None
+    config_norm = _normalizar_configuracion_peaje(configuracion)
+    if config_norm and config_norm in resumen:
+        return resumen[config_norm]
+    first = next(iter(resumen.values()), None)
+    return first if isinstance(first, dict) else None
+
+
+def adjuntar_peajes_a_respuesta(respuesta: dict[str, Any], configuracion: str | None = None) -> dict[str, Any]:
+    if not isinstance(respuesta, dict):
+        return respuesta
+
+    config_norm = _normalizar_configuracion_peaje(configuracion or respuesta.get("configuracion"))
+    variantes = respuesta.get("variantes")
+    targets = variantes if isinstance(variantes, list) and variantes else [respuesta]
+
+    cache: dict[int, dict[str, Any]] = {}
+    errores: list[dict[str, Any]] = []
+    incluidos = 0
+
+    for target in targets:
+        if not isinstance(target, dict):
+            continue
+        id_sice = _extraer_id_sice(target)
+        if id_sice is None:
+            continue
+        try:
+            if id_sice not in cache:
+                cache[id_sice] = obtener_peajes_detalle(id_sice, config_norm)
+            detalle = cache[id_sice]
+            target["peajes_detalle"] = detalle
+            target["peajes_resumen"] = _resumen_peajes_config(detalle, config_norm)
+            incluidos += 1
+        except SicetacError as ex:
+            errores.append({"id_sice": id_sice, "error": ex.detail, "status_code": ex.status_code})
+
+    respuesta["peajes_consulta"] = {
+        "solicitado": True,
+        "configuracion": config_norm,
+        "rutas_con_peajes": incluidos,
+        "errores": errores,
+    }
+    return respuesta
 
 
 def _clean_id(x) -> str:

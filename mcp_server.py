@@ -3,8 +3,10 @@ from __future__ import annotations
 from sicetac_service import (
     ConsultaInput,
     SicetacError,
+    adjuntar_peajes_a_respuesta,
     calcular_sicetac,
     calcular_sicetac_resumen,
+    consulta_solicita_peajes,
 )
 
 try:
@@ -37,6 +39,9 @@ def calcular_sicetac_tool(
     modo_viaje: str = "CARGADO",
     modo_tiempos_logisticos: bool = False,
     resumen: bool = True,
+    peajes: bool = False,
+    incluir_peajes: bool = False,
+    detalle_peajes: bool = False,
 ):
     """
     Calcula el modelo SICETAC usando datos de Supabase.
@@ -61,10 +66,17 @@ def calcular_sicetac_tool(
             modo_viaje=modo_viaje,
             modo_tiempos_logisticos=modo_tiempos_logisticos,
             resumen=resumen,
+            peajes=peajes,
+            incluir_peajes=incluir_peajes,
+            detalle_peajes=detalle_peajes,
         )
         if resumen:
-            return calcular_sicetac_resumen(payload)
-        return calcular_sicetac(payload)
+            respuesta = calcular_sicetac_resumen(payload)
+        else:
+            respuesta = calcular_sicetac(payload)
+        if consulta_solicita_peajes(payload):
+            respuesta = adjuntar_peajes_a_respuesta(respuesta, vehiculo)
+        return respuesta
     except SicetacError as ex:
         return {"error": ex.detail, "status_code": ex.status_code}
 

@@ -37,6 +37,9 @@ Campos relevantes:
 - `km_urbano`
 - `km_despavimentado`
 - `modo_tiempos_logisticos`
+- `peajes`
+- `incluir_peajes`
+- `detalle_peajes`
 
 Defaults importantes:
 
@@ -45,6 +48,7 @@ Defaults importantes:
 - `modo_viaje`: `CARGADO`
 - `resumen`: `true`
 - `tarifa_standby`: `150000`
+- `peajes`, `incluir_peajes`, `detalle_peajes`: `false`
 
 ## `POST /consulta`
 
@@ -64,7 +68,8 @@ Endpoint principal.
   "vehiculo": "C3S3",
   "mes": 202504,
   "carroceria": "GENERAL",
-  "resumen": true
+  "resumen": true,
+  "peajes": true
 }
 ```
 
@@ -89,9 +94,27 @@ Endpoint principal.
     "origen_nombre": "BOGOTÁ, D.C.",
     "destino_nombre": "MEDELLIN",
     "route_code": "11001000-5001000"
+  },
+  "peajes_resumen": {
+    "cantidad_peajes": 14,
+    "total_peajes": 869600
+  },
+  "peajes_detalle": {
+    "id_sice": 93,
+    "configuracion": "C3S3",
+    "detalle": []
   }
 }
 ```
+
+### Opción `peajes`
+
+Si se envía `peajes: true`, `incluir_peajes: true` o `detalle_peajes: true`, la consulta adjunta el detalle normalizado de peajes para la ruta y configuración consultada.
+
+- Si la respuesta trae una sola ruta, se agregan `peajes_resumen` y `peajes_detalle` en la raíz.
+- Si la respuesta trae `variantes`, cada variante con `ID_SICE` recibe sus propios `peajes_resumen` y `peajes_detalle`.
+- `peajes_resumen.total_peajes` es el total de peajes para la configuración solicitada.
+- `peajes_detalle.detalle[]` contiene la lista ordenada de peajes con categoría usada y valor.
 
 ## `POST /consulta_resumen`
 
@@ -110,7 +133,7 @@ Devuelve un texto corto listo para canales conversacionales.
 
 ```json
 {
-  "texto": "Bogotá->Barranquilla C3S3 H2 $7.077.856, H4 $7.229.067, H8 $7.531.476"
+  "texto": "Bogotá->Barranquilla C3S3 H2 $7.398.537, H4 $7.571.997, H8 $7.918.917, peajes $869.600 (14 peajes)"
 }
 ```
 

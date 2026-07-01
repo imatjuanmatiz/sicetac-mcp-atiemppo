@@ -65,6 +65,20 @@ curl -X POST http://localhost:8000/consulta \
       }'
 ```
 
+Consulta rápida con detalle de peajes:
+
+```bash
+curl -X POST http://localhost:8000/consulta \
+  -H "Content-Type: application/json" \
+  -d '{
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "vehiculo": "C3S3",
+        "resumen": true,
+        "peajes": true
+      }'
+```
+
 ## Variables mínimas de entorno
 
 - `SUPABASE_URL`
