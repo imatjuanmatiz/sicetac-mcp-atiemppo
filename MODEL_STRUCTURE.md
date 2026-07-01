@@ -41,6 +41,23 @@ Columnas clave:
 - `EJES_CONFIGURACION`
 - `VALOR_PEAJE`
 
+Esta vista mantiene el contrato liviano del modelo manual: un total consolidado de peajes por ruta y configuración.
+
+### Capa normalizada de peajes
+
+Para entregar detalle de peajes sin repetir totales por ruta, la base usa una capa normalizada:
+
+- `peajes_inventario`: peaje único por mes, con tarifas por categoría `valor1` a `valor7`.
+- `peajes_tarifas_configuracion`: tarifa usada por cada configuración SICETAC (`2`, `3`, `C2S2`, `C2S3`, `C3S2`, `C3S3`).
+- `rutas_peajes`: secuencia ordenada de peajes por `ID_SICE`.
+- `peajes_detalle_vigentes`: vista para consultar peajes de una ruta con valor por configuración.
+- `peajes_resumen_vigentes`: vista para totalizar peajes por ruta/configuración.
+
+Servicio rápido:
+
+- `GET /peajes/detalle?id_sice=93`
+- `GET /peajes/detalle?id_sice=93&configuracion=C3S3`
+
 ### `parametros_vigentes`
 Columnas clave:
 - `TIPO_VEHICULO`
@@ -102,6 +119,7 @@ Envía `"resumen": false` para obtener el cálculo completo.
 - Se construye un índice en memoria por `(ID_SICE, EJES_CONFIGURACION)`.
 - Se obtiene el primer valor de peaje disponible para esa combinación.
 - Se pasa al modelo como `valor_peaje_override` (evita filtrar la tabla en cada request).
+- Para explicar los peajes de una ruta se consulta la capa normalizada por `ID_SICE`, sin cargar todo el detalle en memoria.
 
 ## 5) Archivos clave en el repo
 
@@ -110,4 +128,3 @@ Envía `"resumen": false` para obtener el cálculo completo.
 - `modelo_sicetac_vacio.py`: modelo vacío.
 - `main.py`: API FastAPI.
 - `mcp_server.py`: herramienta MCP para agentes.
-

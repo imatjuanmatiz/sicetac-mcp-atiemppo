@@ -114,6 +114,55 @@ Devuelve un texto corto listo para canales conversacionales.
 }
 ```
 
+## `GET /peajes/detalle`
+
+Devuelve el detalle de peajes de una ruta SICE desde la capa normalizada vigente.
+
+Parámetros query:
+
+- `id_sice`: ID de ruta SICE.
+- `configuracion`: opcional. Acepta `2`, `3`, `C2S2`, `C2S3`, `C3S2`, `C3S3`. También normaliza `2S2`, `2S3`, `3S2`, `3S3`.
+
+Ejemplo:
+
+```bash
+curl "http://localhost:8000/peajes/detalle?id_sice=93&configuracion=C3S3"
+```
+
+Respuesta resumida:
+
+```json
+{
+  "id_sice": 93,
+  "mes": 202607,
+  "nombre_ruta": "BOGOTÁ _ BARRANQUILLA",
+  "configuracion": "C3S3",
+  "resumen": {
+    "C3S3": {
+      "cantidad_peajes": 14,
+      "total_peajes": 869600
+    }
+  },
+  "detalle": [
+    {
+      "orden": 1,
+      "id_peaje": "50",
+      "nombre_peaje": "SIBERIA",
+      "categoria_maxima_disponible": "VII",
+      "valores": {
+        "C3S3": 62700
+      },
+      "categorias": {
+        "C3S3": {
+          "categoria_usada": "VII",
+          "configuracion_sicetac": "3S3"
+        }
+      }
+    }
+  ]
+}
+```
+
 ## `GET /health`
 
 Health check simple.

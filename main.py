@@ -13,10 +13,11 @@ from sicetac_service import (
     _refresh_cache,
     generar_snapshot,
     get_sice_column_options,
+    obtener_peajes_detalle,
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="1.7")
+app = FastAPI(title="API SICETAC", version="1.8")
 
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
@@ -89,6 +90,16 @@ def opciones_vehiculos():
             .to_dict(orient="records")
         )
         return {"vehiculos": records}
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@app.get("/peajes/detalle")
+def peajes_detalle(id_sice: int, configuracion: str | None = None):
+    try:
+        return obtener_peajes_detalle(id_sice=id_sice, configuracion=configuracion)
+    except SicetacError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 

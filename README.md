@@ -15,6 +15,7 @@ Su foco no es solo responder una consulta puntual. Su foco es permitir que una e
 
 - API HTTP con FastAPI
 - Resumen y detalle de cálculo SICETAC
+- Detalle de peajes por ruta y configuración
 - Resolución por nombre o código DANE
 - Respuesta compacta para agentes y WhatsApp
 - Servidor MCP para herramientas agentic
@@ -25,6 +26,7 @@ Su foco no es solo responder una consulta puntual. Su foco es permitir que una e
 - `POST /consulta`
 - `POST /consulta_resumen`
 - `POST /consulta_texto`
+- `GET /peajes/detalle`
 - `POST /refresh`
 - `POST /snapshot/generate`
 - `GET /health`

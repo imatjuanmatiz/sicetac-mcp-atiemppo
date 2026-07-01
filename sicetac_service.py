@@ -11,6 +11,8 @@ from pydantic import BaseModel
 import time
 
 from supabase_data import (
+    get_peajes_detalle_df,
+    get_peajes_resumen_df,
     get_sicetac_movilizacion_df,
     get_sicetac_valorhora_df,
     get_valor_plaza_df,
@@ -160,6 +162,97 @@ def _convertir_nativos(d: Any):
     if hasattr(d, "item"):
         return d.item()
     return d
+
+
+def _normalizar_configuracion_peaje(configuracion: str | None) -> str | None:
+    raw = str(configuracion or "").strip().upper().replace(" ", "")
+    if not raw:
+        return None
+    return {
+        "2S2": "C2S2",
+        "2S3": "C2S3",
+        "3S2": "C3S2",
+        "3S3": "C3S3",
+    }.get(raw, raw)
+
+
+def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> dict[str, Any]:
+    configuracion_norm = _normalizar_configuracion_peaje(configuracion)
+    df_detalle = get_peajes_detalle_df(id_sice, configuracion_norm)
+    df_resumen = get_peajes_resumen_df(id_sice)
+
+    if df_detalle.empty:
+        raise SicetacError(404, f"No hay detalle de peajes para ID_SICE {id_sice}")
+
+    if configuracion_norm and not df_resumen.empty and "configuracion" in df_resumen.columns:
+        df_resumen = df_resumen[
+            df_resumen["configuracion"].astype(str).str.upper() == configuracion_norm
+        ]
+
+    first = df_detalle.iloc[0]
+
+    def _num(value: Any) -> float:
+        try:
+            if pd.isna(value):
+                return 0.0
+            return float(value)
+        except Exception:
+            return 0.0
+
+    resumen: dict[str, dict[str, Any]] = {}
+    if not df_resumen.empty:
+        for _, row in df_resumen.iterrows():
+            cfg = str(row.get("configuracion") or "").strip()
+            if not cfg:
+                continue
+            resumen[cfg] = {
+                "cantidad_peajes": int(_num(row.get("cantidad_peajes"))),
+                "total_peajes": _num(row.get("total_peajes")),
+            }
+    else:
+        for cfg, group in df_detalle.groupby("configuracion"):
+            resumen[str(cfg)] = {
+                "cantidad_peajes": int(group["id_peaje"].nunique()),
+                "total_peajes": float(group["valor_peaje"].sum()),
+            }
+
+    detalle: list[dict[str, Any]] = []
+    for (orden, id_peaje), group in df_detalle.groupby(["orden", "id_peaje"], sort=True):
+        group_sorted = group.sort_values(by="configuracion")
+        base = group_sorted.iloc[0]
+        valores = {}
+        categorias = {}
+        for _, row in group_sorted.iterrows():
+            cfg = str(row.get("configuracion") or "").strip()
+            if not cfg:
+                continue
+            valores[cfg] = _num(row.get("valor_peaje"))
+            categorias[cfg] = {
+                "categoria_usada": row.get("categoria_usada"),
+                "configuracion_sicetac": row.get("configuracion_sicetac"),
+            }
+
+        detalle.append({
+            "orden": int(_num(orden)),
+            "id_peaje": str(id_peaje),
+            "nombre_peaje": base.get("nombre_peaje"),
+            "categoria_maxima_disponible": base.get("categoria_maxima_disponible"),
+            "valores": valores,
+            "categorias": categorias,
+        })
+
+    return _convertir_nativos({
+        "id_sice": int(id_sice),
+        "mes": int(first.get("mes_codigo")) if first.get("mes_codigo") is not None else None,
+        "mes_vigencia": first.get("mes_vigencia"),
+        "nombre_ruta": first.get("nombre_ruta"),
+        "ruta": first.get("ruta"),
+        "codigo_dane_origen": first.get("codigo_dane_origen"),
+        "codigo_dane_destino": first.get("codigo_dane_destino"),
+        "configuracion": configuracion_norm,
+        "resumen": resumen,
+        "detalle": detalle,
+    })
 
 
 def _clean_id(x) -> str:
@@ -426,6 +519,14 @@ def _refresh_cache(force: bool = False) -> None:
         pass
     try:
         get_sicetac_valorhora_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_peajes_detalle_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_peajes_resumen_df.cache_clear()
     except Exception:
         pass
 
