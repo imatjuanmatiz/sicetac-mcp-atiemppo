@@ -169,46 +169,68 @@ def get_table_df(key: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-@lru_cache(maxsize=256)
-def get_sicetac_valorhora_df(configuracion: str) -> pd.DataFrame:
+@lru_cache(maxsize=512)
+def get_sicetac_valorhora_df(configuracion: str, mes_codigo: int | None = None) -> pd.DataFrame:
     table = TABLES.get("sicetac_valorhora", "sicetac_valorhora_vigentes")
     configuracion_norm = str(configuracion or "").strip().upper()
     if not configuracion_norm:
         return pd.DataFrame()
+    filters: list[tuple[str, str, Any]] = [("configuracion", "ilike", configuracion_norm)]
+    if mes_codigo is not None:
+        filters.append(("mes_codigo", "eq", int(mes_codigo)))
     try:
         rows = _fetch_table_filtered(
             table,
-            filters=[("configuracion", "ilike", configuracion_norm)],
-            limit=1,
+            filters=filters,
         )
         if not rows:
             return pd.DataFrame()
-        return _alias_columns(pd.DataFrame(rows))
+        df = _alias_columns(pd.DataFrame(rows))
+        if "mes_codigo" in df.columns:
+            df["mes_codigo"] = pd.to_numeric(df["mes_codigo"], errors="coerce")
+            if mes_codigo is None:
+                df = df[df["mes_codigo"] == df["mes_codigo"].max()]
+            df = df.sort_values(by="mes_codigo", ascending=False, na_position="last")
+        return df.head(1)
     except Exception as e:
         logger.warning(f"⚠️ No se pudo consultar valor hora {configuracion_norm}: {e}")
         return pd.DataFrame()
 
 
 @lru_cache(maxsize=4096)
-def get_sicetac_movilizacion_df(origen: str, destino: str, configuracion: str) -> pd.DataFrame:
+def get_sicetac_movilizacion_df(
+    origen: str,
+    destino: str,
+    configuracion: str,
+    mes_codigo: int | None = None,
+) -> pd.DataFrame:
     table = TABLES.get("sicetac_movilizacion", "sicetac_movilizacion_vigentes")
     origen_norm = str(origen or "").strip()
     destino_norm = str(destino or "").strip()
     configuracion_norm = str(configuracion or "").strip().upper()
     if not origen_norm or not destino_norm or not configuracion_norm:
         return pd.DataFrame()
+    filters: list[tuple[str, str, Any]] = [
+        ("origen", "eq", origen_norm),
+        ("destino", "eq", destino_norm),
+        ("configuracion", "ilike", configuracion_norm),
+    ]
+    if mes_codigo is not None:
+        filters.append(("mes_codigo", "eq", int(mes_codigo)))
     try:
         rows = _fetch_table_filtered(
             table,
-            filters=[
-                ("origen", "eq", origen_norm),
-                ("destino", "eq", destino_norm),
-                ("configuracion", "ilike", configuracion_norm),
-            ],
+            filters=filters,
         )
         if not rows:
             return pd.DataFrame()
-        return _alias_columns(pd.DataFrame(rows))
+        df = _alias_columns(pd.DataFrame(rows))
+        if "mes_codigo" in df.columns:
+            df["mes_codigo"] = pd.to_numeric(df["mes_codigo"], errors="coerce")
+            if mes_codigo is None:
+                df = df[df["mes_codigo"] == df["mes_codigo"].max()]
+            df = df.sort_values(by=["mes_codigo", "rutasid"], ascending=[False, True], na_position="last")
+        return df
     except Exception as e:
         logger.warning(
             f"⚠️ No se pudo consultar movilización {origen_norm}->{destino_norm} / {configuracion_norm}: {e}"

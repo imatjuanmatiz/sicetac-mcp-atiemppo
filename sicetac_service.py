@@ -586,6 +586,7 @@ def _lookup_sicetac_totales(
     cod_destino_str: str,
     configuracion_lookup: str,
     carroceria: str,
+    mes_codigo: int | None = None,
 ) -> list[dict[str, Any]]:
     if not _USE_CONSOLIDATED_LOOKUP:
         return []
@@ -595,10 +596,10 @@ def _lookup_sicetac_totales(
         return []
     lookup_col = carroceria_option["column"]
 
-    df_rows = get_sicetac_movilizacion_df(cod_origen_str, cod_destino_str, configuracion_lookup)
+    df_rows = get_sicetac_movilizacion_df(cod_origen_str, cod_destino_str, configuracion_lookup, mes_codigo)
     if df_rows.empty:
-        df_rows = get_sicetac_movilizacion_df(cod_destino_str, cod_origen_str, configuracion_lookup)
-    df_valorhora = get_sicetac_valorhora_df(configuracion_lookup)
+        df_rows = get_sicetac_movilizacion_df(cod_destino_str, cod_origen_str, configuracion_lookup, mes_codigo)
+    df_valorhora = get_sicetac_valorhora_df(configuracion_lookup, mes_codigo)
 
     if df_rows.empty or df_valorhora.empty:
         return []
@@ -1004,6 +1005,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             cod_destino_str=cod_destino_str,
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
+            mes_codigo=int(mes_usar),
         )
         if lookup_rows:
             if len(lookup_rows) == 1:
