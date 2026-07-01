@@ -1,4 +1,5 @@
 import os
+import math
 from io import BytesIO
 
 from fastapi import FastAPI, HTTPException
@@ -19,7 +20,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="2.0")
+app = FastAPI(title="API SICETAC", version="2.0.1")
 
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
@@ -32,6 +33,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    try:
+        if value != value:
+            return None
+    except Exception:
+        pass
+    if hasattr(value, "item"):
+        try:
+            return _json_safe(value.item())
+        except Exception:
+            pass
+    return value
+
+
+def _json_response(content, status_code: int = 200):
+    return JSONResponse(content=_json_safe(content), status_code=status_code)
+
 @app.post("/consulta")
 def calcular_sicetac_endpoint(data: ConsultaInput):
     try:
@@ -41,14 +68,14 @@ def calcular_sicetac_endpoint(data: ConsultaInput):
             respuesta = calcular_sicetac_service(data)
         if consulta_solicita_peajes(data):
             respuesta = adjuntar_peajes_a_respuesta(respuesta, data.vehiculo)
-        return JSONResponse(content=respuesta)
+        return _json_response(respuesta)
 
     except HTTPException as ex:
         raise ex
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.post("/consulta_resumen")
@@ -57,24 +84,24 @@ def calcular_sicetac_resumen_endpoint(data: ConsultaInput):
         respuesta = calcular_sicetac_resumen(data)
         if consulta_solicita_peajes(data):
             respuesta = adjuntar_peajes_a_respuesta(respuesta, data.vehiculo)
-        return JSONResponse(content=respuesta)
+        return _json_response(respuesta)
 
     except HTTPException as ex:
         raise ex
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return _json_response({"status": "ok", "version": app.version})
 
 
 @app.get("/opciones/carrocerias")
 def opciones_carrocerias():
-    return {"carrocerias": get_sice_column_options()}
+    return _json_response({"carrocerias": get_sice_column_options()})
 
 
 @app.get("/opciones/vehiculos")
@@ -82,7 +109,7 @@ def opciones_vehiculos():
     try:
         df_vehiculos = get_table_df("vehiculos")
         if df_vehiculos.empty:
-            return {"vehiculos": []}
+            return _json_response({"vehiculos": []})
 
         columnas = [
             col
@@ -95,19 +122,19 @@ def opciones_vehiculos():
             .drop_duplicates()
             .to_dict(orient="records")
         )
-        return {"vehiculos": records}
+        return _json_response({"vehiculos": records})
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.get("/peajes/detalle")
 def peajes_detalle(id_sice: int, configuracion: str | None = None):
     try:
-        return obtener_peajes_detalle(id_sice=id_sice, configuracion=configuracion)
+        return _json_response(obtener_peajes_detalle(id_sice=id_sice, configuracion=configuracion))
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.get("/municipios")
@@ -115,7 +142,7 @@ def listar_municipios():
     try:
         df_municipios = get_table_df("municipios")
         if df_municipios.empty:
-            return {"municipios": []}
+            return _json_response({"municipios": []})
 
         columnas = [
             col
@@ -127,15 +154,15 @@ def listar_municipios():
             .fillna("")
             .to_dict(orient="records")
         )
-        return {"municipios": records}
+        return _json_response({"municipios": records})
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.post("/refresh")
 def refresh_cache():
     _refresh_cache(force=True)
-    return {"status": "ok", "refreshed": True}
+    return _json_response({"status": "ok", "refreshed": True})
 
 
 @app.post("/consulta_texto")
@@ -181,7 +208,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
                         f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
                         f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
                     )
-            return {"texto": texto}
+            return _json_response({"texto": texto})
         else:
             r = calcular_sicetac_service(data)
             if consulta_solicita_peajes(data):
@@ -197,13 +224,13 @@ def calcular_sicetac_texto(data: ConsultaInput):
                     f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
                     f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
                 )
-            return {"texto": texto}
+            return _json_response({"texto": texto})
     except HTTPException as ex:
         raise ex
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
 
 
 @app.post("/snapshot/generate")
@@ -211,7 +238,7 @@ def snapshot_generate():
     try:
         df = generar_snapshot(horas=[0, 2, 4, 8])
         if df.empty:
-            return JSONResponse(content={"error": "Snapshot vacío"}, status_code=500)
+            return _json_response({"error": "Snapshot vacío"}, status_code=500)
 
         # Nombre del archivo
         mes = int(df["mes"].iloc[0]) if "mes" in df.columns else "latest"
@@ -234,8 +261,8 @@ def snapshot_generate():
 
         public_url = bucket.get_public_url(filename)
 
-        return {"ok": True, "file": filename, "url": public_url}
+        return _json_response({"ok": True, "file": filename, "url": public_url})
     except SicetacError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return _json_response({"error": str(e)}, status_code=500)
