@@ -664,6 +664,12 @@ def _carroceria_option(carroceria: str) -> dict[str, str] | None:
     return _SICE_COLUMN_MAP.get(_normalize_lookup_text(carroceria))
 
 
+def _carroceria_modelo(carroceria: str | None, modo_viaje: str | None) -> str:
+    if (modo_viaje or "").strip().upper() == "VACIO":
+        return "GENERAL"
+    return carroceria or "GENERAL"
+
+
 def _lookup_sicetac_totales(
     *,
     cod_origen_str: str,
@@ -826,6 +832,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
 
     peajes_index = _get_peajes_index(df_peajes)
+    carroceria_modelo = _carroceria_modelo(data.carroceria, data.modo_viaje)
 
     meses_validos = df_parametros["MES"].unique().tolist()
     if int(mes_usar) not in meses_validos:
@@ -857,7 +864,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
                 matriz_vehicular=df_vehiculos,
                 rutas_df=df_rutas,
                 peajes_df=df_peajes,
-                carroceria_especial=data.carroceria,
+                carroceria_especial=carroceria_modelo,
                 ruta_oficial=ruta_row,
                 horas_logisticas=horas_logisticas_modelo,
                 valor_peaje_override=valor_peaje_override,
@@ -874,7 +881,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             matriz_vehicular=df_vehiculos,
             rutas_df=df_rutas,
             peajes_df=df_peajes,
-            carroceria_especial=data.carroceria,
+            carroceria_especial=carroceria_modelo,
             ruta_oficial=ruta_row,
             horas_logisticas=horas_logisticas_modelo,
             valor_peaje_override=valor_peaje_override,
@@ -903,7 +910,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
-            "carroceria": data.carroceria,
+            "carroceria": carroceria_modelo,
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
@@ -929,7 +936,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
-            "carroceria": data.carroceria,
+            "carroceria": carroceria_modelo,
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
@@ -961,7 +968,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         "destino": destino_display,
         "configuracion": data.vehiculo,
         "mes": int(mes_usar),
-        "carroceria": data.carroceria,
+        "carroceria": carroceria_modelo,
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
@@ -1077,6 +1084,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     configuracion_lookup = _configuracion_lookup(fila_conf, data.vehiculo)
     peajes_index = _get_peajes_index(df_peajes)
 
+    carroceria_modelo = _carroceria_modelo(data.carroceria, data.modo_viaje)
+
     if (
         not manual_mode
         and data.modo_viaje.upper() == "CARGADO"
@@ -1088,7 +1097,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             cod_origen_str=cod_origen_str,
             cod_destino_str=cod_destino_str,
             configuracion_lookup=configuracion_lookup,
-            carroceria=data.carroceria,
+            carroceria=carroceria_modelo,
             mes_codigo=int(mes_usar),
         )
         if lookup_rows:
@@ -1099,7 +1108,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     "configuracion": data.vehiculo,
                     "configuracion_analisis": configuracion_lookup,
                     "mes": int(mes_usar),
-                    "carroceria": data.carroceria,
+                    "carroceria": carroceria_modelo,
                     "modo_viaje": data.modo_viaje.upper(),
                     "totales": lookup_rows[0]["totales"],
                     "metodo": "lookup_consolidado",
@@ -1119,7 +1128,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     respuesta,
                     resolved_route=resolved_route,
                     configuracion_lookup=configuracion_lookup,
-                    carroceria=data.carroceria,
+                    carroceria=carroceria_modelo,
                 )
                 return respuesta
 
@@ -1146,7 +1155,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "configuracion": data.vehiculo,
                 "configuracion_analisis": configuracion_lookup,
                 "mes": int(mes_usar),
-                "carroceria": data.carroceria,
+                "carroceria": carroceria_modelo,
                 "modo_viaje": data.modo_viaje.upper(),
                 "metodo": "lookup_consolidado",
                 "variantes": variantes,
@@ -1157,7 +1166,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 respuesta,
                 resolved_route=resolved_route,
                 configuracion_lookup=configuracion_lookup,
-                carroceria=data.carroceria,
+                carroceria=carroceria_modelo,
             )
             return respuesta
 
@@ -1186,7 +1195,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 matriz_vehicular=df_vehiculos,
                 rutas_df=df_rutas,
                 peajes_df=df_peajes,
-                carroceria_especial=data.carroceria,
+                carroceria_especial=carroceria_modelo,
                 ruta_oficial=ruta_row,
                 horas_logisticas=horas_logisticas_modelo,
                 valor_peaje_override=valor_peaje_override,
@@ -1203,7 +1212,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             matriz_vehicular=df_vehiculos,
             rutas_df=df_rutas,
             peajes_df=df_peajes,
-            carroceria_especial=data.carroceria,
+            carroceria_especial=carroceria_modelo,
             ruta_oficial=ruta_row,
             horas_logisticas=horas_logisticas_modelo,
             valor_peaje_override=valor_peaje_override,
@@ -1232,7 +1241,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
-            "carroceria": data.carroceria,
+            "carroceria": carroceria_modelo,
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
@@ -1253,7 +1262,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             respuesta,
             resolved_route=resolved_route,
             configuracion_lookup=configuracion_lookup,
-            carroceria=data.carroceria,
+            carroceria=carroceria_modelo,
         )
         return respuesta
 
@@ -1264,7 +1273,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "destino": destino_display,
             "configuracion": data.vehiculo,
             "mes": int(mes_usar),
-            "carroceria": data.carroceria,
+            "carroceria": carroceria_modelo,
             "modo_viaje": data.modo_viaje.upper(),
             "totales": totales,
         }
@@ -1285,7 +1294,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             respuesta,
             resolved_route=resolved_route,
             configuracion_lookup=configuracion_lookup,
-            carroceria=data.carroceria,
+            carroceria=carroceria_modelo,
         )
         return respuesta
 
@@ -1302,7 +1311,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         "destino": destino_display,
         "configuracion": data.vehiculo,
         "mes": int(mes_usar),
-        "carroceria": data.carroceria,
+        "carroceria": carroceria_modelo,
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
@@ -1323,7 +1332,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         respuesta,
         resolved_route=resolved_route,
         configuracion_lookup=configuracion_lookup,
-        carroceria=data.carroceria,
+        carroceria=carroceria_modelo,
     )
     return respuesta
 
