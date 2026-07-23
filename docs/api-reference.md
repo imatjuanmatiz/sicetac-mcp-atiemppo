@@ -255,6 +255,11 @@ Usualmente asociado a:
 - `SICETAC_TABLE_COSTOS_FIJOS`
 - `SICETAC_TABLE_PEAJES`
 - `SICETAC_TABLE_RUTAS`
+- `SICETAC_TABLE_SICETAC_VACIO`
+
+`modo_viaje=VACIO` usa la capa `sicetac_vacio_vigentes` y responde con
+`metodo=lookup_vacio_oficial` cuando existe una coincidencia oficial. La
+carrocería se conserva; no se normaliza a `GENERAL`.
 
 ## MCP
 

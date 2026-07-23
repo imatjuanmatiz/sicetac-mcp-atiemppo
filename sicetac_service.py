@@ -14,6 +14,7 @@ from supabase_data import (
     get_peajes_detalle_df,
     get_peajes_resumen_df,
     get_sicetac_movilizacion_df,
+    get_sicetac_vacio_df,
     get_sicetac_valorhora_df,
     get_valor_plaza_df,
     get_table_df,
@@ -75,61 +76,73 @@ class SicetacError(Exception):
 SICE_COLUMN_OPTIONS: list[dict[str, str]] = [
     {
         "column": "GENERAL_ESTACAS_CARGADO",
+        "vacio_column": "ESTACAS_VACIO",
         "label": "General - Estacas",
         "aliases": "GENERAL|GENERAL ESTACAS|GENERAL - ESTACAS|GENERAL ESTACA|GENERAL - ESTIBA",
     },
     {
         "column": "GENERAL_FURGON_CARGADO",
+        "vacio_column": "FURGON_VACIO",
         "label": "General - Furgon",
         "aliases": "FURGON GENERAL|GENERAL FURGON|GENERAL - FURGON",
     },
     {
         "column": "GENERAL_ESTIBAS_CARGADO",
+        "vacio_column": "ESTIBAS_VACIO",
         "label": "General - Estibas",
         "aliases": "ESTIBA|ESTIBAS|GENERAL ESTIBAS|GENERAL - ESTIBAS",
     },
     {
         "column": "GENERAL_PLATAFORMA_CARGADO",
+        "vacio_column": "PLATAFORMA_VACIO",
         "label": "General - Plataforma",
         "aliases": "PLATAFORMA|GENERAL PLATAFORMA|GENERAL - PLATAFORMA|GENERA - PLATAFORMA",
     },
     {
         "column": "CONTENEDOR_PORTACONTENEDORES_CARGADO",
+        "vacio_column": "PORTACONTENEDORES_VACIO",
         "label": "Portacontenedores",
         "aliases": "PORTACONTENEDORES|PORTA CONTENEDORES|CONTENEDOR PORTACONTENEDORES",
     },
     {
         "column": "CARGA_REFRIGERADA_FURGON_REFRIGERADO_CARGADO",
+        "vacio_column": "FURGON_REFRIGERADO_VACIO",
         "label": "Furgon Refrigerado",
         "aliases": "FURGON REFRIGERADO|CARGA REFRIGERADA|REFRIGERADO",
     },
     {
         "column": "GRANEL_SOLIDO_ESTACAS_CARGADO",
+        "vacio_column": "ESTACAS_VACIO",
         "label": "Granel Solido - Estacas",
         "aliases": "ESTACAS GRANEL SOLIDO|GRANEL SOLIDO ESTACAS|GRANEL SOLIDO - ESTACAS",
     },
     {
         "column": "GRANEL_SOLIDO_FURGON_CARGADO",
+        "vacio_column": "FURGON_VACIO",
         "label": "Granel Solido - Furgon",
         "aliases": "FURGON GRANEL SOLIDO|GRANEL SOLIDO FURGON|GRANEL SOLIDO - FURGON",
     },
     {
         "column": "GRANEL_SOLIDO_VOLCO_CARGADO",
+        "vacio_column": "VOLCO_VACIO",
         "label": "Granel Solido - Volco",
         "aliases": "VOLCO|GRANEL SOLIDO VOLCO|GRANEL SOLIDO - VOLCO",
     },
     {
         "column": "GRANEL_SOLIDO_ESTIBAS_CARGADO",
+        "vacio_column": "ESTIBAS_VACIO",
         "label": "Granel Solido - Estibas",
         "aliases": "ESTIBAS GRANEL SOLIDO|GRANEL SOLIDO ESTIBAS|GRANEL SOLIDO - ESTIBAS",
     },
     {
         "column": "GRANEL_SOLIDO_PLATAFORMA_CARGADO",
+        "vacio_column": "PLATAFORMA_VACIO",
         "label": "Granel Solido - Plataforma",
         "aliases": "PLATAFORMA GRANEL SOLIDO|GRANEL SOLIDO PLATAFORMA|GRANEL SOLIDO - PLATAFORMA",
     },
     {
         "column": "GRANEL_LIQUIDO_TANQUE_CARGADO",
+        "vacio_column": "TANQUE_VACIO",
         "label": "Granel Liquido - Tanque",
         "aliases": "TANQUE - GRANEL LIQUIDO|TANQUE GRANEL LIQUIDO|GRANEL LIQUIDO TANQUE|GRANEL LQUIDO TANQUE",
     },
@@ -602,6 +615,10 @@ def _refresh_cache(force: bool = False) -> None:
     except Exception:
         pass
     try:
+        get_sicetac_vacio_df.cache_clear()
+    except Exception:
+        pass
+    try:
         get_sicetac_valorhora_df.cache_clear()
     except Exception:
         pass
@@ -670,6 +687,7 @@ def _lookup_sicetac_totales(
     cod_destino_str: str,
     configuracion_lookup: str,
     carroceria: str,
+    modo_viaje: str = "CARGADO",
     mes_codigo: int | None = None,
 ) -> list[dict[str, Any]]:
     if not _USE_CONSOLIDATED_LOOKUP:
@@ -678,24 +696,37 @@ def _lookup_sicetac_totales(
     carroceria_option = _carroceria_option(carroceria)
     if not carroceria_option:
         return []
-    lookup_col = carroceria_option["column"]
+    es_vacio = str(modo_viaje or "").strip().upper() == "VACIO"
+    lookup_col = carroceria_option["vacio_column"] if es_vacio else carroceria_option["column"]
 
-    df_rows = get_sicetac_movilizacion_df(cod_origen_str, cod_destino_str, configuracion_lookup, mes_codigo)
-    if df_rows.empty:
-        df_rows = get_sicetac_movilizacion_df(cod_destino_str, cod_origen_str, configuracion_lookup, mes_codigo)
-    df_valorhora = get_sicetac_valorhora_df(configuracion_lookup, mes_codigo)
-
-    if df_rows.empty or df_valorhora.empty:
-        return []
-    vh_row = df_valorhora.iloc[0]
-
-    try:
-        valor_hora = float(vh_row.get(lookup_col))
-    except Exception:
-        return []
-
-    if pd.isna(valor_hora):
-        return []
+    if es_vacio:
+        df_rows = get_sicetac_vacio_df(
+            cod_origen_str, cod_destino_str, configuracion_lookup, mes_codigo
+        )
+        if df_rows.empty:
+            df_rows = get_sicetac_vacio_df(
+                cod_destino_str, cod_origen_str, configuracion_lookup, mes_codigo
+            )
+        if df_rows.empty:
+            return []
+        valor_hora_global = None
+    else:
+        df_rows = get_sicetac_movilizacion_df(
+            cod_origen_str, cod_destino_str, configuracion_lookup, mes_codigo
+        )
+        if df_rows.empty:
+            df_rows = get_sicetac_movilizacion_df(
+                cod_destino_str, cod_origen_str, configuracion_lookup, mes_codigo
+            )
+        df_valorhora = get_sicetac_valorhora_df(configuracion_lookup, mes_codigo)
+        if df_rows.empty or df_valorhora.empty:
+            return []
+        try:
+            valor_hora_global = float(df_valorhora.iloc[0].get(lookup_col))
+        except Exception:
+            return []
+        if pd.isna(valor_hora_global):
+            return []
 
     resolved: list[dict[str, Any]] = []
     for _, row in df_rows.iterrows():
@@ -704,6 +735,16 @@ def _lookup_sicetac_totales(
         except Exception:
             continue
         if pd.isna(movilizacion):
+            continue
+        try:
+            valor_hora = (
+                float(row.get("VALORHORA_VACIO"))
+                if es_vacio
+                else float(valor_hora_global)
+            )
+        except Exception:
+            continue
+        if pd.isna(valor_hora):
             continue
         resolved.append(
             {
@@ -717,6 +758,7 @@ def _lookup_sicetac_totales(
                 },
                 "lookup_column": lookup_col.lower(),
                 "lookup_label": carroceria_option["label"],
+                "lookup_method": "lookup_vacio_oficial" if es_vacio else "lookup_consolidado",
             }
         )
     return resolved
@@ -1079,7 +1121,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
 
     if (
         not manual_mode
-        and data.modo_viaje.upper() == "CARGADO"
+        and data.modo_viaje.upper() in {"CARGADO", "VACIO"}
         and ruta is not None
         and not ruta.empty
     ):
@@ -1089,6 +1131,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             cod_destino_str=cod_destino_str,
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
+            modo_viaje=data.modo_viaje,
             mes_codigo=int(mes_usar),
         )
         if lookup_rows:
@@ -1102,7 +1145,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     "carroceria": data.carroceria,
                     "modo_viaje": data.modo_viaje.upper(),
                     "totales": lookup_rows[0]["totales"],
-                    "metodo": "lookup_consolidado",
+                    "metodo": lookup_rows[0]["lookup_method"],
                     "detalle_lookup": {
                         "rutasid": lookup_rows[0]["rutasid"],
                         "nombre_sice": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("nombre_sice"),
@@ -1148,7 +1191,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "mes": int(mes_usar),
                 "carroceria": data.carroceria,
                 "modo_viaje": data.modo_viaje.upper(),
-                "metodo": "lookup_consolidado",
+                "metodo": lookup_rows[0]["lookup_method"],
                 "variantes": variantes,
             }
             if resolved_route:

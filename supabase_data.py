@@ -32,6 +32,7 @@ TABLES: Dict[str, str] = {
     "rutas": os.getenv("SICETAC_TABLE_RUTAS", "rutas"),
     "sicetac_movilizacion": os.getenv("SICETAC_TABLE_SICETAC_MOVILIZACION", "sicetac_movilizacion_vigentes"),
     "sicetac_valorhora": os.getenv("SICETAC_TABLE_SICETAC_VALORHORA", "sicetac_valorhora_vigentes"),
+    "sicetac_vacio": os.getenv("SICETAC_TABLE_SICETAC_VACIO", "sicetac_vacio_vigentes"),
     "valor_plaza": os.getenv("SICETAC_TABLE_VALOR_PLAZA", "valor_en_plaza_mensual_descriptiva"),
     "peajes_detalle": os.getenv("SICETAC_TABLE_PEAJES_DETALLE", "peajes_detalle_vigentes"),
     "peajes_resumen": os.getenv("SICETAC_TABLE_PEAJES_RESUMEN", "peajes_resumen_vigentes"),
@@ -218,10 +219,7 @@ def get_sicetac_movilizacion_df(
     if mes_codigo is not None:
         filters.append(("mes_codigo", "eq", int(mes_codigo)))
     try:
-        rows = _fetch_table_filtered(
-            table,
-            filters=filters,
-        )
+        rows = _fetch_table_filtered(table, filters=filters)
         if not rows:
             return pd.DataFrame()
         df = _alias_columns(pd.DataFrame(rows))
@@ -234,6 +232,44 @@ def get_sicetac_movilizacion_df(
     except Exception as e:
         logger.warning(
             f"⚠️ No se pudo consultar movilización {origen_norm}->{destino_norm} / {configuracion_norm}: {e}"
+        )
+        return pd.DataFrame()
+
+
+@lru_cache(maxsize=4096)
+def get_sicetac_vacio_df(
+    origen: str,
+    destino: str,
+    configuracion: str,
+    mes_codigo: int | None = None,
+) -> pd.DataFrame:
+    table = TABLES.get("sicetac_vacio", "sicetac_vacio_vigentes")
+    origen_norm = str(origen or "").strip()
+    destino_norm = str(destino or "").strip()
+    configuracion_norm = str(configuracion or "").strip().upper()
+    if not origen_norm or not destino_norm or not configuracion_norm:
+        return pd.DataFrame()
+    filters: list[tuple[str, str, Any]] = [
+        ("origen", "eq", origen_norm),
+        ("destino", "eq", destino_norm),
+        ("configuracion", "ilike", configuracion_norm),
+    ]
+    if mes_codigo is not None:
+        filters.append(("mes_codigo", "eq", int(mes_codigo)))
+    try:
+        rows = _fetch_table_filtered(table, filters=filters)
+        if not rows:
+            return pd.DataFrame()
+        df = _alias_columns(pd.DataFrame(rows))
+        if "mes_codigo" in df.columns:
+            df["mes_codigo"] = pd.to_numeric(df["mes_codigo"], errors="coerce")
+            if mes_codigo is None:
+                df = df[df["mes_codigo"] == df["mes_codigo"].max()]
+            df = df.sort_values(by=["mes_codigo", "rutasid"], ascending=[False, True], na_position="last")
+        return df
+    except Exception as e:
+        logger.warning(
+            f"⚠️ No se pudo consultar VACIO {origen_norm}->{destino_norm} / {configuracion_norm}: {e}"
         )
         return pd.DataFrame()
 

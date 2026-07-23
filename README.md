@@ -94,6 +94,11 @@ Variables útiles:
 - `SICETAC_TABLE_COSTOS_FIJOS`
 - `SICETAC_TABLE_PEAJES`
 - `SICETAC_TABLE_RUTAS`
+- `SICETAC_TABLE_SICETAC_VACIO` (por defecto `sicetac_vacio_vigentes`)
+
+Cuando `modo_viaje=VACIO`, la API consulta la tabla oficial vigente por ruta,
+configuración y carrocería. Este modo representa un vehículo sin carga; un
+contenedor vacío transportado sigue siendo una operación `CARGADO`.
 
 ## Agentes
 
