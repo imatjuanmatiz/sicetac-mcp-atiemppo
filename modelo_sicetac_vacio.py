@@ -47,7 +47,14 @@ def calcular_modelo_sicetac_extendido_vacio(
     # --- 4. Horas logísticas ---
     horas_log = horas_logisticas if horas_logisticas is not None else (0 if total_horas < 8 else 0)
     horas_totales = total_horas + horas_log
-    recorridos = max(1, round(288 / horas_totales, 4))
+    horas_habiles_mes = fila_param.get("HORAS_HABILES_MES", 288)
+    try:
+        horas_habiles_mes = float(horas_habiles_mes)
+        if pd.isna(horas_habiles_mes) or horas_habiles_mes <= 0:
+            horas_habiles_mes = 288
+    except Exception:
+        horas_habiles_mes = 288
+    recorridos = max(1, round(horas_habiles_mes / horas_totales, 4))
 
     # --- 5. Costo fijo por carrocería ---
     tipo_carroceria_objetivo = carroceria_especial.upper().strip() if carroceria_especial else "GENERAL"
@@ -101,6 +108,7 @@ def calcular_modelo_sicetac_extendido_vacio(
         "mes": serie,
         "horas_recorrido": round(total_horas, 2),
         "horas_logisticas": horas_log,
+        "horas_habiles_mes": horas_habiles_mes,
         "recorridos_mes": recorridos,
         "costo_fijo": costo_fijo_viaje,
         "combustible": costo_combustible,
