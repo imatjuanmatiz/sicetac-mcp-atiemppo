@@ -100,6 +100,27 @@ Cuando `modo_viaje=VACIO`, la API consulta la tabla oficial vigente por ruta,
 configuración y carrocería. Este modo representa un vehículo sin carga; un
 contenedor vacío transportado sigue siendo una operación `CARGADO`.
 
+Para un portacontenedores, declara `tipo_contenedor` como `CARGADO` o `VACIO`.
+La segunda opción usa la serie SICETAC oficial de contenedor vacío y no aplica
+valor en plaza. Para un viaje redondo usa `viaje_redondo: true`: la API calcula
+la ida cargada, invierte la ruta y calcula el regreso con contenedor vacío.
+Cuando una dirección tiene variantes SICETAC, la respuesta solicita
+`rutasid_ida` y `rutasid_regreso` para que el consumidor seleccione cada ruta.
+
+```json
+{
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "vehiculo": "C3S3",
+  "carroceria": "Portacontenedores",
+  "modo_viaje": "CARGADO",
+  "viaje_redondo": true,
+  "tipo_contenedor": "CARGADO",
+  "tipo_contenedor_regreso": "VACIO",
+  "resumen": true
+}
+```
+
 ## Agentes
 
 Cliente Node de ejemplo:

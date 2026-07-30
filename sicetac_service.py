@@ -32,6 +32,11 @@ class ConsultaInput(BaseModel):
     vehiculo: str = "C3S3"
     mes: int | None = None
     carroceria: str = "GENERAL"
+    tipo_contenedor: str | None = None
+    viaje_redondo: bool = False
+    tipo_contenedor_regreso: str | None = None
+    rutasid_ida: str | None = None
+    rutasid_regreso: str | None = None
     valor_peaje_manual: float = 0.0
     valor_peajes_manual: float = 0.0
 
@@ -100,6 +105,7 @@ SICE_COLUMN_OPTIONS: list[dict[str, str]] = [
     },
     {
         "column": "CONTENEDOR_PORTACONTENEDORES_CARGADO",
+        "contenedor_vacio_column": "CONTENEDOR_PORTACONTENEDORES_VACIO",
         "vacio_column": "PORTACONTENEDORES_VACIO",
         "label": "Portacontenedores",
         "aliases": "PORTACONTENEDORES|PORTA CONTENEDORES|CONTENEDOR PORTACONTENEDORES",
@@ -509,7 +515,12 @@ def _attach_valor_plaza(
     resolved_route: dict[str, Any] | None,
     configuracion_lookup: str | None,
     carroceria: str | None,
+    tipo_contenedor: str | None = None,
 ) -> dict[str, Any]:
+    # SICETAC no define Valor en Plaza para la operación de contenedor vacío.
+    if _es_contenedor_vacio(carroceria or "", tipo_contenedor):
+        payload["valor_plaza_no_aplica"] = "CONTENEDOR_VACIO"
+        return payload
     if not resolved_route:
         return payload
     route_code = resolved_route.get("route_code")
@@ -681,6 +692,162 @@ def _carroceria_option(carroceria: str) -> dict[str, str] | None:
     return _SICE_COLUMN_MAP.get(_normalize_lookup_text(carroceria))
 
 
+def _tipo_contenedor(value: str | None) -> str | None:
+    normalized = _normalize_lookup_text(value)
+    if not normalized:
+        return None
+    if normalized in {"VACIO", "CONTENEDOR VACIO"}:
+        return "VACIO"
+    if normalized in {"CARGADO", "CONTENEDOR CARGADO"}:
+        return "CARGADO"
+    raise SicetacError(400, "tipo_contenedor debe ser CARGADO o VACIO.")
+
+
+def _es_contenedor_vacio(carroceria: str, tipo_contenedor: str | None) -> bool:
+    option = _carroceria_option(carroceria)
+    return bool(option and option["label"] == "Portacontenedores" and _tipo_contenedor(tipo_contenedor) == "VACIO")
+
+
+def _validar_contexto_tipo_contenedor(data: ConsultaInput) -> str | None:
+    if data.tipo_contenedor_regreso is not None:
+        raise SicetacError(400, "tipo_contenedor_regreso solo aplica con viaje_redondo=true.")
+    tipo = _tipo_contenedor(data.tipo_contenedor)
+    if tipo is None:
+        return None
+    option = _carroceria_option(data.carroceria)
+    if not option or option["label"] != "Portacontenedores":
+        raise SicetacError(400, "tipo_contenedor solo aplica con carroceria=Portacontenedores.")
+    if str(data.modo_viaje or "").strip().upper() != "CARGADO":
+        raise SicetacError(400, "tipo_contenedor se consulta con modo_viaje=CARGADO.")
+    return tipo
+
+
+def _copiar_consulta(data: ConsultaInput, **updates: Any) -> ConsultaInput:
+    if hasattr(data, "model_copy"):
+        return data.model_copy(update=updates)
+    return data.copy(update=updates)
+
+
+def _seleccionar_variante_tramo(
+    respuesta: dict[str, Any], rutasid: str | None, nombre_tramo: str
+) -> dict[str, Any] | None:
+    if "totales" in respuesta:
+        rutasid_actual = _clean_id(respuesta.get("detalle_lookup", {}).get("rutasid"))
+        if rutasid and rutasid_actual and _clean_id(rutasid) != rutasid_actual:
+            raise SicetacError(400, f"rutasid_{nombre_tramo} no corresponde a la ruta resuelta.")
+        return respuesta
+
+    variantes = respuesta.get("variantes", [])
+    if not variantes:
+        raise SicetacError(404, f"No hay una tarifa oficial para el tramo de {nombre_tramo}.")
+    if not rutasid:
+        return None
+
+    rutasid_normalizado = _clean_id(rutasid)
+    variante = next(
+        (
+            item
+            for item in variantes
+            if _clean_id(item.get("RUTASID") or item.get("ID_SICE")) == rutasid_normalizado
+        ),
+        None,
+    )
+    if not variante:
+        opciones = ", ".join(
+            _clean_id(item.get("RUTASID") or item.get("ID_SICE"))
+            for item in variantes
+        )
+        raise SicetacError(
+            400,
+            f"rutasid_{nombre_tramo}={rutasid} no es válido. Opciones: {opciones}.",
+        )
+
+    seleccionado = {key: value for key, value in respuesta.items() if key != "variantes"}
+    seleccionado.update(
+        {
+            "rutasid": _clean_id(variante.get("RUTASID") or variante.get("ID_SICE")),
+            "nombre_sice": variante.get("NOMBRE_SICE"),
+            "ruta": variante.get("RUTA"),
+            "totales": variante["totales"],
+            "detalle_lookup": variante.get("detalle_lookup", {}),
+        }
+    )
+    return seleccionado
+
+
+def _calcular_viaje_redondo_contenedor(data: ConsultaInput) -> dict[str, Any]:
+    if bool(getattr(data, "manual_mode", False)):
+        raise SicetacError(400, "viaje_redondo con contenedor vacío requiere una ruta oficial, no manual_mode.")
+
+    option = _carroceria_option(data.carroceria)
+    if not option or option["label"] != "Portacontenedores":
+        raise SicetacError(400, "viaje_redondo con contenedor vacío solo aplica con carroceria=Portacontenedores.")
+    if str(data.modo_viaje or "").strip().upper() != "CARGADO":
+        raise SicetacError(400, "viaje_redondo con contenedor vacío requiere modo_viaje=CARGADO.")
+
+    tipo_ida = _tipo_contenedor(data.tipo_contenedor) or "CARGADO"
+    tipo_regreso = _tipo_contenedor(data.tipo_contenedor_regreso) or "VACIO"
+    if tipo_ida != "CARGADO" or tipo_regreso != "VACIO":
+        raise SicetacError(
+            400,
+            "viaje_redondo de portacontenedores se compone de ida CARGADO y regreso VACIO.",
+        )
+
+    ida_data = _copiar_consulta(
+        data,
+        viaje_redondo=False,
+        tipo_contenedor="CARGADO",
+        tipo_contenedor_regreso=None,
+    )
+    regreso_data = _copiar_consulta(
+        data,
+        viaje_redondo=False,
+        origen=data.destino,
+        destino=data.origen,
+        codigo_dane_origen=data.codigo_dane_destino,
+        codigo_dane_destino=data.codigo_dane_origen,
+        modo_viaje="CARGADO",
+        tipo_contenedor="VACIO",
+        tipo_contenedor_regreso=None,
+    )
+    ida = calcular_sicetac_resumen(ida_data)
+    regreso = calcular_sicetac_resumen(regreso_data)
+    ida_seleccionada = _seleccionar_variante_tramo(ida, data.rutasid_ida, "ida")
+    regreso_seleccionada = _seleccionar_variante_tramo(
+        regreso, data.rutasid_regreso, "regreso"
+    )
+    if ida_seleccionada is None or regreso_seleccionada is None:
+        return {
+            "tipo_consulta": "VIAJE_REDONDO_CONTENEDOR",
+            "requiere_seleccion_ruta": True,
+            "ida": ida,
+            "regreso": regreso,
+            "instruccion": (
+                "Seleccione una ruta SICETAC para cada tramo y reintente con "
+                "rutasid_ida y rutasid_regreso."
+            ),
+            "valor_plaza_regreso_no_aplica": "CONTENEDOR_VACIO",
+        }
+
+    totales = {
+        hora: round(
+            float(ida_seleccionada["totales"][hora])
+            + float(regreso_seleccionada["totales"][hora]),
+            2,
+        )
+        for hora in ("H2", "H4", "H8")
+    }
+    return {
+        "tipo_consulta": "VIAJE_REDONDO_CONTENEDOR",
+        "configuracion": data.vehiculo,
+        "carroceria": "Portacontenedores",
+        "ida": ida_seleccionada,
+        "regreso": regreso_seleccionada,
+        "totales": totales,
+        "valor_plaza_regreso_no_aplica": "CONTENEDOR_VACIO",
+    }
+
+
 def _lookup_sicetac_totales(
     *,
     cod_origen_str: str,
@@ -688,6 +855,7 @@ def _lookup_sicetac_totales(
     configuracion_lookup: str,
     carroceria: str,
     modo_viaje: str = "CARGADO",
+    tipo_contenedor: str | None = None,
     mes_codigo: int | None = None,
 ) -> list[dict[str, Any]]:
     if not _USE_CONSOLIDATED_LOOKUP:
@@ -697,7 +865,12 @@ def _lookup_sicetac_totales(
     if not carroceria_option:
         return []
     es_vacio = str(modo_viaje or "").strip().upper() == "VACIO"
+    contenedor_vacio = _es_contenedor_vacio(carroceria, tipo_contenedor)
+    if es_vacio and contenedor_vacio:
+        raise SicetacError(400, "Un contenedor vacío se consulta con modo_viaje=CARGADO.")
     lookup_col = carroceria_option["vacio_column"] if es_vacio else carroceria_option["column"]
+    if contenedor_vacio:
+        lookup_col = carroceria_option["contenedor_vacio_column"]
 
     if es_vacio:
         df_rows = get_sicetac_vacio_df(
@@ -758,7 +931,13 @@ def _lookup_sicetac_totales(
                 },
                 "lookup_column": lookup_col.lower(),
                 "lookup_label": carroceria_option["label"],
-                "lookup_method": "lookup_vacio_oficial" if es_vacio else "lookup_consolidado",
+                "lookup_method": (
+                    "lookup_vacio_oficial"
+                    if es_vacio
+                    else "lookup_contenedor_vacio_oficial"
+                    if contenedor_vacio
+                    else "lookup_consolidado"
+                ),
             }
         )
     return resolved
@@ -781,6 +960,17 @@ def _route_metadata_map(ruta: pd.DataFrame) -> dict[str, dict[str, Any]]:
 
 
 def calcular_sicetac(data: ConsultaInput) -> dict:
+    if data.viaje_redondo:
+        raise SicetacError(
+            400,
+            "viaje_redondo está disponible con resumen=true; el detalle por tramo aún no está habilitado.",
+        )
+    tipo_contenedor = _validar_contexto_tipo_contenedor(data)
+    if tipo_contenedor is not None:
+        raise SicetacError(
+            400,
+            "tipo_contenedor está disponible con resumen=true; el detalle del modelo aún no incorpora esta serie oficial.",
+        )
     _refresh_cache()
     (
         df_municipios,
@@ -1027,6 +1217,9 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     """
     Calcula totales para 2, 4 y 8 horas logísticas con respuesta mínima.
     """
+    if data.viaje_redondo:
+        return _calcular_viaje_redondo_contenedor(data)
+    _validar_contexto_tipo_contenedor(data)
     _refresh_cache()
     (
         df_municipios,
@@ -1132,6 +1325,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
             modo_viaje=data.modo_viaje,
+            tipo_contenedor=data.tipo_contenedor,
             mes_codigo=int(mes_usar),
         )
         if lookup_rows:
@@ -1144,6 +1338,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     "mes": int(mes_usar),
                     "carroceria": data.carroceria,
                     "modo_viaje": data.modo_viaje.upper(),
+                    "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
                     "totales": lookup_rows[0]["totales"],
                     "metodo": lookup_rows[0]["lookup_method"],
                     "detalle_lookup": {
@@ -1163,6 +1358,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     resolved_route=resolved_route,
                     configuracion_lookup=configuracion_lookup,
                     carroceria=data.carroceria,
+                    tipo_contenedor=data.tipo_contenedor,
                 )
                 return respuesta
 
@@ -1191,6 +1387,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "mes": int(mes_usar),
                 "carroceria": data.carroceria,
                 "modo_viaje": data.modo_viaje.upper(),
+                "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
                 "metodo": lookup_rows[0]["lookup_method"],
                 "variantes": variantes,
             }
@@ -1201,8 +1398,15 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 resolved_route=resolved_route,
                 configuracion_lookup=configuracion_lookup,
                 carroceria=data.carroceria,
+                tipo_contenedor=data.tipo_contenedor,
             )
             return respuesta
+
+    if _es_contenedor_vacio(data.carroceria, data.tipo_contenedor):
+        raise SicetacError(
+            503,
+            "No hay consolidado oficial vigente para Contenedor vacío en esta ruta/configuración.",
+        )
 
     def _peaje_for_ruta(ruta_row) -> float:
         if ruta_row is None:
@@ -1297,6 +1501,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             resolved_route=resolved_route,
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
+            tipo_contenedor=data.tipo_contenedor,
         )
         return respuesta
 
@@ -1329,6 +1534,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             resolved_route=resolved_route,
             configuracion_lookup=configuracion_lookup,
             carroceria=data.carroceria,
+            tipo_contenedor=data.tipo_contenedor,
         )
         return respuesta
 
@@ -1367,6 +1573,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         resolved_route=resolved_route,
         configuracion_lookup=configuracion_lookup,
         carroceria=data.carroceria,
+        tipo_contenedor=data.tipo_contenedor,
     )
     return respuesta
 

@@ -38,6 +38,36 @@ Usa `resumen: true` para obtener una respuesta compacta y estable.
 }
 ```
 
+### Viaje redondo con contenedor vacío de regreso
+
+No uses `modo_viaje: "VACIO"` para transportar el contenedor vacío de regreso:
+ese modo representa un vehículo sin carga ni contenedor. Para el ciclo de
+portacontenedores usa este contrato resumido:
+
+```json
+{
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "vehiculo": "C3S3",
+  "carroceria": "Portacontenedores",
+  "modo_viaje": "CARGADO",
+  "viaje_redondo": true,
+  "tipo_contenedor": "CARGADO",
+  "tipo_contenedor_regreso": "VACIO",
+  "resumen": true
+}
+```
+
+La respuesta incluye `ida` y `regreso`; el segundo tramo invierte origen y
+destino, usa la serie oficial de contenedor vacío y no entrega `valor_plaza`.
+`totales.H2`, `H4` y `H8` son la suma de ambos tramos. Esta modalidad requiere
+`resumen: true`.
+
+Si alguno de los tramos devuelve variantes, la respuesta tendrá
+`requiere_seleccion_ruta: true`. El cliente debe seleccionar una alternativa de
+cada lista y repetir la consulta con `rutasid_ida` y `rutasid_regreso`; la API
+no elige una ruta arbitrariamente.
+
 ## 4. Respuesta esperada
 
 Ejemplo resumido:
@@ -117,6 +147,11 @@ Usa este endpoint si necesitas:
 ## 7. Recomendaciones de integración
 
 - enviar siempre `vehiculo` explícito aunque exista default
+- para portacontenedores, distinguir `modo_viaje: "VACIO"` de
+  `tipo_contenedor: "VACIO"`; el primero es vehículo vacío y el segundo es
+  contenedor vacío transportado
+- para ida y regreso con contenedor vacío, enviar `viaje_redondo: true` en vez
+  de sumar una consulta cargada y una consulta de vehículo vacío
 - enviar `mes` explícito si quieres reproducibilidad
 - usar código DANE cuando el origen y destino vengan de sistemas estructurados
 - usar nombre cuando el input venga de usuarios humanos

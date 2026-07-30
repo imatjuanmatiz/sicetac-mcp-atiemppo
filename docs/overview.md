@@ -93,6 +93,13 @@ Por defecto esas tablas se leen desde Supabase.
 5. se ejecuta el modelo
 6. se devuelve resumen o detalle
 
+### Portacontenedores y viaje redondo
+
+La capa resumida distingue tres operaciones: vehículo vacío, contenedor cargado
+y contenedor vacío transportado. Para un viaje redondo de portacontenedores,
+la API consulta la ida cargada y el regreso en la dirección inversa con
+contenedor vacío; no lo modela como vehículo vacío.
+
 ## Modos de salida
 
 ### Resumen

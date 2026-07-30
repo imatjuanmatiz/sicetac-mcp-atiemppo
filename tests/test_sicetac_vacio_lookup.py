@@ -5,7 +5,16 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from sicetac_service import _carroceria_option, _lookup_sicetac_totales
+from sicetac_service import (
+    ConsultaInput,
+    SicetacError,
+    _attach_valor_plaza,
+    _calcular_viaje_redondo_contenedor,
+    _carroceria_option,
+    _lookup_sicetac_totales,
+    _validar_contexto_tipo_contenedor,
+    calcular_sicetac,
+)
 
 
 class SicetacVacioLookupTests(unittest.TestCase):
@@ -58,6 +67,168 @@ class SicetacVacioLookupTests(unittest.TestCase):
         )
         self.assertEqual(rows[0]["lookup_method"], "lookup_vacio_oficial")
         self.assertEqual(rows[0]["lookup_column"], "portacontenedores_vacio")
+
+    @patch("sicetac_service.get_sicetac_valorhora_df")
+    @patch("sicetac_service.get_sicetac_movilizacion_df")
+    def test_contenedor_vacio_uses_its_own_official_series(
+        self, get_movilizacion, get_valorhora
+    ) -> None:
+        get_movilizacion.return_value = pd.DataFrame(
+            [
+                {
+                    "RUTASID": "106",
+                    "CONTENEDOR_PORTACONTENEDORES_CARGADO": 3_802_629,
+                    "CONTENEDOR_PORTACONTENEDORES_VACIO": 3_111_306,
+                }
+            ]
+        )
+        get_valorhora.return_value = pd.DataFrame(
+            [
+                {
+                    "CONTENEDOR_PORTACONTENEDORES_CARGADO": 90_704,
+                    "CONTENEDOR_PORTACONTENEDORES_VACIO": 90_482,
+                }
+            ]
+        )
+
+        rows = _lookup_sicetac_totales(
+            cod_origen_str="11001000",
+            cod_destino_str="05001000",
+            configuracion_lookup="3S3",
+            carroceria="Portacontenedores",
+            modo_viaje="CARGADO",
+            tipo_contenedor="VACIO",
+            mes_codigo=202607,
+        )
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["movilizacion"], 3_111_306)
+        self.assertEqual(rows[0]["valor_hora"], 90_482)
+        self.assertEqual(
+            rows[0]["totales"],
+            {"H2": 3_292_270, "H4": 3_473_234, "H8": 3_835_162},
+        )
+        self.assertEqual(rows[0]["lookup_method"], "lookup_contenedor_vacio_oficial")
+        self.assertEqual(
+            rows[0]["lookup_column"], "contenedor_portacontenedores_vacio"
+        )
+
+    def test_contenedor_vacio_is_not_a_vehicle_vacio_lookup(self) -> None:
+        with self.assertRaises(SicetacError) as context:
+            _lookup_sicetac_totales(
+                cod_origen_str="11001000",
+                cod_destino_str="05001000",
+                configuracion_lookup="3S3",
+                carroceria="Portacontenedores",
+                modo_viaje="VACIO",
+                tipo_contenedor="VACIO",
+                mes_codigo=202607,
+            )
+        self.assertIn("modo_viaje=CARGADO", context.exception.detail)
+
+    def test_tipo_contenedor_requires_loaded_portacontenedores(self) -> None:
+        with self.assertRaises(SicetacError) as context:
+            _validar_contexto_tipo_contenedor(
+                ConsultaInput(
+                    carroceria="Portacontenedores",
+                    modo_viaje="VACIO",
+                    tipo_contenedor="VACIO",
+                )
+            )
+        self.assertIn("modo_viaje=CARGADO", context.exception.detail)
+
+    def test_contenedor_vacio_omits_valor_plaza(self) -> None:
+        payload = _attach_valor_plaza(
+            {},
+            resolved_route={"route_code": "11001000-05001000"},
+            configuracion_lookup="3S3",
+            carroceria="Portacontenedores",
+            tipo_contenedor="VACIO",
+        )
+        self.assertEqual(payload, {"valor_plaza_no_aplica": "CONTENEDOR_VACIO"})
+
+    def test_detalle_no_uses_generic_model_for_tipo_contenedor(self) -> None:
+        with self.assertRaises(SicetacError) as context:
+            calcular_sicetac(
+                ConsultaInput(
+                    carroceria="Portacontenedores",
+                    modo_viaje="CARGADO",
+                    tipo_contenedor="VACIO",
+                )
+            )
+        self.assertIn("resumen=true", context.exception.detail)
+
+    def test_detalle_no_ignores_viaje_redondo(self) -> None:
+        with self.assertRaises(SicetacError) as context:
+            calcular_sicetac(ConsultaInput(viaje_redondo=True))
+        self.assertIn("resumen=true", context.exception.detail)
+
+    @patch("sicetac_service.calcular_sicetac_resumen")
+    def test_viaje_redondo_uses_loaded_outbound_and_empty_container_return(
+        self, resumen
+    ) -> None:
+        resumen.side_effect = [
+            {
+                "origen": "Bogotá",
+                "destino": "Medellín",
+                "totales": {"H2": 3_984_037, "H4": 4_165_445, "H8": 4_528_261},
+            },
+            {
+                "origen": "Medellín",
+                "destino": "Bogotá",
+                "totales": {"H2": 3_292_270, "H4": 3_473_234, "H8": 3_835_162},
+                "valor_plaza_no_aplica": "CONTENEDOR_VACIO",
+            },
+        ]
+
+        result = _calcular_viaje_redondo_contenedor(
+            ConsultaInput(
+                origen="Bogotá",
+                destino="Medellín",
+                vehiculo="C3S3",
+                carroceria="Portacontenedores",
+                modo_viaje="CARGADO",
+                viaje_redondo=True,
+            )
+        )
+
+        ida_data, regreso_data = [call.args[0] for call in resumen.call_args_list]
+        self.assertEqual(ida_data.tipo_contenedor, "CARGADO")
+        self.assertEqual(ida_data.origen, "Bogotá")
+        self.assertEqual(ida_data.destino, "Medellín")
+        self.assertFalse(ida_data.viaje_redondo)
+        self.assertEqual(regreso_data.tipo_contenedor, "VACIO")
+        self.assertEqual(regreso_data.origen, "Medellín")
+        self.assertEqual(regreso_data.destino, "Bogotá")
+        self.assertEqual(regreso_data.modo_viaje, "CARGADO")
+        self.assertEqual(
+            result["totales"],
+            {"H2": 7_276_307.0, "H4": 7_638_679.0, "H8": 8_363_423.0},
+        )
+        self.assertEqual(result["valor_plaza_regreso_no_aplica"], "CONTENEDOR_VACIO")
+
+    @patch("sicetac_service.calcular_sicetac_resumen")
+    def test_viaje_redondo_returns_variants_until_each_route_is_selected(
+        self, resumen
+    ) -> None:
+        resumen.side_effect = [
+            {"variantes": [{"RUTASID": "106", "totales": {"H2": 1, "H4": 2, "H8": 3}}]},
+            {"variantes": [{"RUTASID": "107", "totales": {"H2": 4, "H4": 5, "H8": 6}}]},
+        ]
+
+        result = _calcular_viaje_redondo_contenedor(
+            ConsultaInput(
+                origen="Bogotá",
+                destino="Medellín",
+                carroceria="Portacontenedores",
+                viaje_redondo=True,
+            )
+        )
+
+        self.assertTrue(result["requiere_seleccion_ruta"])
+        self.assertNotIn("totales", result)
+        self.assertEqual(result["ida"]["variantes"][0]["RUTASID"], "106")
+        self.assertEqual(result["regreso"]["variantes"][0]["RUTASID"], "107")
 
 
 if __name__ == "__main__":

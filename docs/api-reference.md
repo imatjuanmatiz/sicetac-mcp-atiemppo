@@ -22,6 +22,10 @@ Campos relevantes:
 - `vehiculo`
 - `mes`
 - `carroceria`
+- `tipo_contenedor`: solo para `carroceria = Portacontenedores`; admite `CARGADO` o `VACIO` y se consulta siempre con `modo_viaje = CARGADO`.
+- `viaje_redondo`: calcula ida cargada y regreso con contenedor vacío; solo con `resumen = true`.
+- `tipo_contenedor_regreso`: para `viaje_redondo`, debe ser `VACIO` (es el valor por defecto).
+- `rutasid_ida`, `rutasid_regreso`: selección de variante SICETAC cuando un tramo tiene más de una ruta disponible.
 - `modo_viaje`
 - `resumen`
 - `manual_mode`
@@ -49,6 +53,40 @@ Defaults importantes:
 - `resumen`: `true`
 - `tarifa_standby`: `150000`
 - `peajes`, `incluir_peajes`, `detalle_peajes`: `false`
+
+Para diferenciar la operación de contenedor vacío del viaje vacío del vehículo:
+
+```json
+{
+  "modo_viaje": "CARGADO",
+  "carroceria": "Portacontenedores",
+  "tipo_contenedor": "VACIO"
+}
+```
+
+Esta combinación usa la serie oficial `Contenedor vacío / PORTACONTENEDORES` y no devuelve `valor_plaza`.
+Está disponible en la respuesta de resumen (`resumen: true`); la respuesta detallada se mantiene bloqueada para no mezclar esa serie con el cálculo genérico.
+
+## Viaje redondo con contenedor vacío de regreso
+
+Use `viaje_redondo: true`. La API calcula la ida con contenedor cargado e invierte automáticamente la ruta para el regreso con contenedor vacío; ambos tramos se consultan con `modo_viaje: CARGADO`.
+
+```json
+{
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "vehiculo": "C3S3",
+  "carroceria": "Portacontenedores",
+  "modo_viaje": "CARGADO",
+  "viaje_redondo": true,
+  "tipo_contenedor": "CARGADO",
+  "tipo_contenedor_regreso": "VACIO",
+  "resumen": true
+}
+```
+
+La respuesta conserva `ida` y `regreso`, y suma sus escenarios `H2`, `H4` y `H8` en `totales`. El regreso no incluye valor en plaza.
+Si la ruta tiene variantes, la primera respuesta trae `requiere_seleccion_ruta: true` y las alternativas de cada tramo; reintenta indicando `rutasid_ida` y `rutasid_regreso`.
 
 ## `POST /consulta`
 

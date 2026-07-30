@@ -83,6 +83,20 @@ Columnas clave:
 - `MES` (alias de `mes_codigo`)
 - `COSTO FIJO`
 
+### Series oficiales SICETAC de portacontenedores
+
+Las tablas `sicetac_movilizacion_vigentes` y `sicetac_valorhora_vigentes`
+incluyen dos columnas independientes:
+
+- `contenedor_portacontenedores_cargado`: condición `CARGADO`, tipo de carga
+  `Contenedor cargado`, unidad `PORTACONTENEDORES`.
+- `contenedor_portacontenedores_vacio`: condición `CARGADO`, tipo de carga
+  `Contenedor vacío`, unidad `PORTACONTENEDORES`.
+
+No se debe confundir la segunda serie con
+`sicetac_vacio_vigentes.portacontenedores_vacio`, que representa el vehículo
+sin carga ni contenedor.
+
 ## 3) Resumen vs Detalle
 
 ### Resumen (por defecto)
@@ -98,6 +112,23 @@ Columnas clave:
   "totales": { "H2": 123, "H4": 456, "H8": 789 }
 }
 ```
+
+### Viaje redondo de portacontenedores
+
+Con `viaje_redondo: true`, la capa de resumen compone dos consultas oficiales:
+
+1. Ida: `modo_viaje=CARGADO`, `tipo_contenedor=CARGADO`.
+2. Regreso: ruta invertida, `modo_viaje=CARGADO`,
+   `tipo_contenedor=VACIO`.
+
+La respuesta conserva los objetos `ida` y `regreso` y suma los escenarios
+`H2`, `H4` y `H8`. El valor en plaza no aplica al tramo de contenedor vacío.
+No está habilitado con `resumen: false`, para evitar mezclar las series
+oficiales con el cálculo detallado genérico.
+
+Si existen variantes en alguno de los tramos, el servicio devuelve las
+alternativas y requiere `rutasid_ida` y `rutasid_regreso` antes de calcular el
+total redondo. Esto evita sumar rutas elegidas implícitamente.
 
 Si hay múltiples rutas:
 ```json
