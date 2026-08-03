@@ -1395,10 +1395,6 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             "km_despavimentado": row.get("KM_DESPAVIMENTADO", 0),
         }
 
-    meses_validos = df_parametros["MES"].unique().tolist()
-    if int(mes_usar) not in meses_validos:
-        raise SicetacError(400, f"Mes '{mes_usar}' no válido. Debe ser uno de: {meses_validos}")
-
     fila_conf = _fila_vehiculo(df_vehiculos, data.vehiculo)
     ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
     configuracion_lookup = _configuracion_lookup(fila_conf, data.vehiculo)
