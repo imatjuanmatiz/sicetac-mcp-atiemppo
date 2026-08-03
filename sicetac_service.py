@@ -922,6 +922,7 @@ def _lookup_sicetac_totales(
         resolved.append(
             {
                 "rutasid": _clean_id(row.get("RUTASID")),
+                "mes_codigo": int(row.get("MES_CODIGO")) if pd.notna(row.get("MES_CODIGO")) else None,
                 "movilizacion": movilizacion,
                 "valor_hora": valor_hora,
                 "totales": {
@@ -1326,7 +1327,10 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             carroceria=data.carroceria,
             modo_viaje=data.modo_viaje,
             tipo_contenedor=data.tipo_contenedor,
-            mes_codigo=int(mes_usar),
+            # Sin un mes explícito, el consolidado oficial debe resolver al
+            # último corte publicado, aun si los parámetros normativos tienen
+            # una vigencia anterior.
+            mes_codigo=int(mes_usar) if data.mes is not None else None,
         )
         if lookup_rows:
             if len(lookup_rows) == 1:
@@ -1335,7 +1339,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                     "destino": destino_display,
                     "configuracion": data.vehiculo,
                     "configuracion_analisis": configuracion_lookup,
-                    "mes": int(mes_usar),
+                    "mes": lookup_rows[0]["mes_codigo"] or int(mes_usar),
+                    "mes_parametros": int(mes_usar),
                     "carroceria": data.carroceria,
                     "modo_viaje": data.modo_viaje.upper(),
                     "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
@@ -1384,7 +1389,8 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
                 "destino": destino_display,
                 "configuracion": data.vehiculo,
                 "configuracion_analisis": configuracion_lookup,
-                "mes": int(mes_usar),
+                "mes": lookup_rows[0]["mes_codigo"] or int(mes_usar),
+                "mes_parametros": int(mes_usar),
                 "carroceria": data.carroceria,
                 "modo_viaje": data.modo_viaje.upper(),
                 "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
