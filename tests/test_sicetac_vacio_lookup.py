@@ -11,13 +11,30 @@ from sicetac_service import (
     _attach_valor_plaza,
     _calcular_viaje_redondo_contenedor,
     _carroceria_option,
+    _fila_vehiculo,
     _lookup_sicetac_totales,
+    _verificar_parametros_modelo,
     _validar_contexto_tipo_contenedor,
     calcular_sicetac,
 )
 
 
 class SicetacVacioLookupTests(unittest.TestCase):
+    def test_vehicle_catalog_accepts_new_light_range_without_case_sensitivity(self) -> None:
+        catalog = pd.DataFrame(
+            [{"TIPO_VEHICULO": "C257", "CONFIGURACION_SICETAC_LOOKUP": "2_5_7"}]
+        )
+        row = _fila_vehiculo(catalog, "c257")
+        self.assertEqual(row["TIPO_VEHICULO"], "C257")
+
+    def test_detail_mode_rejects_new_range_without_normative_parameters(self) -> None:
+        vehicle = pd.Series({"TIPO_VEHICULO": "C257"})
+        params = pd.DataFrame([{"TIPO_VEHICULO": "C3S3", "MES": 202607}])
+        costs = pd.DataFrame([{"TIPO_VEHICULO": "C3S3", "MES": 202607}])
+        with self.assertRaises(SicetacError) as context:
+            _verificar_parametros_modelo(params, costs, vehicle, 202607)
+        self.assertEqual(context.exception.status_code, 503)
+
     def test_all_service_options_map_to_a_vacio_body(self) -> None:
         expected = {
             "General - Estacas": "ESTACAS_VACIO",

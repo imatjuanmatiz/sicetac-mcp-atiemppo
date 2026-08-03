@@ -688,6 +688,42 @@ def _configuracion_lookup(fila_conf: pd.Series, vehiculo: str) -> str:
     return str(value).strip().upper()
 
 
+def _fila_vehiculo(df_vehiculos: pd.DataFrame, vehiculo: str) -> pd.Series:
+    """Resuelve un vehículo sin depender de mayúsculas ni del prefijo ``C``."""
+    input_norm = str(vehiculo or "").strip().upper().replace("C", "")
+    catalogo = df_vehiculos["TIPO_VEHICULO"].astype(str).str.upper()
+    coincidencias = df_vehiculos[catalogo.str.replace("C", "", regex=False) == input_norm]
+    if coincidencias.empty:
+        opciones = ", ".join(catalogo.tolist())
+        raise SicetacError(400, f"Vehículo '{vehiculo}' no encontrado. Opciones válidas: {opciones}")
+    return coincidencias.iloc[0]
+
+
+def _verificar_parametros_modelo(
+    df_parametros: pd.DataFrame,
+    df_costos_fijos: pd.DataFrame,
+    fila_conf: pd.Series,
+    mes: int,
+) -> str:
+    """Confirma que el modo manual tiene insumos normativos para el vehículo."""
+    tipo = str(fila_conf.get("TIPO_VEHICULO") or "").strip().upper()
+    params = df_parametros[
+        (df_parametros["TIPO_VEHICULO"].astype(str).str.upper() == tipo)
+        & (pd.to_numeric(df_parametros["MES"], errors="coerce") == int(mes))
+    ]
+    costos = df_costos_fijos[
+        (df_costos_fijos["TIPO_VEHICULO"].astype(str).str.upper() == tipo)
+        & (pd.to_numeric(df_costos_fijos["MES"], errors="coerce") == int(mes))
+    ]
+    if params.empty or costos.empty:
+        raise SicetacError(
+            503,
+            "No hay parámetros normativos publicados para este vehículo en el modo detallado. "
+            "Use resumen=true, que entrega el consolidado oficial SICETAC vigente.",
+        )
+    return tipo
+
+
 def _carroceria_option(carroceria: str) -> dict[str, str] | None:
     return _SICE_COLUMN_MAP.get(_normalize_lookup_text(carroceria))
 
@@ -1047,15 +1083,10 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             "km_despavimentado": row.get("KM_DESPAVIMENTADO", 0),
         }
 
-    vehiculo_upper = data.vehiculo.strip().upper().replace("C", "")
-    vehiculos_validos = df_vehiculos["TIPO_VEHICULO"].astype(str).str.upper().str.replace("C", "").unique()
-    if vehiculo_upper not in vehiculos_validos:
-        raise SicetacError(
-            400,
-            f"Vehículo '{data.vehiculo}' no encontrado. Opciones válidas: {', '.join(vehiculos_validos)}"
-        )
-
-    fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == data.vehiculo].iloc[0]
+    fila_conf = _fila_vehiculo(df_vehiculos, data.vehiculo)
+    vehiculo_modelo = _verificar_parametros_modelo(
+        df_parametros, df_costos_fijos, fila_conf, int(mes_usar)
+    )
     ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
 
     peajes_index = _get_peajes_index(df_peajes)
@@ -1081,7 +1112,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             return calcular_modelo_sicetac_extendido_vacio(
                 origen=origen_display,
                 destino=destino_display,
-                configuracion=data.vehiculo,
+                configuracion=vehiculo_modelo,
                 serie=int(mes_usar),
                 distancias=distancias,
                 valor_peaje_manual=data.valor_peaje_manual,
@@ -1098,7 +1129,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         return calcular_modelo_sicetac_extendido(
             origen=origen_display,
             destino=destino_display,
-            configuracion=data.vehiculo,
+            configuracion=vehiculo_modelo,
             serie=int(mes_usar),
             distancias=distancias,
             valor_peaje_manual=data.valor_peaje_manual,
@@ -1296,19 +1327,11 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             "km_despavimentado": row.get("KM_DESPAVIMENTADO", 0),
         }
 
-    vehiculo_upper = data.vehiculo.strip().upper().replace("C", "")
-    vehiculos_validos = df_vehiculos["TIPO_VEHICULO"].astype(str).str.upper().str.replace("C", "").unique()
-    if vehiculo_upper not in vehiculos_validos:
-        raise SicetacError(
-            400,
-            f"Vehículo '{data.vehiculo}' no encontrado. Opciones válidas: {', '.join(vehiculos_validos)}"
-        )
-
     meses_validos = df_parametros["MES"].unique().tolist()
     if int(mes_usar) not in meses_validos:
         raise SicetacError(400, f"Mes '{mes_usar}' no válido. Debe ser uno de: {meses_validos}")
 
-    fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == data.vehiculo].iloc[0]
+    fila_conf = _fila_vehiculo(df_vehiculos, data.vehiculo)
     ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
     configuracion_lookup = _configuracion_lookup(fila_conf, data.vehiculo)
     peajes_index = _get_peajes_index(df_peajes)
@@ -1408,6 +1431,10 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             )
             return respuesta
 
+    vehiculo_modelo = _verificar_parametros_modelo(
+        df_parametros, df_costos_fijos, fila_conf, int(mes_usar)
+    )
+
     if _es_contenedor_vacio(data.carroceria, data.tipo_contenedor):
         raise SicetacError(
             503,
@@ -1430,7 +1457,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
             return calcular_modelo_sicetac_extendido_vacio(
                 origen=origen_display,
                 destino=destino_display,
-                configuracion=data.vehiculo,
+                configuracion=vehiculo_modelo,
                 serie=int(mes_usar),
                 distancias=distancias,
                 valor_peaje_manual=data.valor_peaje_manual,
@@ -1447,7 +1474,7 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         return calcular_modelo_sicetac_extendido(
             origen=origen_display,
             destino=destino_display,
-            configuracion=data.vehiculo,
+            configuracion=vehiculo_modelo,
             serie=int(mes_usar),
             distancias=distancias,
             valor_peaje_manual=data.valor_peaje_manual,

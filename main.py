@@ -22,6 +22,15 @@ from supabase_data import get_client, get_table_df
 
 app = FastAPI(title="API SICETAC", version="2.1.0")
 
+# Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
+# El resto del catálogo conserva un orden alfabético estable.
+VEHICULOS_LIVIANOS_VIGENTES_ORDEN = {
+    "CA": 10,
+    "C257": 20,
+    "C279": 30,
+    "C2910": 40,
+}
+
 cors_origins = os.getenv("CORS_ORIGINS", "*")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
 
@@ -121,6 +130,15 @@ def opciones_vehiculos():
             .fillna("")
             .drop_duplicates()
             .to_dict(orient="records")
+        )
+        records.sort(
+            key=lambda row: (
+                VEHICULOS_LIVIANOS_VIGENTES_ORDEN.get(
+                    str(row.get("tipo_vehiculo") or "").upper(),
+                    100,
+                ),
+                str(row.get("tipo_vehiculo") or ""),
+            )
         )
         return _json_response({"vehiculos": records})
     except Exception as e:

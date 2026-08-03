@@ -54,6 +54,22 @@ Defaults importantes:
 - `tarifa_standby`: `150000`
 - `peajes`, `incluir_peajes`, `detalle_peajes`: `false`
 
+## Rangos livianos vigentes desde 2026-08-01
+
+La API expone estas cuatro opciones en `GET /opciones/vehiculos`, en este orden:
+
+| Código API | Rango PBV | Configuración oficial SICETAC |
+| --- | --- | --- |
+| `CA` | Camioneta: 3.500–5.000 kg | `CA_35_5` |
+| `C257` | Camión dos ejes liviano: 5.001–7.000 kg | `2_5_7` |
+| `C279` | Camión dos ejes liviano: 7.001–9.000 kg | `2_7_9` |
+| `C2910` | Camión dos ejes liviano: 9.001–10.500 kg | `2L1 Liviano entre 9 y 10.5 Tonel.` |
+
+Para estos rangos, `resumen: true` entrega el consolidado oficial de agosto.
+El modo detallado requiere parámetros normativos por vehículo; mientras esos
+parámetros no sean publicados, responde `503` con una indicación explícita en
+lugar de calcular un valor no oficial.
+
 Para diferenciar la operación de contenedor vacío del viaje vacío del vehículo:
 
 ```json
