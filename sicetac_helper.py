@@ -19,11 +19,14 @@ class SICETACHelper:
         raw = str(value or "").strip()
         if not raw:
             return None
+        # Las columnas de Supabase son numéricas y, por tanto, pueden perder el
+        # cero inicial de un código DANE de ocho dígitos. Normalizamos ambos
+        # formatos al mismo identificador numérico antes de resolver la ruta.
+        if re.fullmatch(r"\d+\.0+", raw):
+            raw = raw.split(".", 1)[0]
         digits = re.sub(r"\D", "", raw)
         if digits:
-            return digits
-        if raw.endswith(".0"):
-            raw = raw[:-2]
+            return digits.lstrip("0") or "0"
         return raw or None
 
     def _normalize_name(self, value):

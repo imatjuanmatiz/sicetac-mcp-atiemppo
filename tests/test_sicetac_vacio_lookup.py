@@ -17,6 +17,7 @@ from sicetac_service import (
     _validar_contexto_tipo_contenedor,
     calcular_sicetac,
 )
+from sicetac_helper import SICETACHelper
 
 
 class SicetacVacioLookupTests(unittest.TestCase):
@@ -34,6 +35,15 @@ class SicetacVacioLookupTests(unittest.TestCase):
         with self.assertRaises(SicetacError) as context:
             _verificar_parametros_modelo(params, costs, vehicle, 202607)
         self.assertEqual(context.exception.status_code, 503)
+
+    def test_dane_code_resolution_accepts_leading_zero(self) -> None:
+        helper = SICETACHelper(
+            pd.DataFrame(
+                [{"codigo_dane": 8560004, "nombre_oficial": "SANTA RITA"}]
+            )
+        )
+        result = helper.buscar_municipio_por_codigo("08560004")
+        self.assertEqual(result["codigo_dane"], "8560004")
 
     def test_all_service_options_map_to_a_vacio_body(self) -> None:
         expected = {
