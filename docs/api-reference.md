@@ -41,6 +41,7 @@ Campos relevantes:
 - `km_urbano`
 - `km_despavimentado`
 - `modo_tiempos_logisticos`
+- `modo_aumento`: activa la comparación de H4 y H8 contra el corte SICETAC `202512`.
 - `peajes`
 - `incluir_peajes`
 - `detalle_peajes`
@@ -51,6 +52,7 @@ Defaults importantes:
 - `carroceria`: `GENERAL`
 - `modo_viaje`: `CARGADO`
 - `resumen`: `true`
+- `modo_aumento`: `false`
 - `tarifa_standby`: `150000`
 - `peajes`, `incluir_peajes`, `detalle_peajes`: `false`
 
@@ -112,6 +114,47 @@ Endpoint principal.
 
 - resumen si `resumen = true`
 - detalle si `resumen = false`
+
+### Modo aumento
+
+Envíe `modo_aumento: true` para que el resumen incluya `aumento`, con los
+valores actuales y de diciembre de 2025, diferencia en pesos y `aumento_pct`
+para H4 y H8. Está habilitado para C2, C3, C2S2, C2S3, C3S2 y C3S3 y requiere
+`resumen: true`.
+
+La API es stateless: un cliente conversacional que quiera mantener el modo
+activo debe reenviar `modo_aumento: true` en cada consulta. Para apagarlo,
+envíe `modo_aumento: false` (o simplemente omita el campo en la consulta
+normal). La respuesta activa incluye el mensaje de estado correspondiente.
+
+Ejemplo:
+
+```json
+{
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "vehiculo": "C3S3",
+  "resumen": true,
+  "modo_aumento": true
+}
+```
+
+La respuesta agrega:
+
+```json
+{
+  "aumento": {
+    "activo": true,
+    "periodo_base": 202512,
+    "periodo_actual": 202608,
+    "aumento_pct": {"H4": 12.34, "H8": 11.98},
+    "horas": {
+      "H4": {"valor_base": 100, "valor_actual": 112.34, "aumento_cop": 12.34, "aumento_pct": 12.34},
+      "H8": {"valor_base": 120, "valor_actual": 134.38, "aumento_cop": 14.38, "aumento_pct": 11.98}
+    }
+  }
+}
+```
 
 ### Ejemplo
 

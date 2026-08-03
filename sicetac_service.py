@@ -63,6 +63,10 @@ class ConsultaInput(BaseModel):
     # NUEVO: respuesta resumida (por defecto True)
     resumen: bool = True
 
+    # NUEVO: compara los totales oficiales contra diciembre de 2025.
+    # Se mantiene apagado por defecto para preservar el contrato existente.
+    modo_aumento: bool = False
+
     # NUEVO: modo manual puro (sin buscar municipios/rutas)
     manual_mode: bool = False
 
@@ -811,6 +815,65 @@ def _seleccionar_variante_tramo(
     return seleccionado
 
 
+AUMENTO_MES_BASE = 202512
+AUMENTO_CONFIGURACIONES_DICIEMBRE = {
+    "C2",
+    "C3",
+    "C2S2",
+    "C2S3",
+    "C3S2",
+    "C3S3",
+}
+
+
+def _normalizar_configuracion_aumento(value: Any) -> str:
+    """Normaliza las etiquetas C2/2, C2S2/2S2 usadas por las tablas SICETAC."""
+    normalized = re.sub(r"\s+", "", str(value or "").strip().upper())
+    if normalized in {"2", "3"}:
+        return f"C{normalized}"
+    if normalized in {"2S2", "2S3", "3S2", "3S3"}:
+        return f"C{normalized}"
+    return normalized
+
+
+def _variacion_total_sicetac(
+    valor_actual: Any,
+    valor_base: Any,
+    *,
+    hora: str,
+) -> dict[str, Any]:
+    """Devuelve diferencia COP y porcentaje, sin dividir por cero."""
+    try:
+        actual = float(valor_actual) if valor_actual is not None else None
+        base = float(valor_base) if valor_base is not None else None
+    except (TypeError, ValueError):
+        actual = None
+        base = None
+
+    if actual is None or base is None or pd.isna(actual) or pd.isna(base):
+        return {
+            "hora": hora,
+            "disponible": False,
+            "valor_actual": actual,
+            "valor_base": base,
+            "aumento_cop": None,
+            "aumento_pct": None,
+            "motivo": "No hay valor comparable para el periodo actual o diciembre de 2025.",
+        }
+
+    diferencia = round(actual - base, 2)
+    porcentaje = round((diferencia / base) * 100, 2) if base != 0 else None
+    return {
+        "hora": hora,
+        "disponible": porcentaje is not None,
+        "valor_actual": round(actual, 2),
+        "valor_base": round(base, 2),
+        "aumento_cop": diferencia,
+        "aumento_pct": porcentaje,
+        "motivo": None if porcentaje is not None else "El valor base de diciembre de 2025 es cero.",
+    }
+
+
 def _calcular_viaje_redondo_contenedor(data: ConsultaInput) -> dict[str, Any]:
     if bool(getattr(data, "manual_mode", False)):
         raise SicetacError(400, "viaje_redondo con contenedor vacío requiere una ruta oficial, no manual_mode.")
@@ -997,6 +1060,11 @@ def _route_metadata_map(ruta: pd.DataFrame) -> dict[str, dict[str, Any]]:
 
 
 def calcular_sicetac(data: ConsultaInput) -> dict:
+    if bool(getattr(data, "modo_aumento", False)):
+        raise SicetacError(
+            400,
+            "modo_aumento requiere resumen=true para comparar los totales oficiales H4 y H8.",
+        )
     if data.viaje_redondo:
         raise SicetacError(
             400,
@@ -1245,7 +1313,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     return respuesta
 
 
-def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
+def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
     """
     Calcula totales para 2, 4 y 8 horas logísticas con respuesta mínima.
     """
@@ -1609,6 +1677,159 @@ def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
         tipo_contenedor=data.tipo_contenedor,
     )
     return respuesta
+
+
+def _totales_de_respuesta(respuesta: dict[str, Any], rutasid: str | None = None) -> dict[str, Any] | None:
+    """Obtiene los totales de una respuesta única o de una variante concreta."""
+    totales = respuesta.get("totales")
+    if isinstance(totales, dict):
+        if rutasid is None:
+            return totales
+        detalle = respuesta.get("detalle_lookup") or {}
+        if _clean_id(detalle.get("rutasid")) == _clean_id(rutasid):
+            return totales
+
+    variantes = respuesta.get("variantes")
+    if not isinstance(variantes, list):
+        return None
+    if rutasid is None and len(variantes) == 1:
+        return variantes[0].get("totales")
+    for variante in variantes:
+        candidato = variante.get("RUTASID") or variante.get("ID_SICE")
+        if rutasid is not None and _clean_id(candidato) == _clean_id(rutasid):
+            return variante.get("totales")
+    return None
+
+
+def _bloque_aumento(
+    *,
+    totales_actuales: dict[str, Any] | None,
+    totales_base: dict[str, Any] | None,
+    periodo_actual: Any,
+    metodo_actual: Any = None,
+    metodo_base: Any = None,
+) -> dict[str, Any]:
+    horas = {
+        hora: _variacion_total_sicetac(
+            (totales_actuales or {}).get(hora),
+            (totales_base or {}).get(hora),
+            hora=hora,
+        )
+        for hora in ("H4", "H8")
+    }
+    return {
+        "activo": True,
+        "estado": "ACTIVO",
+        "periodo_base": AUMENTO_MES_BASE,
+        "periodo_actual": int(periodo_actual) if periodo_actual is not None else None,
+        "metodo_actual": metodo_actual,
+        "metodo_base": metodo_base,
+        "horas": horas,
+        "aumento_pct": {
+            "H4": horas["H4"]["aumento_pct"],
+            "H8": horas["H8"]["aumento_pct"],
+        },
+        "mensaje": "Modo aumento activo: las próximas consultas deben conservar modo_aumento=true hasta recibir modo_aumento=false.",
+    }
+
+
+def _adjuntar_modo_aumento(data: ConsultaInput, respuesta: dict[str, Any]) -> dict[str, Any]:
+    """Adjunta la comparación H4/H8 con diciembre de 2025 al resumen oficial."""
+    configuracion = _normalizar_configuracion_aumento(
+        respuesta.get("configuracion_analisis") or data.vehiculo
+    )
+    estado_base = {
+        "activo": True,
+        "estado": "ACTIVO",
+        "periodo_base": AUMENTO_MES_BASE,
+        "periodo_actual": respuesta.get("mes"),
+        "configuracion": configuracion,
+        "mensaje": "Modo aumento activo: las próximas consultas deben conservar modo_aumento=true hasta recibir modo_aumento=false.",
+    }
+
+    if configuracion not in AUMENTO_CONFIGURACIONES_DICIEMBRE:
+        estado_base.update({
+            "disponible": False,
+            "motivo": "La comparación histórica está definida para C2, C3, C2S2, C2S3, C3S2 y C3S3.",
+        })
+        respuesta["aumento"] = estado_base
+        return respuesta
+
+    if not respuesta.get("metodo"):
+        estado_base.update({
+            "disponible": False,
+            "motivo": "El modo aumento solo compara valores del consolidado oficial SICETAC; esta consulta no devolvió ese consolidado.",
+        })
+        respuesta["aumento"] = estado_base
+        return respuesta
+
+    try:
+        datos_base = _copiar_consulta(data, mes=AUMENTO_MES_BASE, modo_aumento=False)
+        respuesta_base = _calcular_sicetac_resumen_base(datos_base)
+    except SicetacError as ex:
+        estado_base.update({
+            "disponible": False,
+            "motivo": f"No fue posible obtener el corte base {AUMENTO_MES_BASE}: {ex.detail}",
+        })
+        respuesta["aumento"] = estado_base
+        return respuesta
+
+    if not respuesta_base.get("metodo"):
+        estado_base.update({
+            "disponible": False,
+            "motivo": f"El corte base {AUMENTO_MES_BASE} no devolvió un valor del consolidado oficial SICETAC.",
+        })
+        respuesta["aumento"] = estado_base
+        return respuesta
+
+    periodo_actual = respuesta.get("mes") or data.mes
+    metodo_actual = respuesta.get("metodo")
+    metodo_base = respuesta_base.get("metodo")
+    variantes_actuales = respuesta.get("variantes")
+
+    if isinstance(variantes_actuales, list):
+        por_ruta: dict[str, Any] = {}
+        for variante in variantes_actuales:
+            rutasid = _clean_id(variante.get("RUTASID") or variante.get("ID_SICE"))
+            aumento = _bloque_aumento(
+                totales_actuales=variante.get("totales"),
+                totales_base=_totales_de_respuesta(respuesta_base, rutasid),
+                periodo_actual=periodo_actual,
+                metodo_actual=metodo_actual,
+                metodo_base=metodo_base,
+            )
+            variante["aumento"] = aumento
+            por_ruta[rutasid or str(len(por_ruta) + 1)] = aumento
+        estado_base["por_ruta"] = por_ruta
+        estado_base["disponible"] = any(
+            bool(item.get("horas", {}).get("H4", {}).get("disponible"))
+            and bool(item.get("horas", {}).get("H8", {}).get("disponible"))
+            for item in por_ruta.values()
+        )
+    else:
+        bloque = _bloque_aumento(
+            totales_actuales=respuesta.get("totales"),
+            totales_base=_totales_de_respuesta(respuesta_base),
+            periodo_actual=periodo_actual,
+            metodo_actual=metodo_actual,
+            metodo_base=metodo_base,
+        )
+        estado_base.update(bloque)
+        estado_base["disponible"] = all(
+            bool(bloque["horas"][hora].get("disponible")) for hora in ("H4", "H8")
+        )
+    respuesta["aumento"] = estado_base
+    return respuesta
+
+
+def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
+    """Calcula el resumen y, opcionalmente, la variación frente a diciembre de 2025."""
+    if bool(getattr(data, "modo_aumento", False)):
+        if data.viaje_redondo:
+            raise SicetacError(400, "modo_aumento aún no está habilitado para viaje_redondo.")
+        respuesta = _calcular_sicetac_resumen_base(data)
+        return _adjuntar_modo_aumento(data, respuesta)
+    return _calcular_sicetac_resumen_base(data)
 
 
 def generar_snapshot(

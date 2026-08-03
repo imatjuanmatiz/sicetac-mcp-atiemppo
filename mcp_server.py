@@ -43,6 +43,7 @@ def calcular_sicetac_tool(
     km_despavimentado: float = 0,
     modo_viaje: str = "CARGADO",
     modo_tiempos_logisticos: bool = False,
+    modo_aumento: bool = False,
     resumen: bool = True,
     peajes: bool = False,
     incluir_peajes: bool = False,
@@ -51,6 +52,9 @@ def calcular_sicetac_tool(
     """
     Calcula el modelo SICETAC usando datos de Supabase.
     Si no se pasa MES, se usa el más reciente en parametros_vigentes.
+    Con modo_aumento=true agrega el porcentaje de variación de H4 y H8 frente
+    a diciembre de 2025; el cliente debe reenviar el indicador mientras esté
+    activo y usar false cuando el usuario indique "modo aumento off".
     """
     try:
         payload = ConsultaInput(
@@ -75,6 +79,7 @@ def calcular_sicetac_tool(
             km_despavimentado=km_despavimentado,
             modo_viaje=modo_viaje,
             modo_tiempos_logisticos=modo_tiempos_logisticos,
+            modo_aumento=modo_aumento,
             resumen=resumen,
             peajes=peajes,
             incluir_peajes=incluir_peajes,

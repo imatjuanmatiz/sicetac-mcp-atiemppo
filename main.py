@@ -20,7 +20,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="2.1.0")
+app = FastAPI(title="API SICETAC", version="2.2.0")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.
@@ -206,6 +206,13 @@ def calcular_sicetac_texto(data: ConsultaInput):
                         f"{v.get('NOMBRE_SICE','RUTA')} (ID {v.get('ID_SICE')}): "
                         f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                     )
+                    aumento = v.get("aumento") or {}
+                    if aumento.get("activo"):
+                        aumento_pct = aumento.get("aumento_pct") or {}
+                        linea += (
+                            f", aumento desde {aumento.get('periodo_base')}: "
+                            f"H4 {aumento_pct.get('H4')}%, H8 {aumento_pct.get('H8')}%"
+                        )
                     resumen_peajes = v.get("peajes_resumen")
                     if resumen_peajes:
                         linea += (
@@ -220,12 +227,21 @@ def calcular_sicetac_texto(data: ConsultaInput):
                     f"{r.get('origen')}->{r.get('destino')} {r.get('configuracion')} "
                     f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
                 )
+                aumento = r.get("aumento") or {}
+                if aumento.get("activo"):
+                    aumento_pct = aumento.get("aumento_pct") or {}
+                    texto += (
+                        f", aumento desde {aumento.get('periodo_base')}: "
+                        f"H4 {aumento_pct.get('H4')}%, H8 {aumento_pct.get('H8')}%"
+                    )
                 resumen_peajes = r.get("peajes_resumen")
                 if resumen_peajes:
                     texto += (
                         f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
                         f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
                     )
+            if (r.get("aumento") or {}).get("activo"):
+                texto += " Modo aumento activo: conserva este modo en las próximas búsquedas hasta decir 'modo aumento off'."
             return _json_response({"texto": texto})
         else:
             r = calcular_sicetac_service(data)

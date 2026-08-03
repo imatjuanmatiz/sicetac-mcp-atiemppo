@@ -14,6 +14,12 @@ Para la mayoría de integraciones, empieza con:
 
 Usa `resumen: true` para obtener una respuesta compacta y estable.
 
+Para activar el modo de comparación histórica, agrega `modo_aumento: true`.
+El cliente debe conservar y reenviar ese indicador mientras el usuario diga
+“modo aumento”; al recibir “modo aumento off”, reenvía `modo_aumento: false`.
+La API compara H4 y H8 contra diciembre de 2025 (`202512`) y devuelve el
+porcentaje en `aumento.aumento_pct`.
+
 ## 3. Payload mínimo
 
 ### Por nombre

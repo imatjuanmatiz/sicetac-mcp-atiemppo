@@ -65,6 +65,10 @@ curl -X POST http://localhost:8000/consulta \
       }'
 ```
 
+Para comparar H4 y H8 contra diciembre de 2025, agrega `"modo_aumento": true`.
+El cliente debe reenviar ese indicador mientras el modo esté activo y enviarlo
+como `false` cuando el usuario indique “modo aumento off”.
+
 Consulta rápida con detalle de peajes:
 
 ```bash
