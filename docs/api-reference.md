@@ -211,7 +211,28 @@ Si se envía `peajes: true`, `incluir_peajes: true` o `detalle_peajes: true`, la
 - Si la respuesta trae una sola ruta, se agregan `peajes_resumen` y `peajes_detalle` en la raíz.
 - Si la respuesta trae `variantes`, cada variante con `ID_SICE` recibe sus propios `peajes_resumen` y `peajes_detalle`.
 - `peajes_resumen.total_peajes` es el total de peajes para la configuración solicitada.
-- `peajes_detalle.detalle[]` contiene la lista ordenada de peajes con categoría usada y valor.
+- `peajes_detalle.detalle[]` contiene la lista ordenada de peajes con categoría
+  máxima, categoría nominal, categoría efectiva, razón de selección/ausencia,
+  valores originales y valor.
+- `peajes_detalle.auditoria` informa la versión de regla, corte/archivo de
+  fuente, filas recibidas y casetas únicas. Si existía un resumen anterior,
+  informa `total_anterior`, `diferencia_vs_anterior` y `discrepante`; ese valor
+  anterior no se suma ni reemplaza el total por caseta.
+
+La regla vigente es `sicetac-peajes-caseta-v2-relative-max`. El vínculo de ruta
+identifica el `ID_PEAJE` y el catálogo crudo `VALOR1` ... `VALOR7` se consulta
+por caseta. Se calcula la categoría máxima disponible en cada peaje. Cuando el
+máximo es V, `2`, `3`, `2S2`, `2S3`, `3S2` y `3S3` apuntan respectivamente a
+II, III, III, IV, IV y V; con máximos VI o VII, el patrón se desplaza. Si la
+categoría objetivo está fuera de rango o tiene valor cero, no se hace fallback
+a otra categoría: el valor de esa caseta es cero y la razón queda auditada. Un
+peaje cuyo máximo es únicamente I tampoco se aplica a estas configuraciones de
+carga.
+Las casetas duplicadas se cuentan una vez.
+
+La validación de referencia de la ruta `12736` (Guadalajara de Buga–Funza,
+corte 2026-08-01) produce `$194.800`, `$467.600`, `$467.600`, `$648.800`,
+`$648.800` y `$732.900` para `2`, `3`, `2S2`, `2S3`, `3S2` y `3S3`.
 
 ## `POST /consulta_resumen`
 
@@ -351,6 +372,9 @@ Usualmente asociado a:
 - `SICETAC_TABLE_PARAMETROS`
 - `SICETAC_TABLE_COSTOS_FIJOS`
 - `SICETAC_TABLE_PEAJES`
+- `SICETAC_TABLE_PEAJES_DETALLE`
+- `SICETAC_TABLE_PEAJES_RESUMEN`
+- `SICETAC_TABLE_PEAJES_INVENTARIO`
 - `SICETAC_TABLE_RUTAS`
 - `SICETAC_TABLE_SICETAC_VACIO`
 

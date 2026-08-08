@@ -12,6 +12,7 @@ import time
 
 from supabase_data import (
     get_peajes_detalle_df,
+    get_peajes_inventario_df,
     get_peajes_resumen_df,
     get_sicetac_movilizacion_df,
     get_sicetac_vacio_df,
@@ -20,6 +21,11 @@ from supabase_data import (
     get_table_df,
 )
 from sicetac_helper import SICETACHelper
+from peajes_totalizador import (
+    TOLL_RULE_VERSION,
+    TollTotalizationError,
+    totalize_toll_rows,
+)
 from modelo_sicetac import calcular_modelo_sicetac_extendido
 from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
 
@@ -193,24 +199,65 @@ def _convertir_nativos(d: Any):
 
 
 def _normalizar_configuracion_peaje(configuracion: str | None) -> str | None:
-    raw = str(configuracion or "").strip().upper().replace(" ", "")
-    if not raw:
+    if not str(configuracion or "").strip():
         return None
-    return {
-        "2S2": "C2S2",
-        "2S3": "C2S3",
-        "3S2": "C3S2",
-        "3S3": "C3S3",
-    }.get(raw, raw)
+    raw = str(configuracion).strip().upper().replace(" ", "")
+    # El esquema vigente conserva 2 y 3 sin prefijo C; las configuraciones
+    # articuladas sí usan C2S2/C2S3/C3S2/C3S3.
+    if raw in {"2", "C2", "C2M10"}:
+        return "2"
+    if raw in {"3", "C3"}:
+        return "3"
+    if raw in {"2S2", "C2S2", "2S3", "C2S3", "3S2", "C3S2", "3S3", "C3S3"}:
+        return {"2S2": "C2S2", "2S3": "C2S3", "3S2": "C3S2", "3S3": "C3S3"}.get(raw, raw)
+    # Mantener el comportamiento histórico para configuraciones de
+    # vehículos no tarifadas por el libro oficial.
+    return raw
+
+
+def _enriquecer_peajes_con_inventario(df_detalle: pd.DataFrame) -> pd.DataFrame:
+    """Completa VALOR1..VALOR7 desde el catálogo pequeño identificado por ID_PEAJE."""
+    if df_detalle is None or df_detalle.empty:
+        return df_detalle
+    if all(column in df_detalle.columns for column in ("VALOR1", "VALOR2", "VALOR3", "VALOR4", "VALOR5", "VALOR6", "VALOR7")):
+        return df_detalle
+
+    detail_id_column = next((column for column in ("ID_PEAJE", "id_peaje") if column in df_detalle.columns), None)
+    if detail_id_column is None:
+        return df_detalle
+
+    inventory = get_peajes_inventario_df()
+    if inventory is None or inventory.empty:
+        return df_detalle
+    inventory_id_column = next((column for column in ("ID_PEAJE", "id_peaje") if column in inventory.columns), None)
+    if inventory_id_column is None:
+        return df_detalle
+
+    catalog = inventory.copy()
+    catalog["__id_peaje_norm"] = catalog[inventory_id_column].astype(str).str.strip()
+    catalog = catalog.drop_duplicates("__id_peaje_norm", keep="first")
+    lookup = catalog.set_index("__id_peaje_norm")
+    enriched = df_detalle.copy()
+    enriched["__id_peaje_norm"] = enriched[detail_id_column].astype(str).str.strip()
+    for column in ("VALOR1", "VALOR2", "VALOR3", "VALOR4", "VALOR5", "VALOR6", "VALOR7"):
+        if column not in enriched.columns and column in lookup.columns:
+            enriched[column] = enriched["__id_peaje_norm"].map(lookup[column])
+    return enriched.drop(columns=["__id_peaje_norm"], errors="ignore")
 
 
 def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> dict[str, Any]:
     configuracion_norm = _normalizar_configuracion_peaje(configuracion)
     df_detalle = get_peajes_detalle_df(id_sice, configuracion_norm)
+    if df_detalle.empty and configuracion_norm in {"2", "3"}:
+        # Compatibilidad con cortes que guardaron las configuraciones simples
+        # con prefijo C, sin alterar la etiqueta pública vigente.
+        df_detalle = get_peajes_detalle_df(id_sice, f"C{configuracion_norm}")
     df_resumen = get_peajes_resumen_df(id_sice)
 
     if df_detalle.empty:
         raise SicetacError(404, f"No hay detalle de peajes para ID_SICE {id_sice}")
+
+    df_detalle = _enriquecer_peajes_con_inventario(df_detalle)
 
     if configuracion_norm and not df_resumen.empty and "configuracion" in df_resumen.columns:
         df_resumen = df_resumen[
@@ -227,46 +274,90 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
         except Exception:
             return 0.0
 
-    resumen: dict[str, dict[str, Any]] = {}
-    if not df_resumen.empty:
-        for _, row in df_resumen.iterrows():
-            cfg = str(row.get("configuracion") or "").strip()
-            if not cfg:
-                continue
-            resumen[cfg] = {
-                "cantidad_peajes": int(_num(row.get("cantidad_peajes"))),
-                "total_peajes": _num(row.get("total_peajes")),
-            }
+    if configuracion_norm:
+        configs = [configuracion_norm]
+    elif "configuracion" in df_detalle.columns:
+        # Conserva la etiqueta física de la vista (algunos cortes usan 2/3,
+        # otros C2/C3) y normaliza solo dentro del totalizador.
+        configs = list(dict.fromkeys(
+            str(value).strip().upper().replace(" ", "")
+            for value in df_detalle["configuracion"].dropna().tolist()
+            if str(value).strip()
+        ))
     else:
-        for cfg, group in df_detalle.groupby("configuracion"):
-            resumen[str(cfg)] = {
-                "cantidad_peajes": int(group["id_peaje"].nunique()),
-                "total_peajes": float(group["valor_peaje"].sum()),
-            }
+        configs = ["2", "3", "C2S2", "C2S3", "C3S2", "C3S3"]
+    totalizaciones: dict[str, dict[str, Any]] = {}
+    for cfg in configs:
+        try:
+            rows_for_cfg = df_detalle
+            if not configuracion_norm and "configuracion" in df_detalle.columns:
+                rows_for_cfg = df_detalle[
+                    df_detalle["configuracion"].astype(str).str.upper().str.replace(" ", "", regex=False)
+                    == cfg
+                ]
+            if rows_for_cfg is not None and not rows_for_cfg.empty:
+                totalizaciones[cfg] = totalize_toll_rows(rows_for_cfg, cfg)
+        except ValueError:
+            # El endpoint puede exponer una configuración histórica que no
+            # pertenece al catálogo de categorías del libro oficial.
+            continue
 
-    detalle: list[dict[str, Any]] = []
-    for (orden, id_peaje), group in df_detalle.groupby(["orden", "id_peaje"], sort=True):
-        group_sorted = group.sort_values(by="configuracion")
-        base = group_sorted.iloc[0]
-        valores = {}
-        categorias = {}
-        for _, row in group_sorted.iterrows():
-            cfg = str(row.get("configuracion") or "").strip()
-            if not cfg:
-                continue
-            valores[cfg] = _num(row.get("valor_peaje"))
-            categorias[cfg] = {
-                "categoria_usada": row.get("categoria_usada"),
-                "configuracion_sicetac": row.get("configuracion_sicetac"),
-            }
+    resumen: dict[str, dict[str, Any]] = {
+        cfg: {
+            "cantidad_peajes": item["cantidad_casetas_unicas"],
+            "total_peajes": item["total_peajes"],
+        }
+        for cfg, item in totalizaciones.items()
+    }
 
-        detalle.append({
-            "orden": int(_num(orden)),
-            "id_peaje": str(id_peaje),
-            "nombre_peaje": base.get("nombre_peaje"),
-            "categoria_maxima_disponible": base.get("categoria_maxima_disponible"),
-            "valores": valores,
-            "categorias": categorias,
+    detalle_por_key: dict[tuple[str, str], dict[str, Any]] = {}
+    for cfg, totalizacion in totalizaciones.items():
+        for item in totalizacion["detalle"]:
+            key = (str(item.get("orden") or ""), str(item.get("id_peaje") or item.get("nombre_peaje") or ""))
+            base = detalle_por_key.setdefault(
+                key,
+                {
+                    "orden": int(_num(item.get("orden"))) if item.get("orden") is not None else None,
+                    "id_peaje": item.get("id_peaje"),
+                    "nombre_peaje": item.get("nombre_peaje"),
+                    "categoria_maxima_disponible": item.get("categoria_maxima_disponible_label"),
+                    "valores": {},
+                    "categorias": {},
+                },
+            )
+            base["valores"][cfg] = _num(item.get("valor_efectivo"))
+            base["categorias"][cfg] = {
+                "categoria_nominal": item.get("categoria_nominal_label"),
+                "categoria_usada": item.get("categoria_efectiva_label"),
+                "configuracion_sicetac": cfg,
+                "razon": item.get("razon"),
+                "valores_originales": item.get("valores_originales", {}),
+            }
+    detalle = sorted(detalle_por_key.values(), key=lambda item: (item["orden"] is None, item["orden"] or 0))
+
+    anterior = None
+    if configuracion_norm and not df_resumen.empty and "configuracion" in df_resumen.columns:
+        match = df_resumen[
+            df_resumen["configuracion"].astype(str).str.upper().str.replace(" ", "", regex=False)
+            == configuracion_norm
+        ]
+        if not match.empty:
+            anterior = _num(match.iloc[0].get("total_peajes"))
+    total_actual = resumen.get(configuracion_norm or "", {}).get("total_peajes") if configuracion_norm else None
+    auditoria = {
+        "version_regla": TOLL_RULE_VERSION,
+        "filas_detalle_recibidas": int(len(df_detalle)),
+        "casetas_unicas": int(len(detalle)),
+        "fuente_corte": first.get("fuente_corte") or first.get("mes_vigencia") or first.get("fecha_tarifa") or first.get("mes_codigo"),
+        "fuente_archivo": first.get("fuente_archivo") or first.get("archivo_peajes"),
+        "fuente_sha256": first.get("fuente_sha256") or first.get("sha256_fuente"),
+        "filas_fuente": first.get("filas_fuente") or first.get("cantidad_filas_fuente"),
+    }
+    if anterior is not None and total_actual is not None:
+        auditoria.update({
+            "total_anterior": anterior,
+            "diferencia_vs_anterior": float(total_actual - anterior),
+            "discrepante": bool(total_actual != anterior),
         })
 
     return _convertir_nativos({
@@ -280,6 +371,7 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
         "configuracion": configuracion_norm,
         "resumen": resumen,
         "detalle": detalle,
+        "auditoria": auditoria,
     })
 
 
@@ -613,6 +705,33 @@ def _get_peajes_index(df_peajes: pd.DataFrame) -> dict[tuple[str, str], list[flo
     return _PEAJES_INDEX
 
 
+def _peaje_total_deterministico(
+    id_sice: Any,
+    configuracion: Any,
+    *,
+    fallback: float = 0.0,
+) -> float:
+    """Obtiene el total por caseta y deja el índice legado como fallback.
+
+    El vínculo de ruta solo identifica los ID_PEAJE. Las tarifas se toman del
+    detalle crudo o del inventario pequeño y se resuelven con v2 por caseta.
+    ``peajes_vigentes`` solo queda como fallback legado si no hay detalle.
+    """
+    id_norm = _clean_id(id_sice)
+    config_norm = _normalizar_configuracion_peaje(str(configuracion))
+    try:
+        df_detalle = get_peajes_detalle_df(id_norm, config_norm)
+        if (df_detalle is None or df_detalle.empty) and config_norm in {"2", "3"}:
+            df_detalle = get_peajes_detalle_df(id_norm, f"C{config_norm}")
+        if df_detalle is not None and not df_detalle.empty:
+            df_detalle = _enriquecer_peajes_con_inventario(df_detalle)
+            total = totalize_toll_rows(df_detalle, config_norm)
+            return float(total["total_peajes"])
+    except (TollTotalizationError, ValueError, TypeError):
+        pass
+    return float(fallback or 0)
+
+
 def _refresh_cache(force: bool = False) -> None:
     global _LAST_REFRESH_TS, _RUTAS_INDEX, _PEAJES_INDEX
     now = time.time()
@@ -639,6 +758,10 @@ def _refresh_cache(force: bool = False) -> None:
         pass
     try:
         get_peajes_detalle_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_peajes_inventario_df.cache_clear()
     except Exception:
         pass
     try:
@@ -1168,10 +1291,11 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             return float(manual_peaje or 0)
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
-        if not valores:
-            return float(manual_peaje or 0)
-        # Si hay múltiples, tomamos el primero (si quieres, puedo cambiar a suma)
-        return float(valores[0])
+        return _peaje_total_deterministico(
+            id_sice,
+            ejes_conf,
+            fallback=(valores[0] if valores else manual_peaje),
+        )
 
     def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
         distancias = _distancias_from_ruta(ruta_row)
@@ -1510,9 +1634,11 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             return float(manual_peaje or 0)
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
-        if not valores:
-            return float(manual_peaje or 0)
-        return float(valores[0])
+        return _peaje_total_deterministico(
+            id_sice,
+            ejes_conf,
+            fallback=(valores[0] if valores else manual_peaje),
+        )
 
     def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
         distancias = _distancias_from_ruta(ruta_row)
@@ -1871,7 +1997,11 @@ def generar_snapshot(
     def _peaje_for(ruta_row, ejes_conf: str) -> float:
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
-        return float(valores[0]) if valores else 0.0
+        return _peaje_total_deterministico(
+            id_sice,
+            ejes_conf,
+            fallback=(valores[0] if valores else 0.0),
+        )
 
     rows = []
     for _, ruta_row in df_rutas.iterrows():

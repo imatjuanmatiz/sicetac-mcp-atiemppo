@@ -47,11 +47,23 @@ Esta vista mantiene el contrato liviano del modelo manual: un total consolidado 
 
 Para entregar detalle de peajes sin repetir totales por ruta, la base usa una capa normalizada:
 
-- `peajes_inventario`: peaje único por mes, con tarifas por categoría `valor1` a `valor7`.
-- `peajes_tarifas_configuracion`: tarifa usada por cada configuración SICETAC (`2`, `3`, `C2S2`, `C2S3`, `C3S2`, `C3S3`).
+- `peajes_inventario`: catálogo pequeño de peajes por mes, identificado por
+  `ID_PEAJE`, con tarifas crudas `VALOR1` a `VALOR7`.
 - `rutas_peajes`: secuencia ordenada de peajes por `ID_SICE`.
-- `peajes_detalle_vigentes`: vista para consultar peajes de una ruta con valor por configuración.
+- `peajes_detalle_vigentes`: vista que vincula ruta + `ID_PEAJE`; puede traer
+  las tarifas crudas o enriquecerse desde `peajes_inventario`.
 - `peajes_resumen_vigentes`: vista para totalizar peajes por ruta/configuración.
+
+La totalización vigente usa el vínculo de ruta para identificar los
+`ID_PEAJE` y aplica la regla `sicetac-peajes-caseta-v2-relative-max` sobre las
+tarifas crudas de cada caseta. Para cada peaje se calcula la categoría máxima
+disponible. En una caseta cuyo máximo es V, las configuraciones apuntan a
+II/III/III/IV/IV/V (`2`, `3`, `2S2`, `2S3`, `3S2`, `3S3`); si el máximo es VI o
+VII, ese patrón se desplaza a VI o VII. No se reemplaza una categoría ausente
+por otra: si el objetivo relativo no existe, o el máximo es únicamente I, esa
+caseta vale cero y queda auditada. Las casetas duplicadas se cuentan una sola
+vez. El resumen legado se conserva únicamente para comparar diferencias y
+nunca reemplaza el total calculado desde el detalle.
 
 Servicio rápido:
 
@@ -145,12 +157,18 @@ Si hay múltiples rutas:
 ### Detalle
 Envía `"resumen": false` para obtener el cálculo completo.
 
-## 4) Lógica de Peajes (Optimizada)
+## 4) Lógica de Peajes (Determinística)
 
-- Se construye un índice en memoria por `(ID_SICE, EJES_CONFIGURACION)`.
-- Se obtiene el primer valor de peaje disponible para esa combinación.
-- Se pasa al modelo como `valor_peaje_override` (evita filtrar la tabla en cada request).
-- Para explicar los peajes de una ruta se consulta la capa normalizada por `ID_SICE`, sin cargar todo el detalle en memoria.
+- Se consulta el detalle por `ID_SICE` y configuración, conservando el grano
+  caseta y las tarifas originales.
+- Se selecciona una categoría efectiva por caseta y se suma una sola vez por
+  `ID_PEAJE`; si falta la tarifa cruda, se busca en `peajes_inventario`.
+- La respuesta expone `categoria_maxima_disponible`, `categoria_nominal`,
+  `categoria_usada`, razón de selección y ausencia,
+  tarifas originales y `auditoria.version_regla`.
+- El índice `peajes_vigentes` queda como fallback de compatibilidad solamente
+  cuando el detalle no está disponible; no puede sobreescribir un total de
+  detalle ni se suma junto con él.
 
 ## 5) Archivos clave en el repo
 

@@ -20,7 +20,7 @@ from sicetac_service import (
 )
 from supabase_data import get_client, get_table_df
 
-app = FastAPI(title="API SICETAC", version="2.2.0")
+app = FastAPI(title="API SICETAC", version="2.3.0")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.

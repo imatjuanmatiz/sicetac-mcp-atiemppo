@@ -36,6 +36,7 @@ TABLES: Dict[str, str] = {
     "valor_plaza": os.getenv("SICETAC_TABLE_VALOR_PLAZA", "valor_en_plaza_mensual_descriptiva"),
     "peajes_detalle": os.getenv("SICETAC_TABLE_PEAJES_DETALLE", "peajes_detalle_vigentes"),
     "peajes_resumen": os.getenv("SICETAC_TABLE_PEAJES_RESUMEN", "peajes_resumen_vigentes"),
+    "peajes_inventario": os.getenv("SICETAC_TABLE_PEAJES_INVENTARIO", "peajes_inventario"),
     # Tablas mínimas para el cálculo del modelo
 }
 
@@ -315,13 +316,26 @@ def get_peajes_detalle_df(id_sice: str | int, configuracion: str | None = None) 
         filters.append(("configuracion", "ilike", configuracion_norm))
 
     try:
-        rows = _fetch_table_filtered(table, filters=filters)
+        try:
+            rows = _fetch_table_filtered(table, filters=filters)
+        except Exception as filtered_error:
+            if not configuracion_norm:
+                raise
+            # Algunas vistas de ruta solo exponen ID_SICE + ID_PEAJE + orden;
+            # la configuración se resuelve después contra VALOR1..VALOR7.
+            logger.info("ℹ️ Detalle de peajes sin filtro de configuración: %s", filtered_error)
+            rows = []
+        if not rows and configuracion_norm:
+            rows = _fetch_table_filtered(table, filters=[("id_sice", "eq", id_sice_int)])
         if not rows:
             return pd.DataFrame()
         df = _alias_columns(pd.DataFrame(rows))
         if "orden" in df.columns:
             df["orden"] = pd.to_numeric(df["orden"], errors="coerce")
-            df = df.sort_values(by=["orden", "configuracion"], na_position="last")
+            sort_columns = ["orden"]
+            if "configuracion" in df.columns:
+                sort_columns.append("configuracion")
+            df = df.sort_values(by=sort_columns, na_position="last")
         return df
     except Exception as e:
         logger.warning(f"⚠️ No se pudo consultar detalle peajes ruta {id_sice_int}: {e}")
@@ -346,4 +360,18 @@ def get_peajes_resumen_df(id_sice: str | int) -> pd.DataFrame:
         return df
     except Exception as e:
         logger.warning(f"⚠️ No se pudo consultar resumen peajes ruta {id_sice_int}: {e}")
+        return pd.DataFrame()
+
+
+@lru_cache(maxsize=1)
+def get_peajes_inventario_df() -> pd.DataFrame:
+    """Carga el catálogo pequeño de peajes para enriquecer rutas por ID_PEAJE."""
+    table = TABLES.get("peajes_inventario", "peajes_inventario")
+    try:
+        rows = _fetch_table_all(table)
+        if not rows:
+            return pd.DataFrame()
+        return _alias_columns(pd.DataFrame(rows))
+    except Exception as e:
+        logger.warning(f"⚠️ No se pudo cargar inventario de peajes {table}: {e}")
         return pd.DataFrame()
