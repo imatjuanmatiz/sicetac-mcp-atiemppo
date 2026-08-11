@@ -12,19 +12,16 @@ import re
 from typing import Any
 
 
-TOLL_RULE_VERSION = "sicetac-peajes-caseta-v2-relative-max"
+TOLL_RULE_VERSION = "sicetac-toll-relative-category-v2"
 TOLL_COLUMNS = tuple(f"VALOR{i}" for i in range(1, 8))
 TOLL_CONFIGURATIONS = ("C2", "C3", "C2S2", "C2S3", "C3S2", "C3S3")
-BASE_CATEGORY_AT_MAX_FIVE = {
-    "C2": 2,
-    "C3": 3,
-    "C2S2": 3,
-    "C2S3": 4,
-    "C3S2": 4,
-}
-CATEGORY_OFFSET_BY_CONFIGURATION = {
-    configuration: category - 5
-    for configuration, category in BASE_CATEGORY_AT_MAX_FIVE.items()
+TOLL_CATEGORY_OFFSET = {
+    "C2": 3,
+    "C3": 2,
+    "C2S2": 2,
+    "C2S3": 1,
+    "C3S2": 1,
+    "C3S3": 0,
 }
 CATEGORY_LABELS = {index: label for index, label in enumerate(("I", "II", "III", "IV", "V", "VI", "VII"), start=1)}
 
@@ -39,7 +36,14 @@ def normalize_toll_configuration(value: Any) -> str:
     aliases = {
         "2": "C2",
         "3": "C3",
+        "CA": "C2",
+        "C257": "C2",
+        "C279": "C2",
+        "C2910": "C2",
         "C2M10": "C2",
+        "V2": "C2",
+        "V3": "C3",
+        "V4": "C3",
         "2S2": "C2S2",
         "2S3": "C2S3",
         "3S2": "C3S2",
@@ -100,50 +104,55 @@ def select_effective_toll(row: Any, configuration: Any) -> dict[str, Any]:
     values = {column: _number(_key(row, column)) for column in TOLL_COLUMNS}
     available = [index for index in range(1, 8) if values[f"VALOR{index}"] > 0]
     maximum = max(available) if available else None
-    if normalized == "C3S3":
-        nominal = maximum
-    else:
-        nominal = maximum + CATEGORY_OFFSET_BY_CONFIGURATION[normalized] if maximum is not None else None
+    target = maximum - TOLL_CATEGORY_OFFSET[normalized] if maximum is not None else None
 
     if not available:
         effective = None
-        reason = "todas_categorias_cero"
+        status = "all_categories_zero"
+        fallback_reason = "No hay categorías con tarifa positiva."
         value = 0.0
-    elif maximum < 2:
-        # La categoría I no representa una tarifa válida para las
-        # configuraciones de carga del catálogo histórico; se conserva la
-        # caseta para auditoría, pero no se cobra a ningún vehículo.
-        effective = None
-        reason = "categoria_maxima_insuficiente"
-        value = 0.0
-    elif normalized == "C3S3":
-        effective = maximum
-        reason = "ultima_categoria_disponible_por_caseta"
+    elif target is not None and target >= 1 and values[f"VALOR{target}"] > 0:
+        effective = target
+        status = "relative_exact"
+        fallback_reason = None
         value = values[f"VALOR{effective}"]
-    elif nominal is None or nominal < 1 or nominal > 7:
-        effective = None
-        reason = "categoria_objetivo_fuera_de_rango"
-        value = 0.0
-    elif values[f"VALOR{nominal}"] <= 0:
-        effective = None
-        reason = "categoria_objetivo_no_disponible"
-        value = 0.0
     else:
-        effective = nominal
-        reason = "categoria_relativa_disponible"
-        value = values[f"VALOR{effective}"]
+        lower = [index for index in available if target is not None and index < target]
+        if lower:
+            effective = max(lower)
+            status = "fallback_lower"
+            fallback_reason = (
+                f"VALOR{target} no está disponible; se usa la mayor categoría "
+                f"positiva inferior."
+            )
+            value = values[f"VALOR{effective}"]
+        else:
+            effective = None
+            status = "no_lower_category_available_review"
+            fallback_reason = (
+                "La categoría objetivo no está disponible y no existe una "
+                "categoría positiva inferior; no se permite promover."
+            )
+            value = 0.0
 
     return {
         "configuracion": normalized,
-        "categoria_nominal": nominal,
-        "categoria_nominal_label": category_label(nominal),
+        "rule_id": TOLL_RULE_VERSION,
+        "categoria_objetivo": target,
+        "categoria_objetivo_label": category_label(target),
+        # Alias transitorio para consumidores de la respuesta v1.
+        "categoria_nominal": target,
+        "categoria_nominal_label": category_label(target),
         "categoria_efectiva": effective,
         "categoria_efectiva_label": category_label(effective),
-        "categoria_maxima_disponible": max(available) if available else None,
-        "categoria_maxima_disponible_label": category_label(max(available)) if available else None,
+        "categoria_maxima_disponible": maximum,
+        "categoria_maxima_disponible_label": category_label(maximum),
         "categorias_disponibles": available,
         "valor_efectivo": float(value),
-        "razon": reason,
+        "selection_status": status,
+        "fallback_reason": fallback_reason,
+        # Alias transitorio para consumidores de la respuesta v1.
+        "razon": status,
         "valores_originales": values,
     }
 
@@ -156,24 +165,40 @@ def _rows_from_input(rows: Any) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
-def _caseta_key(row: dict[str, Any]) -> tuple[str, str]:
+def _caseta_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    source_cut = str(
+        _key(row, "SOURCE_CUT")
+        or _key(row, "MES_VIGENCIA")
+        or _key(row, "FECHA_TARIFA")
+        or ""
+    ).strip()
+    route = str(_key(row, "RUTA_ID") or _key(row, "ID_SICE") or "").strip()
     id_peaje = str(_key(row, "ID_PEAJE") or "").strip()
+    orden = str(_key(row, "ORDEN") or "").strip()
     if id_peaje:
-        return ("id_peaje", id_peaje)
-    orden = str(_key(row, "ORDEN") or _key(row, "orden") or "").strip()
+        return (source_cut, route, id_peaje, orden)
     name = str(_key(row, "NOMBRE_PEAJE") or _key(row, "nombre_peaje") or "").strip().upper()
-    return ("fallback", f"{orden}|{name}")
+    return (source_cut, route, name, orden)
+
+
+def _tariff_pattern(row: dict[str, Any]) -> tuple[float, ...]:
+    return tuple(_number(_key(row, column)) for column in TOLL_COLUMNS)
 
 
 def totalize_toll_rows(rows: Any, configuration: Any) -> dict[str, Any]:
     """Totaliza filas de una ruta, una sola vez por caseta."""
     normalized = normalize_toll_configuration(configuration)
     source_rows = _rows_from_input(rows)
-    unique: dict[tuple[str, str], dict[str, Any]] = {}
+    unique: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     duplicates = 0
     for row in source_rows:
         key = _caseta_key(row)
         if key in unique:
+            if _tariff_pattern(unique[key]) != _tariff_pattern(row):
+                raise TollTotalizationError(
+                    "conflicting_tariff_patterns: una misma ocurrencia "
+                    "ruta-peaje-orden tiene patrones VALOR1..VALOR7 distintos"
+                )
             duplicates += 1
             continue
         unique[key] = row
@@ -197,7 +222,11 @@ def totalize_toll_rows(rows: Any, configuration: Any) -> dict[str, Any]:
                 _key(row, "CATEGORIA_USADA")
             )
             selection["categoria_efectiva_label"] = category_label(selection["categoria_efectiva"])
-            selection["razon"] = "valor_precalculado_legacy"
+            selection["selection_status"] = "legacy_precalculated_value"
+            selection["fallback_reason"] = (
+                "La fuente no expone VALOR1..VALOR7; no puede auditarse con la regla relativa."
+            )
+            selection["razon"] = "legacy_precalculated_value"
             selection["valores_originales"] = {}
         details.append(
             {
@@ -209,13 +238,20 @@ def totalize_toll_rows(rows: Any, configuration: Any) -> dict[str, Any]:
             }
         )
 
+    blocked = any(
+        item["selection_status"] == "no_lower_category_available_review"
+        for item in details
+    )
     return {
         "configuracion": normalized,
         "version_regla": TOLL_RULE_VERSION,
+        "estado": "blocked_missing_effective_toll_tariff" if blocked else (
+            "no_toll_rows" if not source_rows else "ok"
+        ),
         "cantidad_filas_fuente": len(source_rows),
         "cantidad_casetas_unicas": len(details),
         "duplicados_ignorados": duplicates,
-        "total_peajes": float(sum(item["valor_efectivo"] for item in details)),
+        "total_peajes": None if blocked else float(sum(item["valor_efectivo"] for item in details)),
         "detalle": details,
     }
 

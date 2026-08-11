@@ -5,7 +5,14 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from peajes_totalizador import TOLL_RULE_VERSION, select_effective_toll, source_manifest, totalize_toll_rows
+from peajes_totalizador import (
+    TOLL_RULE_VERSION,
+    TollTotalizationError,
+    normalize_toll_configuration,
+    select_effective_toll,
+    source_manifest,
+    totalize_toll_rows,
+)
 from sicetac_service import SicetacError, obtener_peajes_detalle
 
 
@@ -48,57 +55,82 @@ class TollTotalizerTests(unittest.TestCase):
         row = {"ID_PEAJE": "1", **{f"VALOR{i}": (i * 10 if i < 7 else 0) for i in range(1, 8)}}
         result = totalize_toll_rows([row], "3S3")
         self.assertEqual(result["detalle"][0]["categoria_efectiva"], 6)
-        self.assertEqual(result["detalle"][0]["razon"], "ultima_categoria_disponible_por_caseta")
+        self.assertEqual(result["detalle"][0]["razon"], "relative_exact")
 
     def test_last_and_penultimate_zero_fall_back_to_fifth(self) -> None:
         row = {"ID_PEAJE": "1", **{f"VALOR{i}": (i * 10 if i < 6 else 0) for i in range(1, 8)}}
         result = totalize_toll_rows([row], "3S3")
         self.assertEqual(result["detalle"][0]["categoria_efectiva"], 5)
 
-    def test_relative_target_out_of_range_returns_zero(self) -> None:
-        row = {"ID_PEAJE": "1", "VALOR1": 10, "VALOR2": 20, "VALOR3": 0, "VALOR4": 0, "VALOR5": 0, "VALOR6": 0, "VALOR7": 0}
-        result = totalize_toll_rows([row], "3")
-        self.assertIsNone(result["detalle"][0]["categoria_efectiva"])
-        self.assertEqual(result["detalle"][0]["valor_efectivo"], 0)
-        self.assertEqual(result["detalle"][0]["razon"], "categoria_objetivo_fuera_de_rango")
-
-    def test_only_higher_categories_uses_first_available(self) -> None:
-        row = {"ID_PEAJE": "1", "VALOR1": 0, "VALOR2": 0, "VALOR3": 0, "VALOR4": 0, "VALOR5": 50, "VALOR6": 60, "VALOR7": 70}
-        result = totalize_toll_rows([row], "3")
-        self.assertEqual(result["detalle"][0]["categoria_efectiva"], 5)
-        self.assertEqual(result["detalle"][0]["razon"], "categoria_relativa_disponible")
-
     def test_relative_category_moves_with_maximum_category(self) -> None:
         max_five = {"VALOR1": 10, "VALOR2": 20, "VALOR3": 30, "VALOR4": 40, "VALOR5": 50, "VALOR6": 0, "VALOR7": 0}
         max_six = {**max_five, "VALOR6": 60}
         max_seven = {**max_six, "VALOR7": 70}
 
-        self.assertEqual(select_effective_toll(max_five, "2")["categoria_efectiva"], 2)
-        self.assertEqual(select_effective_toll(max_six, "2")["categoria_efectiva"], 3)
-        self.assertEqual(select_effective_toll(max_seven, "2")["categoria_efectiva"], 4)
-        self.assertEqual(select_effective_toll(max_five, "3S3")["categoria_efectiva"], 5)
-        self.assertEqual(select_effective_toll(max_six, "3S3")["categoria_efectiva"], 6)
-        self.assertEqual(select_effective_toll(max_seven, "3S3")["categoria_efectiva"], 7)
+        expected = {
+            "2": (2, 3, 4),
+            "3": (3, 4, 5),
+            "2S2": (3, 4, 5),
+            "2S3": (4, 5, 6),
+            "3S2": (4, 5, 6),
+            "3S3": (5, 6, 7),
+        }
+        for configuration, categories in expected.items():
+            with self.subTest(configuration=configuration):
+                self.assertEqual(select_effective_toll(max_five, configuration)["categoria_efectiva"], categories[0])
+                self.assertEqual(select_effective_toll(max_six, configuration)["categoria_efectiva"], categories[1])
+                self.assertEqual(select_effective_toll(max_seven, configuration)["categoria_efectiva"], categories[2])
 
-    def test_missing_relative_target_does_not_fallback_to_another_category(self) -> None:
-        row = {"VALOR1": 0, "VALOR2": 0, "VALOR3": 0, "VALOR4": 0, "VALOR5": 0, "VALOR6": 60, "VALOR7": 70}
+    def test_missing_relative_target_does_not_promote(self) -> None:
+        row = {"VALOR1": 0, "VALOR2": 0, "VALOR3": 0, "VALOR4": 0, "VALOR5": 50, "VALOR6": 60, "VALOR7": 70}
         result = select_effective_toll(row, "2")
-        self.assertEqual(result["categoria_nominal"], 4)
+        self.assertEqual(result["categoria_objetivo"], 4)
         self.assertIsNone(result["categoria_efectiva"])
-        self.assertEqual(result["razon"], "categoria_objetivo_no_disponible")
+        self.assertEqual(result["valor_efectivo"], 0)
+        self.assertEqual(result["razon"], "no_lower_category_available_review")
+
+        total = totalize_toll_rows([{"ID_PEAJE": "1", **row}], "2")
+        self.assertEqual(total["estado"], "blocked_missing_effective_toll_tariff")
+        self.assertIsNone(total["total_peajes"])
+
+    def test_missing_target_falls_back_only_to_lower_category(self) -> None:
+        row = {"VALOR1": 10, "VALOR2": 20, "VALOR3": 0, "VALOR4": 40, "VALOR5": 0, "VALOR6": 60, "VALOR7": 70}
+        result = select_effective_toll(row, "3")
+        self.assertEqual(result["categoria_objetivo"], 5)
+        self.assertEqual(result["categoria_efectiva"], 4)
+        self.assertEqual(result["razon"], "fallback_lower")
 
     def test_all_zero_is_retained_as_zero(self) -> None:
         row = {"ID_PEAJE": "1", **{f"VALOR{i}": 0 for i in range(1, 8)}}
         result = totalize_toll_rows([row], "3S3")
         self.assertEqual(result["total_peajes"], 0)
-        self.assertEqual(result["detalle"][0]["razon"], "todas_categorias_cero")
+        self.assertEqual(result["detalle"][0]["razon"], "all_categories_zero")
 
-    def test_category_one_only_is_not_valid_for_load_configurations(self) -> None:
+    def test_category_one_only_is_valid_for_c3s3(self) -> None:
         row = {"ID_PEAJE": "196", "VALOR1": 14800, **{f"VALOR{i}": 0 for i in range(2, 8)}}
         result = totalize_toll_rows([row], "3S3")
-        self.assertEqual(result["total_peajes"], 0)
-        self.assertIsNone(result["detalle"][0]["categoria_efectiva"])
-        self.assertEqual(result["detalle"][0]["razon"], "categoria_maxima_insuficiente")
+        self.assertEqual(result["total_peajes"], 14800)
+        self.assertEqual(result["detalle"][0]["categoria_efectiva"], 1)
+        self.assertEqual(result["detalle"][0]["razon"], "relative_exact")
+
+    def test_vehicle_aliases_are_explicit(self) -> None:
+        expected = {
+            "CA": "C2",
+            "C257": "C2",
+            "C279": "C2",
+            "C2910": "C2",
+            "C2M10": "C2",
+            "V2": "C2",
+            "V3": "C3",
+            "V4": "C3",
+        }
+        for alias, canonical in expected.items():
+            with self.subTest(alias=alias):
+                self.assertEqual(normalize_toll_configuration(alias), canonical)
+
+    def test_unknown_vehicle_configuration_is_rejected(self) -> None:
+        with self.assertRaises(TollTotalizationError):
+            normalize_toll_configuration("DESCONOCIDO")
 
     def test_duplicate_caseta_is_counted_once(self) -> None:
         result = totalize_toll_rows(GOLDEN_ROWS[:1] + GOLDEN_ROWS[:1], "2")
@@ -106,6 +138,19 @@ class TollTotalizerTests(unittest.TestCase):
         self.assertEqual(result["cantidad_casetas_unicas"], 1)
         self.assertEqual(result["duplicados_ignorados"], 1)
         self.assertEqual(result["total_peajes"], 17400)
+
+    def test_same_toll_at_different_order_is_counted_twice(self) -> None:
+        first = {**GOLDEN_ROWS[0], "ORDEN": 1}
+        second = {**GOLDEN_ROWS[0], "ORDEN": 2}
+        result = totalize_toll_rows([first, second], "2")
+        self.assertEqual(result["cantidad_casetas_unicas"], 2)
+        self.assertEqual(result["total_peajes"], 34800)
+
+    def test_conflicting_tariff_patterns_are_blocked(self) -> None:
+        first = {**GOLDEN_ROWS[0], "ORDEN": 1}
+        conflicting = {**first, "VALOR2": first["VALOR2"] + 100}
+        with self.assertRaises(TollTotalizationError):
+            totalize_toll_rows([first, conflicting], "2")
 
     def test_empty_route_is_distinct_from_route_with_zero_rows(self) -> None:
         empty = totalize_toll_rows([], "3")
@@ -117,7 +162,7 @@ class TollTotalizerTests(unittest.TestCase):
             "sicetac_service.get_peajes_resumen_df", return_value=pd.DataFrame()
         ):
             response = obtener_peajes_detalle(999, "3")
-            self.assertEqual(response["resumen"]["3"]["total_peajes"], 0)
+            self.assertEqual(response["resumen"]["C3"]["total_peajes"], 0)
 
         with patch("sicetac_service.get_peajes_detalle_df", return_value=pd.DataFrame()), patch(
             "sicetac_service.get_peajes_resumen_df", return_value=pd.DataFrame()
@@ -168,6 +213,27 @@ class TollTotalizerTests(unittest.TestCase):
         )
 
         self.assertEqual(_peaje_total_deterministico(12736, "3", fallback=999), 30)
+
+    @patch("sicetac_service.get_peajes_detalle_df")
+    def test_transition_vehicle_uses_c2_relative_rule(self, get_detail) -> None:
+        from sicetac_service import _peaje_total_deterministico
+
+        get_detail.return_value = pd.DataFrame(
+            [{
+                "id_sice": 93,
+                "orden": 1,
+                "id_peaje": "1",
+                "VALOR1": 100000,
+                "VALOR2": 296800,
+                "VALOR3": 400000,
+                "VALOR4": 500000,
+                "VALOR5": 600000,
+                "VALOR6": 0,
+                "VALOR7": 0,
+            }]
+        )
+
+        self.assertEqual(_peaje_total_deterministico(93, "C257", fallback=282900), 296800)
 
     @patch("sicetac_service.get_peajes_inventario_df")
     @patch("sicetac_service.get_peajes_detalle_df")

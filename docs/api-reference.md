@@ -219,16 +219,15 @@ Si se envía `peajes: true`, `incluir_peajes: true` o `detalle_peajes: true`, la
   informa `total_anterior`, `diferencia_vs_anterior` y `discrepante`; ese valor
   anterior no se suma ni reemplaza el total por caseta.
 
-La regla vigente es `sicetac-peajes-caseta-v2-relative-max`. El vínculo de ruta
-identifica el `ID_PEAJE` y el catálogo crudo `VALOR1` ... `VALOR7` se consulta
-por caseta. Se calcula la categoría máxima disponible en cada peaje. Cuando el
-máximo es V, `2`, `3`, `2S2`, `2S3`, `3S2` y `3S3` apuntan respectivamente a
-II, III, III, IV, IV y V; con máximos VI o VII, el patrón se desplaza. Si la
-categoría objetivo está fuera de rango o tiene valor cero, no se hace fallback
-a otra categoría: el valor de esa caseta es cero y la razón queda auditada. Un
-peaje cuyo máximo es únicamente I tampoco se aplica a estas configuraciones de
-carga.
-Las casetas duplicadas se cuentan una vez.
+La regla vigente es `sicetac-toll-relative-category-v2`. Para cada caseta se
+calcula la máxima categoría con tarifa positiva y se resta el offset 3/2/2/1/1/0
+de `C2`, `C3`, `C2S2`, `C2S3`, `C3S2` o `C3S3`. Si la categoría objetivo no
+existe, solo se permite bajar a la mayor categoría positiva inferior. Nunca se
+sube a una categoría más costosa; si no hay fallback descendente, el total de
+la ruta queda bloqueado. `CA`, `C257`, `C279`, `C2910`, `C2M10` y `V2` son
+alias C2; `V3` y `V4` son alias C3. La salida conserva `categoria_objetivo`,
+`categoria_usada`, `selection_status`, `fallback_reason`, hash y corte.
+Las filas se deduplican por corte+ruta+peaje+orden.
 
 La validación de referencia de la ruta `12736` (Guadalajara de Buga–Funza,
 corte 2026-08-01) produce `$194.800`, `$467.600`, `$467.600`, `$648.800`,

@@ -4,6 +4,11 @@ mapeo_columnas_actualizado = {'plano': {'velocidad': 'vel_plano_vacio', 'consumo
 
 import pandas as pd
 
+from modelo_utils import TASA_OTROS_COSTOS_VACIO_SICETAC, canonicalizar_carroceria_costos
+
+
+TASA_OTROS_COSTOS_VACIO = TASA_OTROS_COSTOS_VACIO_SICETAC
+
 def calcular_modelo_sicetac_extendido_vacio(
     origen, destino, configuracion, serie, distancias,
     valor_peaje_manual, matriz_parametros, matriz_costos_fijos,
@@ -45,7 +50,9 @@ def calcular_modelo_sicetac_extendido_vacio(
         detalle[tipo] = {"km": km, "horas": hrs, "gal": gal}
 
     # --- 4. Horas logísticas ---
-    horas_log = horas_logisticas if horas_logisticas is not None else (0 if total_horas < 8 else 0)
+    # La serie oficial VACIO publica valor-hora cero: H2/H4/H8 no modifican
+    # la movilización. Las horas logísticas recibidas se ignoran explícitamente.
+    horas_log = 0
     horas_totales = total_horas + horas_log
     horas_habiles_mes = fila_param.get("HORAS_HABILES_MES", 288)
     try:
@@ -57,7 +64,7 @@ def calcular_modelo_sicetac_extendido_vacio(
     recorridos = max(1, round(horas_habiles_mes / horas_totales, 4))
 
     # --- 5. Costo fijo por carrocería ---
-    tipo_carroceria_objetivo = carroceria_especial.upper().strip() if carroceria_especial else "GENERAL"
+    tipo_carroceria_objetivo = canonicalizar_carroceria_costos(carroceria_especial)
     costo_fijo_match = matriz_costos_fijos[
         (matriz_costos_fijos["TIPO_VEHICULO"] == configuracion) &
         (matriz_costos_fijos["MES"] == serie) &
@@ -89,13 +96,20 @@ def calcular_modelo_sicetac_extendido_vacio(
 
     # --- 8. Costos variables e imprevistos ---
     km_total = sum(mapeo_columnas.values())
-    costo_variable_km = fila_param["COSTOS VARIABLES"]
+    costo_variable_km = fila_param.get(
+        "COSTOS VARIABLES VACIO",
+        fila_param["COSTOS VARIABLES"],
+    )
     costo_variables = round(km_total * costo_variable_km, 2)
     imprevistos = round(costo_variables * 0.075, 2)
     total_variable = round(costo_combustible + valor_peaje + costo_variables + imprevistos, 2)
 
-    # --- 9. Otros costos (administrativos, seguros, etc) ---
-    otros_costos = round((costo_fijo_viaje + total_variable) * 0.221824, 2)
+    # --- 9. Otros costos ---
+    # 13.6824 % + 5 % + 3.5 % = 22.1824 % para VACIO.
+    otros_costos = round(
+        (costo_fijo_viaje + total_variable) * TASA_OTROS_COSTOS_VACIO,
+        2,
+    )
 
     # --- 10. Total ---
     total_viaje = round(costo_fijo_viaje + total_variable + otros_costos, 2)

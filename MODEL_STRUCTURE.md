@@ -55,15 +55,15 @@ Para entregar detalle de peajes sin repetir totales por ruta, la base usa una ca
 - `peajes_resumen_vigentes`: vista para totalizar peajes por ruta/configuración.
 
 La totalización vigente usa el vínculo de ruta para identificar los
-`ID_PEAJE` y aplica la regla `sicetac-peajes-caseta-v2-relative-max` sobre las
-tarifas crudas de cada caseta. Para cada peaje se calcula la categoría máxima
-disponible. En una caseta cuyo máximo es V, las configuraciones apuntan a
-II/III/III/IV/IV/V (`2`, `3`, `2S2`, `2S3`, `3S2`, `3S3`); si el máximo es VI o
-VII, ese patrón se desplaza a VI o VII. No se reemplaza una categoría ausente
-por otra: si el objetivo relativo no existe, o el máximo es únicamente I, esa
-caseta vale cero y queda auditada. Las casetas duplicadas se cuentan una sola
-vez. El resumen legado se conserva únicamente para comparar diferencias y
-nunca reemplaza el total calculado desde el detalle.
+`ID_PEAJE` y aplica `sicetac-toll-relative-category-v2` sobre `VALOR1`…`VALOR7`.
+La categoría objetivo es `máxima disponible - offset`, con offsets 3/2/2/1/1/0
+para `C2`, `C3`, `C2S2`, `C2S3`, `C3S2` y `C3S3`. Una categoría objetivo en
+cero solo puede retroceder a la mayor tarifa positiva inferior; nunca se
+promueve. Si no hay categoría inferior, la ruta queda bloqueada y su total es
+`NULL`. La deduplicación usa corte+ruta+peaje+orden, por lo que una misma caseta
+en órdenes distintos se cobra dos veces. `CA`, `C257`, `C279`, `C2910`,
+`C2M10` y `V2` se resuelven como C2; `V3` y `V4`, como C3. Cada resultado
+conserva objetivo, categoría efectiva, estado, fallback y manifiesto de fuente.
 
 Servicio rápido:
 

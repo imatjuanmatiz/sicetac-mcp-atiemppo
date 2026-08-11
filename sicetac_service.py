@@ -24,6 +24,7 @@ from sicetac_helper import SICETACHelper
 from peajes_totalizador import (
     TOLL_RULE_VERSION,
     TollTotalizationError,
+    normalize_toll_configuration,
     totalize_toll_rows,
 )
 from modelo_sicetac import calcular_modelo_sicetac_extendido
@@ -201,18 +202,12 @@ def _convertir_nativos(d: Any):
 def _normalizar_configuracion_peaje(configuracion: str | None) -> str | None:
     if not str(configuracion or "").strip():
         return None
-    raw = str(configuracion).strip().upper().replace(" ", "")
-    # El esquema vigente conserva 2 y 3 sin prefijo C; las configuraciones
-    # articuladas sí usan C2S2/C2S3/C3S2/C3S3.
-    if raw in {"2", "C2", "C2M10"}:
-        return "2"
-    if raw in {"3", "C3"}:
-        return "3"
-    if raw in {"2S2", "C2S2", "2S3", "C2S3", "3S2", "C3S2", "3S3", "C3S3"}:
-        return {"2S2": "C2S2", "2S3": "C2S3", "3S2": "C3S2", "3S3": "C3S3"}.get(raw, raw)
-    # Mantener el comportamiento histórico para configuraciones de
-    # vehículos no tarifadas por el libro oficial.
-    return raw
+    return normalize_toll_configuration(configuracion)
+
+
+def _configuracion_peaje_fisica(configuracion: str) -> str:
+    """Etiqueta almacenada en las vistas públicas para la configuración canónica."""
+    return {"C2": "2", "C3": "3"}.get(configuracion, configuracion)
 
 
 def _enriquecer_peajes_con_inventario(df_detalle: pd.DataFrame) -> pd.DataFrame:
@@ -247,11 +242,10 @@ def _enriquecer_peajes_con_inventario(df_detalle: pd.DataFrame) -> pd.DataFrame:
 
 def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> dict[str, Any]:
     configuracion_norm = _normalizar_configuracion_peaje(configuracion)
-    df_detalle = get_peajes_detalle_df(id_sice, configuracion_norm)
-    if df_detalle.empty and configuracion_norm in {"2", "3"}:
-        # Compatibilidad con cortes que guardaron las configuraciones simples
-        # con prefijo C, sin alterar la etiqueta pública vigente.
-        df_detalle = get_peajes_detalle_df(id_sice, f"C{configuracion_norm}")
+    configuracion_fisica = (
+        _configuracion_peaje_fisica(configuracion_norm) if configuracion_norm else None
+    )
+    df_detalle = get_peajes_detalle_df(id_sice, configuracion_fisica)
     df_resumen = get_peajes_resumen_df(id_sice)
 
     if df_detalle.empty:
@@ -259,9 +253,9 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
 
     df_detalle = _enriquecer_peajes_con_inventario(df_detalle)
 
-    if configuracion_norm and not df_resumen.empty and "configuracion" in df_resumen.columns:
+    if configuracion_fisica and not df_resumen.empty and "configuracion" in df_resumen.columns:
         df_resumen = df_resumen[
-            df_resumen["configuracion"].astype(str).str.upper() == configuracion_norm
+            df_resumen["configuracion"].astype(str).str.upper() == configuracion_fisica
         ]
 
     first = df_detalle.iloc[0]
@@ -275,29 +269,32 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
             return 0.0
 
     if configuracion_norm:
-        configs = [configuracion_norm]
+        configs = [(configuracion_norm, configuracion_fisica)]
     elif "configuracion" in df_detalle.columns:
         # Conserva la etiqueta física de la vista (algunos cortes usan 2/3,
         # otros C2/C3) y normaliza solo dentro del totalizador.
-        configs = list(dict.fromkeys(
-            str(value).strip().upper().replace(" ", "")
-            for value in df_detalle["configuracion"].dropna().tolist()
-            if str(value).strip()
-        ))
+        configs = []
+        for value in df_detalle["configuracion"].dropna().tolist():
+            physical = str(value).strip().upper().replace(" ", "")
+            if not physical:
+                continue
+            canonical = normalize_toll_configuration(physical)
+            if (canonical, physical) not in configs:
+                configs.append((canonical, physical))
     else:
-        configs = ["2", "3", "C2S2", "C2S3", "C3S2", "C3S3"]
+        configs = [(cfg, _configuracion_peaje_fisica(cfg)) for cfg in ("C2", "C3", "C2S2", "C2S3", "C3S2", "C3S3")]
     totalizaciones: dict[str, dict[str, Any]] = {}
-    for cfg in configs:
+    for cfg, physical in configs:
         try:
             rows_for_cfg = df_detalle
             if not configuracion_norm and "configuracion" in df_detalle.columns:
                 rows_for_cfg = df_detalle[
                     df_detalle["configuracion"].astype(str).str.upper().str.replace(" ", "", regex=False)
-                    == cfg
+                    == physical
                 ]
             if rows_for_cfg is not None and not rows_for_cfg.empty:
                 totalizaciones[cfg] = totalize_toll_rows(rows_for_cfg, cfg)
-        except ValueError:
+        except TollTotalizationError:
             # El endpoint puede exponer una configuración histórica que no
             # pertenece al catálogo de categorías del libro oficial.
             continue
@@ -327,19 +324,20 @@ def obtener_peajes_detalle(id_sice: int, configuracion: str | None = None) -> di
             )
             base["valores"][cfg] = _num(item.get("valor_efectivo"))
             base["categorias"][cfg] = {
-                "categoria_nominal": item.get("categoria_nominal_label"),
+                "categoria_objetivo": item.get("categoria_objetivo_label"),
                 "categoria_usada": item.get("categoria_efectiva_label"),
                 "configuracion_sicetac": cfg,
-                "razon": item.get("razon"),
+                "selection_status": item.get("selection_status"),
+                "fallback_reason": item.get("fallback_reason"),
                 "valores_originales": item.get("valores_originales", {}),
             }
     detalle = sorted(detalle_por_key.values(), key=lambda item: (item["orden"] is None, item["orden"] or 0))
 
     anterior = None
-    if configuracion_norm and not df_resumen.empty and "configuracion" in df_resumen.columns:
+    if configuracion_fisica and not df_resumen.empty and "configuracion" in df_resumen.columns:
         match = df_resumen[
             df_resumen["configuracion"].astype(str).str.upper().str.replace(" ", "", regex=False)
-            == configuracion_norm
+            == configuracion_fisica
         ]
         if not match.empty:
             anterior = _num(match.iloc[0].get("total_peajes"))
@@ -711,25 +709,35 @@ def _peaje_total_deterministico(
     *,
     fallback: float = 0.0,
 ) -> float:
-    """Obtiene el total por caseta y deja el índice legado como fallback.
+    """Obtiene el total auditable por caseta conforme al contrato v2.
 
     El vínculo de ruta solo identifica los ID_PEAJE. Las tarifas se toman del
     detalle crudo o del inventario pequeño y se resuelven con v2 por caseta.
-    ``peajes_vigentes`` solo queda como fallback legado si no hay detalle.
+    Un total legado positivo nunca sustituye silenciosamente el detalle crudo.
     """
     id_norm = _clean_id(id_sice)
-    config_norm = _normalizar_configuracion_peaje(str(configuracion))
+    config_norm = normalize_toll_configuration(configuracion)
+    config_fisica = _configuracion_peaje_fisica(config_norm)
     try:
-        df_detalle = get_peajes_detalle_df(id_norm, config_norm)
-        if (df_detalle is None or df_detalle.empty) and config_norm in {"2", "3"}:
-            df_detalle = get_peajes_detalle_df(id_norm, f"C{config_norm}")
+        df_detalle = get_peajes_detalle_df(id_norm, config_fisica)
         if df_detalle is not None and not df_detalle.empty:
             df_detalle = _enriquecer_peajes_con_inventario(df_detalle)
             total = totalize_toll_rows(df_detalle, config_norm)
+            if total["total_peajes"] is None:
+                raise TollTotalizationError(
+                    f"Ruta {id_norm} bloqueada: falta una tarifa efectiva sin fallback descendente."
+                )
             return float(total["total_peajes"])
-    except (TollTotalizationError, ValueError, TypeError):
-        pass
-    return float(fallback or 0)
+    except TollTotalizationError as exc:
+        raise SicetacError(422, str(exc)) from exc
+    except (ValueError, TypeError) as exc:
+        raise SicetacError(422, f"No se pudo totalizar peajes de la ruta {id_norm}: {exc}") from exc
+    if float(fallback or 0) > 0:
+        raise SicetacError(
+            503,
+            f"Ruta {id_norm} sin detalle ruta–peaje auditable; se rechazó el total legado {float(fallback):.0f}.",
+        )
+    return 0.0
 
 
 def _refresh_cache(force: bool = False) -> None:
@@ -768,7 +776,6 @@ def _refresh_cache(force: bool = False) -> None:
         get_peajes_resumen_df.cache_clear()
     except Exception:
         pass
-
     # Limpiar índices
     _RUTAS_INDEX = None
     _PEAJES_INDEX = None
@@ -1293,7 +1300,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         valores = peajes_index.get((id_sice, ejes_conf), [])
         return _peaje_total_deterministico(
             id_sice,
-            ejes_conf,
+            data.vehiculo,
             fallback=(valores[0] if valores else manual_peaje),
         )
 
@@ -1636,7 +1643,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         valores = peajes_index.get((id_sice, ejes_conf), [])
         return _peaje_total_deterministico(
             id_sice,
-            ejes_conf,
+            data.vehiculo,
             fallback=(valores[0] if valores else manual_peaje),
         )
 
@@ -1994,12 +2001,12 @@ def generar_snapshot(
     vehiculos = df_vehiculos["TIPO_VEHICULO"].astype(str).unique().tolist()
     vehiculos = [v for v in vehiculos if str(v).strip().upper() != "V3"]
 
-    def _peaje_for(ruta_row, ejes_conf: str) -> float:
+    def _peaje_for(ruta_row, vehiculo: str, ejes_conf: str) -> float:
         id_sice = _clean_id(ruta_row.get("ID_SICE"))
         valores = peajes_index.get((id_sice, ejes_conf), [])
         return _peaje_total_deterministico(
             id_sice,
-            ejes_conf,
+            vehiculo,
             fallback=(valores[0] if valores else 0.0),
         )
 
@@ -2019,7 +2026,7 @@ def generar_snapshot(
         for vehiculo in vehiculos:
             fila_conf = df_vehiculos[df_vehiculos["TIPO_VEHICULO"] == vehiculo].iloc[0]
             ejes_conf = _clean_id(fila_conf.get("EJES_CONFIGURACION"))
-            valor_peaje = _peaje_for(ruta_row, ejes_conf)
+            valor_peaje = _peaje_for(ruta_row, vehiculo, ejes_conf)
 
             totales = {}
             for h in horas:
