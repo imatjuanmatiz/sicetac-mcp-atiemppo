@@ -1,5 +1,10 @@
 # Guía rápida de integración
 
+Para una integración nueva de un tercero, comienza por la
+[guía de conexión comercial](third-party-integration.md) y el
+[mapa de relaciones](data-relationships.md). Usa `/v1/quotes` y los catálogos
+autenticados; esta página conserva también el contrato legacy.
+
 ## 1. Requisitos mínimos
 
 - acceso al endpoint base de la API
@@ -8,7 +13,11 @@
 
 ## 2. Endpoint recomendado para empezar
 
-Para la mayoría de integraciones, empieza con:
+Para nuevos clientes externos, empieza con `POST /v1/quotes`, con
+`X-API-Key` y selección explícita de vehículo y carrocería. La respuesta
+comercial envuelve el resultado en `data` y su trazabilidad en `meta`.
+
+Para integraciones legacy existentes:
 
 - `POST /consulta`
 
@@ -142,12 +151,14 @@ Usa este endpoint si necesitas:
 
 ### Agente o asistente
 
-- usar `POST /consulta_texto` para salida directa
+- nuevas conexiones: `commercial_mcp_server.py` o `commercial_client.py` sobre `/v1/quotes`
+- ejemplos legacy: usar `POST /consulta_texto` para salida directa
 - o `POST /consulta` si el agente necesita razonamiento adicional sobre el JSON
 
 ### MCP
 
-- ejecutar `python mcp_server.py`
+- terceros: registrar `commercial_mcp_server.py` por stdio con URL y clave comercial
+- servicio local de ATIEMPPO: ejecutar `python mcp_server.py`
 - invocar `calcular_sicetac_tool`
 
 ## 7. Recomendaciones de integración

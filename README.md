@@ -7,6 +7,8 @@ Su foco no es solo responder una consulta puntual. Su foco es permitir que una e
 ## Documentación
 
 - [Resumen del producto y arquitectura](docs/overview.md)
+- [Conectar un sistema o agente de un tercero](docs/third-party-integration.md)
+- [Mapa de relaciones entre municipios, rutas, vehículos y costos](docs/data-relationships.md)
 - [Guía rápida de integración](docs/integration-guide.md)
 - [Referencia técnica de endpoints](docs/api-reference.md)
 - [Estructura interna del modelo](MODEL_STRUCTURE.md)
@@ -30,6 +32,20 @@ Su foco no es solo responder una consulta puntual. Su foco es permitir que una e
 - `POST /refresh`
 - `POST /snapshot/generate`
 - `GET /health`
+
+Contrato comercial versionado:
+
+- `GET /v1/health`
+- `POST /v1/quotes`
+- `POST /v1/prequotes`
+- `POST /v1/feedback/terms`
+- `GET /v1/catalog/body-types`
+- `GET /v1/catalog/vehicles`
+- `GET /v1/catalog/municipalities`
+- `GET /v1/usage`
+
+Consulta la [documentación de la API comercial](docs/commercial-api.md) para
+API keys, cuotas, auditoría y puesta en producción.
 
 ## Arranque rápido
 
@@ -91,6 +107,10 @@ curl -X POST http://localhost:8000/consulta \
 Variables útiles:
 
 - `CORS_ORIGINS`
+- `SICETAC_API_ACCESS_MODE` (`public` solo para demo; `api_key` para terceros)
+- `SICETAC_API_KEYS_JSON` o `SICETAC_API_CONSUMERS_DB`
+- `SICETAC_USAGE_PERSISTENCE`
+- `SICETAC_ADMIN_TOKEN` para `/refresh` y `/snapshot/generate`
 - `SICETAC_CACHE_TTL_SECONDS`
 - `SICETAC_TABLE_MUNICIPIOS`
 - `SICETAC_TABLE_VEHICULOS`
@@ -129,6 +149,13 @@ Cuando una dirección tiene variantes SICETAC, la respuesta solicita
 ```
 
 ## Agentes
+
+Para conectar un tercero, usa `commercial_mcp_server.py`: expone catálogos,
+consumo y cotización mediante la API comercial con la clave del cliente.
+Instala `requirements-client.txt` y sigue la [guía de conexión](docs/third-party-integration.md).
+Este puente usa MCP por stdio y HTTPS hacia ATIEMPPO; no requiere acceso a la base de datos.
+
+Los ejemplos siguientes conservan la integración legacy.
 
 Cliente Node de ejemplo:
 

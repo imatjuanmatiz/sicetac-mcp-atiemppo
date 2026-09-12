@@ -51,7 +51,14 @@ Responsable de:
 - ejecutar el cálculo SICETAC
 - producir respuesta resumida o detallada
 
-### MCP para agentes
+### Conexión comercial para terceros
+
+- `commercial_client.py`: cliente HTTP con clave comercial, catálogos y cotizaciones.
+- `commercial_mcp_server.py`: puente MCP por stdio hacia esa API; no requiere credenciales de datos.
+- [Relaciones de datos](data-relationships.md): de municipio y ruta a configuración, carrocería y costo.
+- [Instalación y aceptación](third-party-integration.md): recorrido del integrador.
+
+### MCP local del servicio
 
 Archivo principal:
 

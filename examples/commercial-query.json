@@ -1,0 +1,8 @@
+{
+  "origen": "Bogotá",
+  "destino": "Medellín",
+  "vehiculo": "C3S3",
+  "carroceria": "General - Furgon",
+  "modo_viaje": "CARGADO",
+  "resumen": true
+}

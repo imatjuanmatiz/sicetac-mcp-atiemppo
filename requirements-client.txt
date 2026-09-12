@@ -1,0 +1,3 @@
+# Cliente HTTP y puente MCP. No requieren pandas ni supabase.
+httpx==0.28.1
+mcp==1.26.0

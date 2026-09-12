@@ -1,8 +1,9 @@
 import os
 import math
+import secrets
 from io import BytesIO
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,8 +20,9 @@ from sicetac_service import (
     obtener_peajes_detalle,
 )
 from supabase_data import get_client, get_table_df
+from commercial_api import router as commercial_router
 
-app = FastAPI(title="API SICETAC", version="2.3.0")
+app = FastAPI(title="API SICETAC", version="2.4.0")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.
@@ -37,10 +39,14 @@ origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins if origins else ["*"],
-    allow_credentials=True,
+    allow_credentials=bool(origins and origins != ["*"]),
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Contrato comercial versionado. Los endpoints legacy se mantienen abajo para
+# no romper WhatsApp ni las integraciones actuales.
+app.include_router(commercial_router)
 
 
 def _json_safe(value):
@@ -67,6 +73,34 @@ def _json_safe(value):
 
 def _json_response(content, status_code: int = 200):
     return JSONResponse(content=_json_safe(content), status_code=status_code)
+
+
+def _require_admin_token(x_admin_token: str | None = Header(default=None, alias="X-Admin-Token")):
+    """Protege operaciones de escritura/refresco que nunca deben ser públicas."""
+    expected = os.getenv("SICETAC_ADMIN_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Operación administrativa no configurada.")
+    if not x_admin_token or not secrets.compare_digest(x_admin_token, expected):
+        raise HTTPException(status_code=401, detail="Token administrativo inválido.")
+
+
+def _valor_plaza_text(valor_plaza, format_cop) -> str:
+    """Formatea el último valor en plaza ya resuelto para la ruta consultada."""
+    if not isinstance(valor_plaza, dict):
+        return ""
+    meses = valor_plaza.get("meses") or []
+    if not isinstance(meses, list) or not meses:
+        return ""
+
+    ultimo = meses[0]
+    if not isinstance(ultimo, dict) or ultimo.get("valor") in (None, ""):
+        return ""
+
+    mes = ultimo.get("mes_label") or ultimo.get("mes_codigo")
+    valor = format_cop(ultimo.get("valor"))
+    tipo = ultimo.get("tipo_carga_usado")
+    sufijo_tipo = f" ({tipo})" if tipo else ""
+    return f", valor en plaza {mes} {valor}{sufijo_tipo}"
 
 @app.post("/consulta")
 def calcular_sicetac_endpoint(data: ConsultaInput):
@@ -178,7 +212,7 @@ def listar_municipios():
 
 
 @app.post("/refresh")
-def refresh_cache():
+def refresh_cache(_: None = Depends(_require_admin_token)):
     _refresh_cache(force=True)
     return _json_response({"status": "ok", "refreshed": True})
 
@@ -240,6 +274,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
                         f", peajes {_format_cop(resumen_peajes.get('total_peajes'))}"
                         f" ({resumen_peajes.get('cantidad_peajes')} peajes)"
                     )
+            texto += _valor_plaza_text(r.get("valor_plaza"), _format_cop)
             if (r.get("aumento") or {}).get("activo"):
                 texto += " Modo aumento activo: conserva este modo en las próximas búsquedas hasta decir 'modo aumento off'."
             return _json_response({"texto": texto})
@@ -252,6 +287,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
                 f"{s.get('origen')}->{s.get('destino')} {s.get('configuracion')} "
                 f"total {_format_cop(s.get('total_viaje'))}"
             )
+            texto += _valor_plaza_text(r.get("valor_plaza"), _format_cop)
             resumen_peajes = r.get("peajes_resumen")
             if resumen_peajes:
                 texto += (
@@ -268,7 +304,7 @@ def calcular_sicetac_texto(data: ConsultaInput):
 
 
 @app.post("/snapshot/generate")
-def snapshot_generate():
+def snapshot_generate(_: None = Depends(_require_admin_token)):
     try:
         df = generar_snapshot(horas=[0, 2, 4, 8])
         if df.empty:
