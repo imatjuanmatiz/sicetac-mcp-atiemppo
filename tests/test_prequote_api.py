@@ -74,7 +74,10 @@ class PrequoteApiTests(unittest.TestCase):
 
     def test_empty_container_is_forwarded_as_loaded_container_series(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H4": 123},
+                "valor_plaza_no_aplica": "CONTENEDOR_VACIO",
+            }
         ) as sicetac:
             response = self.client.post(
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
@@ -88,6 +91,44 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(sicetac.call_args.args[0].modo_viaje, "CARGADO")
         self.assertEqual(sicetac.call_args.args[0].tipo_contenedor, "VACIO")
+        self.assertEqual(
+            response.json()["data"]["market_analysis"]["reason"],
+            "CONTAINER_EMPTY_NO_MARKET_PROXY",
+        )
+
+    def test_prequote_exposes_observed_market_as_a_separate_analysis_layer(self):
+        sicetac_result = {
+            "mes": 202609,
+            "totales": {"H4": 3_000_000},
+            "valor_plaza": {
+                "route_code": "11001000-76109000",
+                "configuracion_analisis": "2S2",
+                "tipo_carga_label": "Carga normal",
+                "promedio_ultimos_meses": 3_250_000,
+                "meses": [{
+                    "mes_codigo": 202607,
+                    "mes_label": "2026-07",
+                    "valor": 3_300_000,
+                    "fuente": "rndc_proxy",
+                    "tipo_carga_usado": "Carga normal",
+                }],
+            },
+        }
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value=sicetac_result
+        ):
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Buenaventura", "cargo_weight_value": 18000,
+                    "cargo_weight_unit": "kg", "service_code": "contenedor",
+                    "container_size_ft": 40, "peajes": False,
+                },
+            )
+        analysis = response.json()["data"]["market_analysis"]
+        self.assertTrue(analysis["available"])
+        self.assertEqual(analysis["latest_observation"]["mes_codigo"], 202607)
+        self.assertEqual(analysis["comparison_to_sicetac_h4"]["difference_cop"], 300000)
+        self.assertFalse(analysis["comparison_to_sicetac_h4"]["same_cutoff"])
 
     def test_term_feedback_is_pending_and_never_publishes_rules(self):
         with patch.object(commercial_api, "record_term_observation") as observation:

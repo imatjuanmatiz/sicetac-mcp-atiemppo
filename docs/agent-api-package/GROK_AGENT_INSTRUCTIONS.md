@@ -59,7 +59,12 @@ Con una respuesta exitosa, presenta:
 
 5. alternativas H2/H8 o de ruta únicamente como escenarios alternativos;
 6. corte o versión de referencia, si el motor los devuelve;
-7. esta advertencia: “Es una referencia técnica SICETAC; no es una oferta,
+7. si `market_analysis.available` es verdadero, presenta “Valor de mercado
+   observado” con su mes de corte, promedio disponible y brecha frente a H4.
+   Explica que es un proxy RNDC por ruta/configuración, no una tarifa ni un
+   precio negociable; si los cortes son distintos, dilo explícitamente. Si no
+   hay cobertura o se trata de retorno con contenedor vacío, no inventes valor;
+8. esta advertencia: “Es una referencia técnica SICETAC; no es una oferta,
    tarifa comercial ni disponibilidad de vehículo.”
 
 Nunca sumes valores de rutas alternativas, H2, H4 y H8. Nunca inventes precio,

@@ -69,11 +69,14 @@ La respuesta tiene tres bloques:
 | --- | --- |
 | `data.technical_decision` | Recomendación técnica, capacidad SICE, tara, estado verificable del PBV, advertencias y versión del ruleset. |
 | `data.sicetac_reference` | Referencia SICETAC, rutas/variantes, peajes y escenarios H2/H4/H8 cuando estén disponibles. |
+| `data.market_analysis` | Valor de mercado observado/proxy RNDC por ruta y configuración, con corte y brecha analítica frente a H4. No es tarifa comercial. |
 | `data.commercial` | Confirma que no existe configuración ni emisión comercial. |
 
 El integrador debe reportar el valor principal como `H4, 4 horas logísticas`.
 Si presenta H2 u H8, debe marcarlos como escenarios alternativos, nunca
-sumarlos ni presentarlos como tarifa. Rutas alternativas tampoco se suman.
+sumarlos ni presentarlos como tarifa. Rutas alternativas tampoco se suman. Si
+hay `market_analysis`, reporta siempre su corte: su valor observado puede ser
+de un mes distinto al SICETAC y únicamente sirve como contraste analítico.
 
 ## Errores y comportamiento del agente
 

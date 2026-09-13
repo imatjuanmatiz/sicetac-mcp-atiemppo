@@ -118,11 +118,17 @@ cuando cambie el puente MCP o exista una incompatibilidad declarada por
 `POST /v1/prequotes` es la superficie para agentes y procesos pagos que
 necesitan elegir una configuración antes de consultar SICETAC. Recibe origen,
 destino, peso, unidad, servicio, contenedor, ejes y, si aplica, una
-configuración solicitada. La API responde tres bloques:
+configuración solicitada. También devuelve `market_analysis`: valor en plaza/
+valor pagado observado de RNDC por ruta y configuración, con corte, fuente,
+promedio y, cuando es posible, brecha frente a H4. No es una tarifa comercial
+y no se produce para un retorno de contenedor vacío. La API responde cuatro
+bloques:
 
 - `technical_decision`: configuración recomendada, PBV, SICE, tara,
   advertencias y versión exacta del ruleset.
 - `sicetac_reference`: resultado SICETAC con la configuración resultante.
+- `market_analysis`: benchmark observado/proxy; conserva cobertura y corte
+  propios, por lo que no debe suponerse que coincide temporalmente con SICETAC.
 - `commercial`: siempre indica `configured: false` y
   `emission_allowed: false`. Márgenes, disponibilidad, precio y aprobación
   pertenecen al proyecto consumidor.

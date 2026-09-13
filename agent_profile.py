@@ -13,7 +13,7 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.13.1"
+AGENT_POLICY_VERSION = "2026.09.13.2"
 MINIMUM_BRIDGE_VERSION = "1.1.0"
 
 
@@ -72,6 +72,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
         "output_policy": {
             "primary_reference": "H4, 4 horas logísticas",
             "alternatives": "H2, H8 y rutas alternativas son escenarios; no se suman.",
+            "market_analysis": "Presente market_analysis como valor de mercado observado RNDC/proxy, con su corte y brecha frente a H4. Nunca lo trate como tarifa comercial.",
             "pbv": "Si pbv_assessment=requires_vehicle_tare, no declare incompatibilidad: el PBV total requiere las taras del equipo.",
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },

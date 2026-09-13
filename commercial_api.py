@@ -489,6 +489,75 @@ def _prequote_sicetac_input(data: PrequoteInput, configuration: str) -> Consulta
     )
 
 
+def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]:
+    """Separa el valor observado de mercado de la referencia SICETAC.
+
+    ``valor_plaza`` es un proxy RNDC ajustado por ruta, configuración y tipo de
+    carga. Sirve para contraste analítico, no para emitir una tarifa ni para
+    reemplazar el cálculo técnico SICETAC.
+    """
+    if not isinstance(sicetac_reference, dict):
+        return {
+            "available": False,
+            "reason": "SICETAC_REFERENCE_UNAVAILABLE",
+            "classification": "observed_market_proxy",
+        }
+
+    if sicetac_reference.get("valor_plaza_no_aplica") == "CONTENEDOR_VACIO":
+        return {
+            "available": False,
+            "reason": "CONTAINER_EMPTY_NO_MARKET_PROXY",
+            "classification": "observed_market_proxy",
+            "note": "El retorno de contenedor vacío no se aproxima con valor de mercado cargado.",
+        }
+
+    plaza = sicetac_reference.get("valor_plaza")
+    if not isinstance(plaza, dict) or not isinstance(plaza.get("meses"), list) or not plaza["meses"]:
+        return {
+            "available": False,
+            "reason": "NO_ROUTE_CONFIGURATION_MARKET_COVERAGE",
+            "classification": "observed_market_proxy",
+            "note": "No hay observación publicada para esta ruta y configuración.",
+        }
+
+    latest = plaza["meses"][0]
+    analysis: dict[str, Any] = {
+        "available": True,
+        "classification": "observed_market_proxy",
+        "label": "Valor de mercado observado",
+        "scope": "RNDC ajustado por ruta, configuración y tipo de carga; no es tarifa comercial.",
+        "route_code": plaza.get("route_code"),
+        "configuration": plaza.get("configuracion_analisis"),
+        "load_type": latest.get("tipo_carga_usado") or plaza.get("tipo_carga_label"),
+        "latest_observation": latest,
+        "average_last_observations": plaza.get("promedio_ultimos_meses"),
+        "observations": plaza.get("meses"),
+        "fallback_to_general_cargo": bool(plaza.get("fallback_to_carga_normal")),
+        "disclaimer": "Es un valor observado/proxy de mercado; no es oferta, tarifa comercial ni disponibilidad.",
+    }
+    h4 = (sicetac_reference.get("totales") or {}).get("H4")
+    try:
+        h4_value = float(h4)
+        market_value = float(latest["valor"])
+    except (TypeError, ValueError, KeyError):
+        return analysis
+
+    sicetac_month = sicetac_reference.get("mes")
+    market_month = latest.get("mes_codigo")
+    difference = market_value - h4_value
+    analysis["comparison_to_sicetac_h4"] = {
+        "sicetac_h4": h4_value,
+        "sicetac_month": sicetac_month,
+        "market_value": market_value,
+        "market_month": market_month,
+        "difference_cop": difference,
+        "difference_pct_of_sicetac_h4": (difference / h4_value * 100) if h4_value else None,
+        "same_cutoff": str(sicetac_month) == str(market_month),
+        "note": "La brecha es analítica. Compare cortes antes de inferir una negociación o precio actual.",
+    }
+    return analysis
+
+
 @router.post("/prequotes", summary="Pre-cotización técnica: Core de vehículos más SICETAC")
 def market_prequote(
     data: PrequoteInput,
@@ -530,6 +599,7 @@ def market_prequote(
                 "data": {
                     "technical_decision": decision,
                     "sicetac_reference": sicetac_reference,
+                    "market_analysis": _market_analysis(sicetac_reference),
                     "commercial": {
                         "configured": False,
                         "emission_allowed": False,
