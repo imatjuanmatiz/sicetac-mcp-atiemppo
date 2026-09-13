@@ -74,6 +74,7 @@ class VehicleRule:
     max_cargo_kg: int | None
     axle_count: int | None
     provisional: bool
+    requires_explicit_request: bool = False
     vehicle_model_code: str | None = None
     container_sizes_ft: tuple[int, ...] | None = None
     source_note: str | None = None
@@ -91,6 +92,7 @@ class VehicleRule:
             max_cargo_kg=(int(raw["max_cargo_kg"]) if raw.get("max_cargo_kg") is not None else None),
             axle_count=(int(raw["axle_count"]) if raw.get("axle_count") is not None else None),
             provisional=bool(raw.get("provisional", True)),
+            requires_explicit_request=bool(raw.get("requires_explicit_request", False)),
             vehicle_model_code=(str(raw["vehicle_model_code"]) if raw.get("vehicle_model_code") else None),
             container_sizes_ft=(tuple(sorted(int(size) for size in raw["container_sizes_ft"])) if raw.get("container_sizes_ft") is not None else None),
             source_note=(str(raw["source_note"]) if raw.get("source_note") else None),

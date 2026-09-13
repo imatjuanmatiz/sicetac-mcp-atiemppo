@@ -1,0 +1,4 @@
+# ATIEMPPO entrega estos dos valores por un canal seguro.
+# No suba este archivo ya diligenciado a un repositorio ni lo envíe por chat.
+SICETAC_BASE_URL=https://<api-entregada-por-atiemppo>
+SICETAC_API_KEY=<clave-individual-ccl>

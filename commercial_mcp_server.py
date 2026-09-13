@@ -6,6 +6,7 @@ from commercial_client import CommercialClient
 
 mcp = FastMCP("sicetac-comercial")
 read_only = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True)
+BRIDGE_VERSION = "1.1.0"
 
 
 @mcp.tool(annotations=read_only)
@@ -30,6 +31,14 @@ def listar_municipios() -> dict:
 def consultar_consumo() -> dict:
     """Consulta uso y cuota del consumidor. No consume una cotización."""
     return CommercialClient.from_env().usage()
+
+
+@mcp.tool(annotations=read_only)
+def consultar_instrucciones_vigentes() -> dict:
+    """Lee el perfil vigente sin consumir cuota. Úsalo una vez al inicio de cada sesión."""
+    profile = CommercialClient.from_env().agent_profile()
+    profile["client_bridge_version"] = BRIDGE_VERSION
+    return profile
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False))
@@ -60,10 +69,13 @@ def precotizar_transporte(
     service_code: str = "carga_general", container_size_ft: int | None = None,
     axles: int | None = None, requested_configuration: str | None = None,
     carroceria: str = "General - Estacas", mes: int | None = None,
-    peajes: bool = True,
+    peajes: bool = True, modo_viaje: str = "CARGADO",
+    tipo_contenedor: str | None = None,
 ) -> dict:
     """Aplica el Core técnico y luego SICETAC. Consume una unidad y no emite precio comercial.
 
+    Para un contenedor vacío transportado use modo_viaje=CARGADO y
+    tipo_contenedor=VACIO; VACIO solo significa vehículo sin carga ni contenedor.
     El agente debe explicar PBV, SICE y advertencias como referencia técnica.
     No inventa disponibilidad, margen, tarifa propia ni condiciones de negocio.
     """

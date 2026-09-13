@@ -82,6 +82,10 @@ class CommercialClient:
     def usage(self) -> dict:
         return self._request("GET", "/v1/usage")
 
+    def agent_profile(self) -> dict:
+        """Lee instrucciones vigentes del motor; no reserva cuota."""
+        return self._request("GET", "/v1/agent-profile")
+
     def quote(self, payload: dict) -> dict:
         if not isinstance(payload, dict):
             raise ValueError("La consulta debe ser un objeto JSON.")
@@ -120,7 +124,7 @@ class CommercialClient:
 
 def main():
     parser = argparse.ArgumentParser(description="Consultar la API comercial SICETAC.")
-    parser.add_argument("action", choices=["health", "vehicles", "body-types", "municipalities", "usage", "quote", "prequote", "feedback-terms"])
+    parser.add_argument("action", choices=["health", "vehicles", "body-types", "municipalities", "usage", "agent-profile", "quote", "prequote", "feedback-terms"])
     parser.add_argument("--payload", type=Path, help="JSON de entrada; requerido para quote, prequote y feedback-terms.")
     args = parser.parse_args()
     try:

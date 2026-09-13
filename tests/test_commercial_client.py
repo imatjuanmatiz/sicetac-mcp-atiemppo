@@ -96,7 +96,7 @@ class ClientTests(unittest.TestCase):
 
     def test_mcp_schema_exposes_required_selections_and_quota_effect(self):
         tools = {tool.name: tool for tool in asyncio.run(commercial_mcp_server.mcp.list_tools())}
-        self.assertEqual(set(tools), {"listar_vehiculos", "listar_carrocerias", "listar_municipios", "consultar_consumo", "cotizar_sicetac", "precotizar_transporte", "registrar_termino_para_revision"})
+        self.assertEqual(set(tools), {"listar_vehiculos", "listar_carrocerias", "listar_municipios", "consultar_consumo", "consultar_instrucciones_vigentes", "cotizar_sicetac", "precotizar_transporte", "registrar_termino_para_revision"})
         quote = tools["cotizar_sicetac"]
         self.assertIn("vehiculo", quote.inputSchema["required"])
         self.assertIn("carroceria", quote.inputSchema["required"])
@@ -106,6 +106,16 @@ class ClientTests(unittest.TestCase):
         self.assertIn("cargo_weight_value", prequote.inputSchema["required"])
         self.assertIn("cargo_weight_unit", prequote.inputSchema["required"])
         self.assertFalse(prequote.annotations.idempotentHint)
+        self.assertTrue(tools["consultar_instrucciones_vigentes"].annotations.readOnlyHint)
+
+    def test_mcp_agent_profile_delegates_without_prequote(self):
+        client = Mock()
+        client.agent_profile.return_value = {"agent_policy_version": "test"}
+        with patch.object(CommercialClient, "from_env", return_value=client):
+            result = commercial_mcp_server.consultar_instrucciones_vigentes()
+        self.assertEqual(result["agent_policy_version"], "test")
+        self.assertEqual(result["client_bridge_version"], commercial_mcp_server.BRIDGE_VERSION)
+        client.agent_profile.assert_called_once_with()
 
     def test_mcp_prequote_to_api_to_core_to_sicetac_flow(self):
         api = TestClient(app)
@@ -134,11 +144,13 @@ class ClientTests(unittest.TestCase):
             commercial_api, "load_published_market_ruleset", return_value=ruleset
         ), patch.object(commercial_api, "calcular_sicetac_resumen", return_value={"totales": {"H8": 30}}) as calculator:
             result = commercial_mcp_server.precotizar_transporte(
-                "Bogotá", "Medellín", 18, "t", service_code="contenedor", container_size_ft=40, axles=4, peajes=False
+                "Bogotá", "Medellín", 18, "t", service_code="contenedor", container_size_ft=40, axles=4,
+                peajes=False, carroceria="Portacontenedores", modo_viaje="CARGADO", tipo_contenedor="VACIO"
             )
         self.assertEqual(paths, ["/v1/prequotes"])
         self.assertEqual(result["data"]["technical_decision"]["recommendation"]["sicetac_configuration"], "2S2")
         self.assertEqual(calculator.call_args.args[0].vehiculo, "2S2")
+        self.assertEqual(calculator.call_args.args[0].tipo_contenedor, "VACIO")
 
     def test_mcp_prequote_delegates_to_private_client_contract(self):
         client = Mock()

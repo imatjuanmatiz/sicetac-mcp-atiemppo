@@ -10,6 +10,7 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 import commercial_api
+from cotizador_core import load_ruleset
 from main import app
 
 
@@ -48,6 +49,31 @@ class CommercialApiTests(unittest.TestCase):
             response = self.client.get("/v1/health")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["version"], "v1")
+
+    def test_agent_profile_is_authenticated_and_does_not_charge(self):
+        ruleset = load_ruleset({
+            "schema_version": 1, "scope_id": "mercado_colombia_tecnico",
+            "ruleset_id": "profile-test", "version": "test-1", "status": "published",
+            "source_snapshot_id": "test-source", "emission_allowed": False,
+            "container_tares_kg": {"20": 2300}, "configuration_aliases": {},
+            "vehicle_equivalences": [], "vehicle_rules": [{
+                "rule_id": "container_2s2", "service_code": "contenedor",
+                "sicetac_configuration": "2S2", "commercial_label": "C2S2", "priority": 1,
+                "min_operating_weight_kg": None, "max_operating_weight_kg": None,
+                "max_cargo_kg": 22000, "axle_count": 4, "container_sizes_ft": [20],
+                "provisional": True,
+            }],
+        })
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=ruleset):
+            missing = self.client.get("/v1/agent-profile")
+            response = self.client.get("/v1/agent-profile", headers={"X-API-Key": self.api_key})
+            usage = self.client.get("/v1/usage", headers={"X-API-Key": self.api_key})
+        self.assertEqual(missing.status_code, 401)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["ruleset"]["version"], "test-1")
+        self.assertEqual(response.json()["input_policy"]["container"]["automatic_configuration_by_size_ft"]["20"], "2S2")
+        self.assertFalse(response.json()["quota"]["consumes_units"])
+        self.assertEqual(usage.json()["used"], 0)
 
     def test_quote_requires_valid_key_and_reports_usage(self):
         env = {

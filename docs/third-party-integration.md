@@ -41,6 +41,7 @@ Las claves de Supabase y los tokens administrativos no se entregan al cliente. `
 | Operación | Endpoint | Respuesta | Unidades de cotización |
 | --- | --- | --- | --- |
 | Salud | `GET /v1/health` | `status`, `api`, `version` | 0 |
+| Perfil vigente del agente | `GET /v1/agent-profile` | contrato, política, ruleset e instrucciones | 0 |
 | Municipios y aliases | `GET /v1/catalog/municipalities` | `items` | 0 |
 | Configuraciones vehiculares | `GET /v1/catalog/vehicles` | `items` | 0 |
 | Carrocerías y series | `GET /v1/catalog/body-types` | `items` | 0 |
@@ -77,6 +78,7 @@ No existe URL productiva implícita ni clave embebida en el cliente. HTTP se adm
 .venv-client/bin/python commercial_client.py vehicles
 .venv-client/bin/python commercial_client.py body-types
 .venv-client/bin/python commercial_client.py usage
+.venv-client/bin/python commercial_client.py agent-profile
 .venv-client/bin/python commercial_client.py quote --payload examples/commercial-query.json
 ```
 
@@ -99,6 +101,9 @@ Este fragmento expresa el proceso MCP; no es un archivo de configuración univer
 
 Herramientas del puente:
 
+- `consultar_instrucciones_vigentes`: se llama una vez al inicio de cada
+  sesión. Lee la política y ruleset publicados; no consume cuota. El agente
+  debe priorizar esta respuesta sobre un prompt o ZIP anterior.
 - `listar_municipios`: nombres, departamentos, aliases y códigos.
 - `listar_vehiculos`: códigos, descripción y ejes disponibles.
 - `listar_carrocerias`: etiquetas y columnas relacionadas con cada servicio.
@@ -124,11 +129,13 @@ Consulta el [mapa de relaciones](data-relationships.md) para entender cómo se e
 
 1. Clave inválida: respuesta `401` en un recurso protegido, sin cálculo.
 2. Clave válida: catálogos legibles y consumo inicial consultable.
-3. Una consulta controlada: ruta, configuración, carrocería, periodo y resultado comprobables; identificador de solicitud conservado.
-4. Comparación de dos vehículos: mismos criterios y capacidades útiles obtenidas de una fuente del cliente.
-5. Municipio ambiguo, variante o cobertura ausente: el agente informa la condición y no inventa una respuesta.
-6. Cuota agotada y revocación: comprobar en consumidor de pruebas administrado por ATIEMPPO.
-7. Evidencia: fecha, entorno, versión, petición sin secretos, respuesta y resultado esperado/obtenido.
+3. Perfil vigente: verificar `contract_version`, `agent_policy_version`,
+   ruleset y `minimum_bridge_version` sin consumo de cuota.
+4. Una consulta controlada: ruta, configuración, carrocería, periodo y resultado comprobables; identificador de solicitud conservado.
+5. Comparación de dos vehículos: mismos criterios y capacidades útiles obtenidas de una fuente del cliente.
+6. Municipio ambiguo, variante o cobertura ausente: el agente informa la condición y no inventa una respuesta.
+7. Cuota agotada y revocación: comprobar en consumidor de pruebas administrado por ATIEMPPO.
+8. Evidencia: fecha, entorno, versión, petición sin secretos, respuesta y resultado esperado/obtenido.
 
 ## Estado y pendientes de operación
 

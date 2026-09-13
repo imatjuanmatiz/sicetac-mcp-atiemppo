@@ -7,6 +7,7 @@ operando para WhatsApp y SICETAC-LAB.
 ## Endpoints
 
 - `GET /v1/health`: estado público, no consume unidades.
+- `GET /v1/agent-profile`: perfil autenticado y versionado para el agente; no consume unidades.
 - `POST /v1/quotes`: cotiza una ruta y consume una unidad.
 - `POST /v1/prequotes`: aplica el Core técnico, consulta SICETAC y consume una unidad.
 - `POST /v1/feedback/terms`: registra vocabulario para revisión; no cambia reglas ni consume una cotización.
@@ -98,6 +99,19 @@ La respuesta tiene contrato estable:
   }
 }
 ```
+
+## Perfil vigente del agente
+
+`GET /v1/agent-profile` es la fuente operativa central para instalaciones de
+OpenClaw, MCP u otros agentes. El puente consulta este perfil al inicio de una
+sesión y obtiene `contract_version`, `agent_policy_version`, ruleset publicado,
+entrada permitida y reglas de presentación. No incluye secretos ni reglas
+comerciales, exige una clave válida y no reserva cuota.
+
+Los cambios aditivos del motor se entregan por este perfil: un cliente no debe
+inventar reglas a partir de un ZIP anterior. El ZIP solo requiere actualización
+cuando cambie el puente MCP o exista una incompatibilidad declarada por
+`minimum_bridge_version`.
 
 ## Core técnico de pre-cotización
 

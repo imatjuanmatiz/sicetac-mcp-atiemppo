@@ -20,6 +20,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from agent_profile import AGENT_POLICY_VERSION, CONTRACT_VERSION, build_agent_profile
 from sicetac_service import (
     ConsultaInput,
     SicetacError,
@@ -308,7 +309,8 @@ def _response_meta(
     usage: int,
 ) -> dict[str, Any]:
     return {
-        "api_version": "v1",
+        "api_version": CONTRACT_VERSION,
+        "agent_policy_version": AGENT_POLICY_VERSION,
         "request_id": request_id,
         "consumer_id": consumer.consumer_id,
         "plan": consumer.plan,
@@ -328,7 +330,18 @@ def _json_response(content: Any, request_id: str, status_code: int = 200) -> JSO
 
 @router.get("/health", summary="Estado de la API comercial")
 def commercial_health() -> dict[str, str]:
-    return {"status": "ok", "api": "sicetac", "version": "v1"}
+    return {"status": "ok", "api": "sicetac", "version": CONTRACT_VERSION}
+
+
+@router.get("/agent-profile", summary="Instrucciones vigentes para un agente integrador")
+def commercial_agent_profile(consumer: ApiConsumer = Depends(require_consumer)) -> dict[str, Any]:
+    """Perfil versionado, autenticado y sin consumo de cuota para cada sesión."""
+    del consumer
+    try:
+        ruleset = load_published_market_ruleset()
+    except PublishedRuleSetUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return build_agent_profile(ruleset)
 
 
 @router.get("/catalog/body-types", summary="Carrocerías SICETAC disponibles")

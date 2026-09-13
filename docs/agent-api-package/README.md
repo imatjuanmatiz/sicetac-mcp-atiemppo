@@ -22,7 +22,18 @@ prompt, repositorio, frontend, captura de pantalla o mensaje de chat. Cada bot
 recibe su propio `consumer_id`, cuota y fecha de vencimiento; no reutilice la
 clave del piloto ATICA ni la de otro cliente.
 
-## Única operación necesaria en el piloto
+## Operaciones del piloto
+
+Al inicio de cada sesión el agente consulta el perfil autenticado vigente:
+
+`GET {SICETAC_API_BASE_URL}/v1/agent-profile`
+
+No consume cuota. Devuelve la versión de contrato, la política del agente, el
+ruleset publicado y las instrucciones que deben prevalecer sobre esta copia
+del paquete. Así las mejoras compatibles del motor se reflejan sin reemplazar
+el ZIP ni el prompt del cliente.
+
+La única operación que consume cuota en el flujo de pre-cotización es:
 
 `POST {SICETAC_API_BASE_URL}/v1/prequotes`
 
@@ -33,9 +44,19 @@ Content-Type: application/json
 X-API-Key: <SICETAC_API_KEY>
 ```
 
-Solicita: origen, destino, peso, unidad y tipo de servicio. Para un contenedor
-también requiere 20 o 40 pies. La operación consume una unidad de la cuota una
-vez admitida para cálculo; no se debe reintentar automáticamente ante timeout.
+Solicita: origen, destino, peso y unidad. Si no se menciona un contenedor, el
+servicio es `carga_general` por defecto (incluye “carga suelta”) y no se debe
+preguntar por tara. Solo para un contenedor declarado expresamente requiere 20
+o 40 pies; el motor incorpora la tara técnica publicada. La operación consume
+una unidad de la cuota una vez admitida para cálculo; no se debe reintentar
+automáticamente ante timeout.
+
+El motor inicia contenedores de 20 y 40 pies en Portacontenedor C2S2 como
+regla técnica operativa. Un equipo menor solo se consulta cuando el usuario lo
+solicita expresamente mediante `requested_configuration`. Para el retorno con
+contenedor vacío, se mantiene `modo_viaje: "CARGADO"` y se envía
+`tipo_contenedor: "VACIO"`; `modo_viaje: "VACIO"` corresponde a un vehículo
+sin carga ni contenedor.
 
 Ejemplo de solicitud: [examples/prequote-container-40.json](examples/prequote-container-40.json).
 Ejemplo de respuesta saneada: [examples/prequote-response-sanitized.json](examples/prequote-response-sanitized.json).
@@ -46,7 +67,7 @@ La respuesta tiene tres bloques:
 
 | Bloque | Uso permitido |
 | --- | --- |
-| `data.technical_decision` | Recomendación técnica, PBV, capacidad SICE, tara, advertencias y versión del ruleset. |
+| `data.technical_decision` | Recomendación técnica, capacidad SICE, tara, estado verificable del PBV, advertencias y versión del ruleset. |
 | `data.sicetac_reference` | Referencia SICETAC, rutas/variantes, peajes y escenarios H2/H4/H8 cuando estén disponibles. |
 | `data.commercial` | Confirma que no existe configuración ni emisión comercial. |
 
@@ -66,11 +87,16 @@ sumarlos ni presentarlos como tarifa. Rutas alternativas tampoco se suman.
 
 `GET {SICETAC_API_BASE_URL}/v1/health` prueba disponibilidad básica y no
 consume cuota. `GET /v1/usage`, autenticado, permite leer consumo y saldo.
+`GET /v1/agent-profile`, autenticado, entrega las instrucciones vigentes y no
+consume cuota.
 
 ## Archivos del paquete
 
 - [GROK_AGENT_INSTRUCTIONS.md](GROK_AGENT_INSTRUCTIONS.md): instrucciones que
-  se pueden copiar al bot.
+  se pueden copiar al bot; el agente primero consulta el perfil vigente.
+- [CCL_OPENCLAW_QUICKSTART.md](CCL_OPENCLAW_QUICKSTART.md): instalación y
+  prueba mínima para un OpenClaw externo.
+- [CCL_ENV.example](CCL_ENV.example): nombres de secretos, sin incluir valores.
 - [tool-schema.json](tool-schema.json): esquema JSON de una herramienta HTTP
   provider-neutral.
 - [ACCEPTANCE_CHECKLIST.md](ACCEPTANCE_CHECKLIST.md): prueba de recepción y

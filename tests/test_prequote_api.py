@@ -72,6 +72,23 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertFalse(body["data"]["commercial"]["emission_allowed"])
         self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
 
+    def test_empty_container_is_forwarded_as_loaded_container_series(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Buenaventura", "cargo_weight_value": 0,
+                    "cargo_weight_unit": "kg", "service_code": "contenedor",
+                    "container_size_ft": 40, "axles": 4, "peajes": False,
+                    "carroceria": "Portacontenedores", "modo_viaje": "CARGADO",
+                    "tipo_contenedor": "VACIO",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sicetac.call_args.args[0].modo_viaje, "CARGADO")
+        self.assertEqual(sicetac.call_args.args[0].tipo_contenedor, "VACIO")
+
     def test_term_feedback_is_pending_and_never_publishes_rules(self):
         with patch.object(commercial_api, "record_term_observation") as observation:
             response = self.client.post(
