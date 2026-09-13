@@ -28,7 +28,8 @@ RULESET = {
             "sicetac_configuration": "2S2", "commercial_label": "C2S2",
             "priority": 1, "min_operating_weight_kg": 17001,
             "max_operating_weight_kg": 28000, "max_cargo_kg": 22000,
-            "axle_count": 4, "container_sizes_ft": [40], "provisional": True,
+            "axle_count": 4, "vehicle_model_code": "C2S2",
+            "container_sizes_ft": [40], "provisional": True,
         }
     ],
 }
@@ -69,7 +70,7 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(body["data"]["technical_decision"]["recommendation"]["sicetac_configuration"], "2S2")
         self.assertEqual(body["data"]["sicetac_reference"]["totales"]["H8"], 123)
         self.assertFalse(body["data"]["commercial"]["emission_allowed"])
-        self.assertEqual(sicetac.call_args.args[0].vehiculo, "2S2")
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
 
     def test_term_feedback_is_pending_and_never_publishes_rules(self):
         with patch.object(commercial_api, "record_term_observation") as observation:

@@ -505,7 +505,10 @@ def market_prequote(
         recommendation = decision.get("recommendation") or {}
         sicetac_reference: dict[str, Any] | None = None
         if recommendation.get("sicetac_configuration"):
-            sicetac_input = _prequote_sicetac_input(data, recommendation["sicetac_configuration"])
+            # El ruleset conserva su configuración técnica genérica (p. ej. 2S2),
+            # mientras SICETAC recibe su código de catálogo (p. ej. C2S2).
+            sicetac_vehicle = recommendation.get("vehicle_model_code") or recommendation["sicetac_configuration"]
+            sicetac_input = _prequote_sicetac_input(data, sicetac_vehicle)
             sicetac_reference = calcular_sicetac_resumen(sicetac_input)
             if consulta_solicita_peajes(sicetac_input):
                 sicetac_reference = adjuntar_peajes_a_respuesta(sicetac_reference, sicetac_input.vehiculo)
