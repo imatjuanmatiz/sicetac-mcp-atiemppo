@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "prequote_technical_transport",
+  "description": "Obtiene una pre-cotización técnica SICETAC: selecciona configuración vehicular y devuelve una referencia no comercial.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "origen",
+    "destino",
+    "cargo_weight_value",
+    "cargo_weight_unit",
+    "service_code"
+  ],
+  "properties": {
+    "origen": {"type": "string", "minLength": 2, "description": "Municipio de origen."},
+    "destino": {"type": "string", "minLength": 2, "description": "Municipio de destino."},
+    "codigo_dane_origen": {"type": "string", "description": "Código DANE opcional de origen."},
+    "codigo_dane_destino": {"type": "string", "description": "Código DANE opcional de destino."},
+    "cargo_weight_value": {"type": "number", "minimum": 0, "maximum": 100000},
+    "cargo_weight_unit": {"type": "string", "enum": ["kg", "t"]},
+    "service_code": {"type": "string", "enum": ["carga_general", "contenedor"]},
+    "container_size_ft": {"type": ["integer", "null"], "enum": [20, 40, null]},
+    "weight_includes_tare": {"type": "boolean", "default": false},
+    "requested_configuration": {"type": ["string", "null"], "description": "Solo si el usuario exige una configuración."},
+    "axles": {"type": ["integer", "null"], "minimum": 1, "maximum": 12},
+    "carroceria": {"type": "string", "default": "General - Estacas"},
+    "mes": {"type": ["integer", "null"], "description": "Periodo YYYYMM opcional."},
+    "peajes": {"type": "boolean", "default": true},
+    "rutasid_ida": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta."}
+  }
+}

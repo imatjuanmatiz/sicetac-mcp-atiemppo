@@ -8,6 +8,7 @@ Su foco no es solo responder una consulta puntual. Su foco es permitir que una e
 
 - [Resumen del producto y arquitectura](docs/overview.md)
 - [Conectar un sistema o agente de un tercero](docs/third-party-integration.md)
+- [Paquete de producción para agentes externos](docs/agent-api-package/README.md)
 - [Mapa de relaciones entre municipios, rutas, vehículos y costos](docs/data-relationships.md)
 - [Guía rápida de integración](docs/integration-guide.md)
 - [Referencia técnica de endpoints](docs/api-reference.md)

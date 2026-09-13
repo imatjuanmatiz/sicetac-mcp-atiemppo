@@ -1,0 +1,10 @@
+{
+  "origen": "Bogotá",
+  "destino": "Buenaventura",
+  "cargo_weight_value": 15,
+  "cargo_weight_unit": "t",
+  "service_code": "contenedor",
+  "container_size_ft": 40,
+  "weight_includes_tare": false,
+  "peajes": true
+}

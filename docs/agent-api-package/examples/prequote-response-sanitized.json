@@ -1,0 +1,38 @@
+{
+  "data": {
+    "technical_decision": {
+      "ruleset": {
+        "id": "mercado_colombia_tecnico_2026_09_13_2",
+        "version": "2026.09.13-market.2"
+      },
+      "recommendation": {
+        "rule_id": "container_2s2",
+        "sicetac_configuration": "2S2",
+        "vehicle_model_code": "C2S2",
+        "max_cargo_kg": 22000,
+        "provisional": true
+      }
+    },
+    "sicetac_reference": {
+      "totales": {
+        "H2": 0,
+        "H4": 0,
+        "H8": 0
+      },
+      "note": "Los valores fueron reemplazados por cero en este ejemplo documental. Use los valores de una respuesta real."
+    },
+    "commercial": {
+      "configured": false,
+      "emission_allowed": false,
+      "reason": "Las reglas comerciales pertenecen al proyecto consumidor."
+    }
+  },
+  "meta": {
+    "api_version": "v1",
+    "request_id": "uuid-redacted",
+    "consumer_id": "grok-pilot-redacted",
+    "units": 1,
+    "monthly_usage": 1,
+    "monthly_quota": 100
+  }
+}
