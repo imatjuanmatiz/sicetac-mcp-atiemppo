@@ -184,7 +184,9 @@ def require_consumer(
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     authorization: str | None = Header(default=None),
 ) -> ApiConsumer:
-    mode = os.getenv("SICETAC_API_ACCESS_MODE", "public").strip().lower()
+    # La superficie /v1 es para integraciones controladas. El modo por defecto
+    # debe fallar cerrado: /consulta conserva su contrato público separado.
+    mode = os.getenv("SICETAC_API_ACCESS_MODE", "api_key").strip().lower()
     if mode == "public":
         return ApiConsumer(
             consumer_id="public-demo",

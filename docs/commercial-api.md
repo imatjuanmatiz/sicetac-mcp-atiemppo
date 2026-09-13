@@ -17,8 +17,9 @@ operando para WhatsApp y SICETAC-LAB.
 
 ## Acceso
 
-Para una primera demo, `SICETAC_API_ACCESS_MODE=public` mantiene los endpoints
-v1 accesibles. Antes de ofrecer el servicio a terceros, usar
+Los endpoints `/v1` fallan cerrados y exigen API key de forma predeterminada.
+Para una demo aislada se puede declarar explícitamente
+`SICETAC_API_ACCESS_MODE=public`; para integraciones reales conserva
 `SICETAC_API_ACCESS_MODE=api_key`.
 
 Las claves no se guardan en el repositorio. El backend acepta:

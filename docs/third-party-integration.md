@@ -49,7 +49,7 @@ Las claves de Supabase y los tokens administrativos no se entregan al cliente. `
 | Observación de vocabulario | `POST /v1/feedback/terms` | estado `pending_review` | 0 |
 | Uso del consumidor | `GET /v1/usage` | `period`, `used`, `quota`, `remaining` | 0 |
 
-Excepto salud, configura autenticación comercial `X-API-Key` o `Authorization: Bearer`. En el servidor, `SICETAC_API_ACCESS_MODE=api_key` es el modo para terceros; `public` sirve para demostraciones.
+Excepto salud, configura autenticación comercial `X-API-Key` o `Authorization: Bearer`. En el servidor, `SICETAC_API_ACCESS_MODE=api_key` es el valor seguro por defecto para terceros; `public` sólo se admite si se declara explícitamente para una demostración aislada.
 
 Una solicitud rechazada antes de reservar cuota, por ejemplo por autenticación o validación de esquema, no consume una unidad. Un fallo posterior a la admisión al cálculo puede consumirla. No reintentes automáticamente un timeout de cotización.
 

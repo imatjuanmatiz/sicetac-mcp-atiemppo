@@ -107,7 +107,8 @@ curl -X POST http://localhost:8000/consulta \
 Variables útiles:
 
 - `CORS_ORIGINS`
-- `SICETAC_API_ACCESS_MODE` (`public` solo para demo; `api_key` para terceros)
+- `SICETAC_API_ACCESS_MODE` (`api_key` es el valor seguro por defecto; `public`
+  sólo se admite si se declara de forma explícita para una demo aislada)
 - `SICETAC_API_KEYS_JSON` o `SICETAC_API_CONSUMERS_DB`
 - `SICETAC_USAGE_PERSISTENCE`
 - `SICETAC_ADMIN_TOKEN` para `/refresh` y `/snapshot/generate`
