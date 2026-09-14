@@ -10,8 +10,8 @@ from typing import Any
 class QuoteInput:
     scope_id: str
     request_id: str
-    cargo_weight_value: float
-    cargo_weight_unit: str
+    cargo_weight_value: float | None = None
+    cargo_weight_unit: str | None = None
     service_code: str | None = None
     container_size_ft: int | None = None
     weight_includes_tare: bool = False
@@ -24,17 +24,19 @@ class QuoteInput:
         required = {
             "scope_id": scope_id,
             "request_id": raw.get("request_id"),
-            "cargo_weight_value": raw.get("cargo_weight_value"),
-            "cargo_weight_unit": raw.get("cargo_weight_unit"),
         }
         missing = [field for field, value in required.items() if value in (None, "")]
         if missing:
             raise ValueError(f"Faltan campos requeridos: {', '.join(missing)}")
+        weight_value = raw.get("cargo_weight_value")
+        weight_unit = raw.get("cargo_weight_unit")
+        if (weight_value is None) != (weight_unit is None):
+            raise ValueError("cargo_weight_value y cargo_weight_unit deben informarse juntos")
         return cls(
             scope_id=str(scope_id),
             request_id=str(raw["request_id"]),
-            cargo_weight_value=float(raw["cargo_weight_value"]),
-            cargo_weight_unit=str(raw["cargo_weight_unit"]).lower(),
+            cargo_weight_value=(float(weight_value) if weight_value is not None else None),
+            cargo_weight_unit=(str(weight_unit).lower() if weight_unit is not None else None),
             service_code=(str(raw["service_code"]).lower() if raw.get("service_code") else None),
             container_size_ft=(int(raw["container_size_ft"]) if raw.get("container_size_ft") is not None else None),
             weight_includes_tare=bool(raw.get("weight_includes_tare", False)),

@@ -71,7 +71,20 @@ def _weight_kg(value: float, unit: str) -> int:
     return round(result)
 
 
-def _rule_trace(rule: VehicleRule, load_and_container_kg: int, cargo_kg: int) -> dict[str, Any]:
+def _rule_trace(
+    rule: VehicleRule,
+    load_and_container_kg: int | None,
+    cargo_kg: int | None,
+) -> dict[str, Any]:
+    if load_and_container_kg is None or cargo_kg is None:
+        return {
+            "rule_id": rule.rule_id,
+            "sicetac_configuration": rule.sicetac_configuration,
+            "container_sizes_ft": list(rule.container_sizes_ft) if rule.container_sizes_ft else None,
+            "selection_weight_compatible": None,
+            "sice_cargo_compatible": None,
+            "eligible": None,
+        }
     selection_weight_ok = ((rule.min_operating_weight_kg is None or load_and_container_kg >= rule.min_operating_weight_kg) and (rule.max_operating_weight_kg is None or load_and_container_kg <= rule.max_operating_weight_kg))
     cargo_ok = rule.max_cargo_kg is None or cargo_kg <= rule.max_cargo_kg
     return {
@@ -99,7 +112,6 @@ def _candidate_rules(ruleset: RuleSet, service_code: str, axles: int | None, con
 
 def _serialize_rule(ruleset: RuleSet, rule: VehicleRule, selection: str, trace: dict[str, Any]) -> dict[str, Any]:
     equivalence = next((item for item in ruleset.vehicle_equivalences if item.vehicle_model_code == rule.vehicle_model_code), None)
-    is_container = rule.service_code == "contenedor"
     return {
         "rule_id": rule.rule_id,
         "commercial_label": rule.commercial_label,
@@ -111,12 +123,49 @@ def _serialize_rule(ruleset: RuleSet, rule: VehicleRule, selection: str, trace: 
         "provisional": rule.provisional,
         "requires_explicit_request": rule.requires_explicit_request,
         "selection": selection,
+        "selection_basis": "declared_configuration" if selection == "explicit" else "automatic_weight_and_service",
         "selection_weight_compatible": trace["selection_weight_compatible"],
-        "pbv_compatible": None if is_container else trace["selection_weight_compatible"],
-        "pbv_assessment": "requires_vehicle_tare" if is_container else "evaluated_from_published_range",
+        # La carga reportada no es PBV: siempre falta al menos la tara del
+        # vehículo. La banda publicada se conserva como traza, pero no bloquea
+        # ni invalida una selección que sí cumple capacidad SICE.
+        "pbv_compatible": None,
+        "pbv_assessment": "requires_vehicle_tare",
         "sice_cargo_compatible": trace["sice_cargo_compatible"],
         "source_note": rule.source_note,
     }
+
+
+def _capacity_only_alternatives(
+    candidates: list[VehicleRule],
+    selected: VehicleRule,
+    trace_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Sugiere equipos menores por peso sin invalidar el equipo programado.
+
+    La sugerencia ignora volumen, dimensiones, cubicaje, operación y
+    disponibilidad. Por eso nunca es una alerta ni reemplaza una configuración
+    solicitada explícitamente por quien programa el vehículo.
+    """
+    selected_capacity = selected.max_cargo_kg
+    if selected_capacity is None:
+        return []
+    lower = [
+        rule for rule in candidates
+        if rule.rule_id != selected.rule_id
+        and trace_by_id[rule.rule_id]["sice_cargo_compatible"] is True
+        and rule.max_cargo_kg is not None
+        and rule.max_cargo_kg < selected_capacity
+    ]
+    return [
+        {
+            "sicetac_configuration": rule.sicetac_configuration,
+            "commercial_label": rule.commercial_label,
+            "max_cargo_kg": rule.max_cargo_kg,
+            "basis": "weight_only",
+            "note": "Posible sólo por peso; valide volumen, dimensiones y condiciones operativas antes de cambiar el vehículo.",
+        }
+        for rule in sorted(lower, key=lambda rule: (rule.max_cargo_kg or 10**12, rule.priority))
+    ]
 
 
 def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, Any]:
@@ -129,7 +178,12 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
     if request.axles is not None and request.axles <= 0:
         raise RuleSetValidationError("El número de ejes debe ser positivo")
     service_code = _service_code(request.service_code)
-    reported_kg = _weight_kg(request.cargo_weight_value, request.cargo_weight_unit)
+    weight_provided = request.cargo_weight_value is not None
+    reported_kg = (
+        _weight_kg(request.cargo_weight_value, request.cargo_weight_unit or "")
+        if weight_provided
+        else None
+    )
     tare_kg = 0
     if service_code == "contenedor":
         if request.container_size_ft not in ruleset.container_tares_kg:
@@ -138,9 +192,13 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
     if request.weight_includes_tare:
         if service_code != "contenedor":
             raise RuleSetValidationError("weight_includes_tare solo aplica a contenedor")
+        if reported_kg is None:
+            raise RuleSetValidationError("weight_includes_tare requiere informar el peso")
         if reported_kg < tare_kg:
             raise RuleSetValidationError("El peso total no puede ser inferior a la tara")
         cargo_kg, operating_kg = reported_kg - tare_kg, reported_kg
+    elif reported_kg is None:
+        cargo_kg, operating_kg = None, None
     else:
         cargo_kg, operating_kg = reported_kg, reported_kg + tare_kg
     candidates = _candidate_rules(ruleset, service_code, request.axles, request.container_size_ft)
@@ -159,22 +217,35 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
             automatic_candidates = [rule for rule in candidates if not rule.requires_explicit_request]
             if not automatic_candidates:
                 raise RuleSetValidationError("No hay una configuración automática publicada para este contenedor")
-            selected = next((rule for rule in automatic_candidates if trace_by_id[rule.rule_id]["sice_cargo_compatible"]), None)
+            selected = next((rule for rule in automatic_candidates if trace_by_id[rule.rule_id]["sice_cargo_compatible"] is True), None)
+            if selected is None and not weight_provided:
+                selected = automatic_candidates[0]
         else:
+            if not weight_provided:
+                raise RuleSetValidationError(
+                    "Informe el peso de carga o una configuración vehicular declarada."
+                )
+            # Para carga suelta sin vehículo explícito, ubique el peso en la
+            # banda publicada (los extremos son inclusivos) y confirme además
+            # capacidad SICE. La banda ordena la sugerencia; no convierte la
+            # carga sola en PBV ni invalida un equipo programado explícitamente.
             selected = next((rule for rule in automatic_candidates if trace_by_id[rule.rule_id]["eligible"]), None)
         if selected:
             selected_trace = trace_by_id[selected.rule_id]
             selection = "automatic_operational_default" if service_code == "contenedor" else "automatic"
         else:
-            cargo_capable = [rule for rule in automatic_candidates if trace_by_id[rule.rule_id]["sice_cargo_compatible"]]
+            cargo_capable = [rule for rule in automatic_candidates if trace_by_id[rule.rule_id]["sice_cargo_compatible"] is True]
             if cargo_capable:
                 selected = min(cargo_capable, key=lambda rule: (rule.max_cargo_kg or 10**12, rule.priority))
                 selected_trace = trace_by_id[selected.rule_id]
-                selection = "nearest_available_pbv_pending" if service_code != "contenedor" else "nearest_available_sice_candidate"
+                selection = "nearest_available_sice_candidate"
             else:
                 selected = max(automatic_candidates, key=lambda rule: (rule.max_cargo_kg or -1, -rule.priority))
                 selected_trace, selection = trace_by_id[selected.rule_id], "nearest_available_sice_exceeded"
     recommendation = _serialize_rule(ruleset, selected, selection, selected_trace)
+    recommendation["capacity_only_alternatives"] = _capacity_only_alternatives(
+        candidates, selected, trace_by_id
+    )
     warnings: list[str] = []
     if recommendation["provisional"]:
         warnings.append("La regla seleccionada está marcada como provisional.")
@@ -182,8 +253,11 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
         warnings.append("El PBV total requiere la tara del tractocamión y semirremolque; carga y contenedor no bastan para validarlo.")
         if selection == "automatic_operational_default":
             warnings.append("Portacontenedor C2S2 es el mínimo técnico operativo por defecto; un equipo menor exige solicitud expresa.")
-    elif not recommendation["pbv_compatible"]:
-        warnings.append("El peso operativo reportado no encaja en el rango publicado.")
-    if not recommendation["sice_cargo_compatible"]:
+    if recommendation["sice_cargo_compatible"] is False:
         warnings.append("La carga supera el máximo SICE publicado.")
-    return {"engine_version": "1.0.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "recommended" if not warnings else "provisional", "normalized_input": {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "load_and_container_weight_kg": operating_kg, "weight_includes_tare": request.weight_includes_tare}, "requested_configuration": explicit, "recommendation": recommendation, "rule_trace": traces, "warnings": warnings, "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}
+    if not weight_provided:
+        warnings.append(
+            "No se informó peso de carga: se cotiza con la configuración declarada; "
+            "la capacidad SICE queda sin validar."
+        )
+    return {"engine_version": "1.1.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "recommended" if not warnings else "provisional", "normalized_input": {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "load_and_container_weight_kg": operating_kg, "weight_includes_tare": request.weight_includes_tare, "weight_validation": "performed" if weight_provided else "not_provided"}, "requested_configuration": explicit, "recommendation": recommendation, "rule_trace": traces, "warnings": warnings, "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}

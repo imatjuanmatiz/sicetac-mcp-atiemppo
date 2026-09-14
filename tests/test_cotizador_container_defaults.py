@@ -83,6 +83,117 @@ class ContainerDefaultTests(unittest.TestCase):
         self.assertEqual(result["normalized_input"]["service_code"], "carga_general")
         self.assertEqual(result["normalized_input"]["tare_kg"], 0)
 
+    def test_general_automatic_selection_includes_the_upper_range_limit(self):
+        general_ruleset = load_ruleset({
+            **RULESET,
+            "vehicle_rules": [
+                {
+                    "rule_id": "general_2", "service_code": "carga_general",
+                    "sicetac_configuration": "2", "commercial_label": "C2",
+                    "priority": 1, "min_operating_weight_kg": 0,
+                    "max_operating_weight_kg": 10000, "max_cargo_kg": 10000,
+                    "axle_count": 2, "provisional": True,
+                },
+                {
+                    "rule_id": "general_3", "service_code": "carga_general",
+                    "sicetac_configuration": "3", "commercial_label": "C3",
+                    "priority": 2, "min_operating_weight_kg": 10001,
+                    "max_operating_weight_kg": 16000, "max_cargo_kg": 16000,
+                    "axle_count": 3, "provisional": True,
+                },
+            ],
+        })
+        result = evaluate_quote({
+            "scope_id": "mercado_colombia_tecnico", "request_id": "limit-10t",
+            "cargo_weight_value": 10, "cargo_weight_unit": "t",
+        }, general_ruleset)
+        self.assertEqual(result["normalized_input"]["service_code"], "carga_general")
+        self.assertEqual(result["recommendation"]["sicetac_configuration"], "2")
+        self.assertEqual(result["recommendation"]["selection"], "automatic")
+
+    def test_general_load_uses_sice_capacity_not_a_published_pbv_band(self):
+        general_ruleset = load_ruleset({
+            **RULESET,
+            "vehicle_rules": [{
+                "rule_id": "general_3s3", "service_code": "carga_general",
+                "sicetac_configuration": "3S3", "commercial_label": "C3S3",
+                "priority": 1, "min_operating_weight_kg": 32001,
+                "max_operating_weight_kg": 34000, "max_cargo_kg": 34000,
+                "axle_count": 6, "provisional": True,
+            }],
+        })
+        result = evaluate_quote({
+            "scope_id": "mercado_colombia_tecnico", "request_id": "c3s3-32t",
+            "cargo_weight_value": 32, "cargo_weight_unit": "t",
+            "service_code": "carga_general",
+        }, general_ruleset)
+        recommendation = result["recommendation"]
+        self.assertEqual(recommendation["sicetac_configuration"], "3S3")
+        self.assertEqual(recommendation["selection"], "nearest_available_sice_candidate")
+        self.assertTrue(recommendation["sice_cargo_compatible"])
+        self.assertIsNone(recommendation["pbv_compatible"])
+        self.assertEqual(recommendation["pbv_assessment"], "requires_vehicle_tare")
+        self.assertNotIn("no encaja", " ".join(result["warnings"]).lower())
+
+    def test_explicit_larger_vehicle_is_valid_and_smaller_weight_option_is_only_a_hint(self):
+        general_ruleset = load_ruleset({
+            **RULESET,
+            "configuration_aliases": {"C3S2": "3S2", "C3S3": "3S3"},
+            "vehicle_rules": [
+                {
+                    "rule_id": "general_3s2", "service_code": "carga_general",
+                    "sicetac_configuration": "3S2", "commercial_label": "C3S2",
+                    "priority": 1, "min_operating_weight_kg": 0,
+                    "max_operating_weight_kg": 30000, "max_cargo_kg": 30000,
+                    "axle_count": 5, "provisional": True,
+                },
+                {
+                    "rule_id": "general_3s3", "service_code": "carga_general",
+                    "sicetac_configuration": "3S3", "commercial_label": "C3S3",
+                    "priority": 2, "min_operating_weight_kg": 32001,
+                    "max_operating_weight_kg": 34000, "max_cargo_kg": 34000,
+                    "axle_count": 6, "provisional": True,
+                },
+            ],
+        })
+        result = evaluate_quote({
+            "scope_id": "mercado_colombia_tecnico", "request_id": "c3s3-25t",
+            "cargo_weight_value": 25, "cargo_weight_unit": "t",
+            "service_code": "carga_general", "requested_configuration": "C3S3",
+        }, general_ruleset)
+        recommendation = result["recommendation"]
+        self.assertEqual(recommendation["selection"], "explicit")
+        self.assertTrue(recommendation["sice_cargo_compatible"])
+        self.assertEqual(
+            recommendation["capacity_only_alternatives"][0]["sicetac_configuration"], "3S2"
+        )
+        self.assertNotIn("no encaja", " ".join(result["warnings"]).lower())
+
+    def test_declared_vehicle_can_be_quoted_without_inventing_a_cargo_weight(self):
+        general_ruleset = load_ruleset({
+            **RULESET,
+            "configuration_aliases": {"C3S3": "3S3"},
+            "vehicle_rules": [{
+                "rule_id": "general_3s3", "service_code": "carga_general",
+                "sicetac_configuration": "3S3", "commercial_label": "C3S3",
+                "priority": 1, "min_operating_weight_kg": 32001,
+                "max_operating_weight_kg": 34000, "max_cargo_kg": 34000,
+                "axle_count": 6, "provisional": True,
+            }],
+        })
+        result = evaluate_quote({
+            "scope_id": "mercado_colombia_tecnico", "request_id": "declared-3s3",
+            "service_code": "carga_general", "requested_configuration": "C3S3",
+        }, general_ruleset)
+        recommendation = result["recommendation"]
+        self.assertEqual(recommendation["sicetac_configuration"], "3S3")
+        self.assertEqual(recommendation["selection"], "explicit")
+        self.assertEqual(recommendation["selection_basis"], "declared_configuration")
+        self.assertIsNone(recommendation["sice_cargo_compatible"])
+        self.assertIsNone(result["normalized_input"]["cargo_kg"])
+        self.assertEqual(result["normalized_input"]["weight_validation"], "not_provided")
+        self.assertIn("sin validar", " ".join(result["warnings"]).lower())
+
     def test_external_schema_defaults_service_to_general(self):
         schema_path = Path(__file__).resolve().parents[1] / "docs/agent-api-package/tool-schema.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))

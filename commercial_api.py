@@ -450,8 +450,11 @@ class PrequoteInput(BaseModel):
     destino: str | None = None
     codigo_dane_origen: str | None = None
     codigo_dane_destino: str | None = None
-    cargo_weight_value: float = Field(..., ge=0, le=100000)
-    cargo_weight_unit: str = Field(..., min_length=1, max_length=4)
+    # El vehículo y la carrocería declarados bastan para consultar la
+    # referencia SICETAC. El peso, cuando existe, sólo valida capacidad SICE;
+    # no se debe inventar a partir de la capacidad máxima del vehículo.
+    cargo_weight_value: float | None = Field(None, ge=0, le=100000)
+    cargo_weight_unit: str | None = Field(None, min_length=1, max_length=4)
     service_code: str = Field("carga_general", min_length=1, max_length=64)
     container_size_ft: int | None = Field(None, ge=1, le=100)
     weight_includes_tare: bool = False
