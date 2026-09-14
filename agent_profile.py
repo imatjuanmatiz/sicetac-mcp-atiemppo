@@ -13,7 +13,7 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.14.1"
+AGENT_POLICY_VERSION = "2026.09.14.2"
 MINIMUM_BRIDGE_VERSION = "1.1.0"
 
 
@@ -57,6 +57,8 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "default_service_code": "carga_general",
             "general_aliases": ["carga_suelta", "general", "mercancia_general", "suelta"],
             "vehicle_selection": "Con vehículo explícito, use esa configuración y la carrocería declarada para la referencia SICETAC; el peso sólo valida capacidad SICE y jamás se infiere desde la capacidad. Sin vehículo y sin contenedor, sugiera la configuración cuya banda inclusiva contiene la carga y cumple capacidad SICE.",
+            "published_homologation": "Envíe los términos declarados. El Core resuelve nombres de vehículo, configuraciones y carrocerías exclusivamente contra configuration_aliases y body_type_aliases del ruleset publicado de Supabase; no mantenga ni replique una tabla de equivalencias en el agente.",
+            "axles": "Si hay requested_configuration completa, no envíe axles: una cifra aislada puede describir sólo el tracto. Si no hay configuración completa, axles sirve como señal secundaria para selección automática.",
             "container": {
                 "only_when_explicitly_named": True,
                 "required_then": ["container_size_ft"],
@@ -82,6 +84,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "capacity_and_pbv": "Seleccione por capacidad SICE igual o superior a la carga reportada. Si pbv_assessment=requires_vehicle_tare, no declare incompatibilidad: el PBV total requiere las taras del equipo.",
             "declared_vehicle_without_weight": "Si weight_validation=not_provided, informe que se usaron el vehículo y la carrocería declarados, y que la capacidad SICE no fue validada por falta de peso.",
             "capacity_only_alternatives": "Si el motor devuelve capacity_only_alternatives, preséntelas sólo como sugerencias por peso. No reducen ni invalidan el vehículo programado: valide volumen, dimensiones y operación.",
+            "input_resolution": "Use input_resolution para explicar qué configuración y carrocería canónicas del ruleset publicado se enviaron a SICETAC. Si no existe homologación, no la invente.",
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },
         "allowed_operations": ["GET /v1/agent-profile", "GET /v1/usage", "POST /v1/prequotes"],

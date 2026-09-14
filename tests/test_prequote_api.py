@@ -20,7 +20,8 @@ RULESET = {
     "source_snapshot_id": "test-source",
     "emission_allowed": False,
     "container_tares_kg": {"40": 4100},
-    "configuration_aliases": {"C2S2": "2S2"},
+    "configuration_aliases": {"C2S2": "2S2", "C3S3": "3S3"},
+    "body_type_aliases": {"FURGON SECO": "General - Furgon"},
     "vehicle_equivalences": [],
     "vehicle_rules": [
         {
@@ -30,6 +31,13 @@ RULESET = {
             "max_operating_weight_kg": 28000, "max_cargo_kg": 22000,
             "axle_count": 4, "vehicle_model_code": "C2S2",
             "container_sizes_ft": [40], "provisional": True,
+        },
+        {
+            "rule_id": "general_3s3", "service_code": "carga_general",
+            "sicetac_configuration": "3S3", "commercial_label": "C3S3",
+            "priority": 2, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 34000,
+            "axle_count": 6, "vehicle_model_code": "C3S3", "provisional": True,
         }
     ],
 }
@@ -91,6 +99,25 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(decision["normalized_input"]["weight_validation"], "not_provided")
         self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
         self.assertEqual(sicetac.call_args.args[0].carroceria, "Portacontenedores")
+
+    def test_prequote_uses_published_aliases_before_calling_sicetac(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Guadalajara de Buga", "destino": "Ibagué",
+                    "service_code": "carga_general", "requested_configuration": "C3S3",
+                    "axles": 3, "carroceria": "furgón seco", "peajes": False,
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["technical_decision"]["recommendation"]["sicetac_configuration"], "3S3")
+        self.assertEqual(body["input_resolution"]["configuration"]["sicetac_vehicle"], "C3S3")
+        self.assertEqual(body["input_resolution"]["body_type"]["sicetac"], "General - Furgon")
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C3S3")
+        self.assertEqual(sicetac.call_args.args[0].carroceria, "General - Furgon")
 
     def test_empty_container_is_forwarded_as_loaded_container_series(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(

@@ -475,14 +475,19 @@ class TermObservationInput(BaseModel):
     suggested_value: str | None = Field(None, max_length=160)
 
 
-def _prequote_sicetac_input(data: PrequoteInput, configuration: str) -> ConsultaInput:
+def _prequote_sicetac_input(
+    data: PrequoteInput,
+    configuration: str,
+    *,
+    carroceria: str | None = None,
+) -> ConsultaInput:
     return ConsultaInput(
         origen=data.origen,
         destino=data.destino,
         codigo_dane_origen=data.codigo_dane_origen,
         codigo_dane_destino=data.codigo_dane_destino,
         vehiculo=configuration,
-        carroceria=data.carroceria,
+        carroceria=carroceria or data.carroceria,
         mes=data.mes,
         peajes=data.peajes,
         modo_viaje=data.modo_viaje,
@@ -589,11 +594,28 @@ def market_prequote(
         )
         recommendation = decision.get("recommendation") or {}
         sicetac_reference: dict[str, Any] | None = None
+        input_resolution: dict[str, Any] = {
+            "source": "published_ruleset",
+            "configuration": {
+                "raw": data.requested_configuration,
+                "technical": recommendation.get("sicetac_configuration"),
+                "sicetac_vehicle": None,
+            },
+            "body_type": {
+                "raw": data.carroceria,
+                "sicetac": ruleset.normalize_body_type(data.carroceria),
+            },
+        }
         if recommendation.get("sicetac_configuration"):
             # El ruleset conserva su configuración técnica genérica (p. ej. 2S2),
             # mientras SICETAC recibe su código de catálogo (p. ej. C2S2).
             sicetac_vehicle = recommendation.get("vehicle_model_code") or recommendation["sicetac_configuration"]
-            sicetac_input = _prequote_sicetac_input(data, sicetac_vehicle)
+            input_resolution["configuration"]["sicetac_vehicle"] = sicetac_vehicle
+            sicetac_input = _prequote_sicetac_input(
+                data,
+                sicetac_vehicle,
+                carroceria=ruleset.normalize_body_type(data.carroceria),
+            )
             sicetac_reference = calcular_sicetac_resumen(sicetac_input)
             if consulta_solicita_peajes(sicetac_input):
                 sicetac_reference = adjuntar_peajes_a_respuesta(sicetac_reference, sicetac_input.vehiculo)
@@ -601,6 +623,7 @@ def market_prequote(
             {
                 "data": {
                     "technical_decision": decision,
+                    "input_resolution": input_resolution,
                     "sicetac_reference": sicetac_reference,
                     "market_analysis": _market_analysis(sicetac_reference),
                     "commercial": {

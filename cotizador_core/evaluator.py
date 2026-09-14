@@ -201,15 +201,23 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
         cargo_kg, operating_kg = None, None
     else:
         cargo_kg, operating_kg = reported_kg, reported_kg + tare_kg
-    candidates = _candidate_rules(ruleset, service_code, request.axles, request.container_size_ft)
+    # Una configuración declarada identifica el equipo completo y prevalece
+    # sobre un conteo de ejes suelto. Por ejemplo, C3S3/3S3 no se debe reducir
+    # a C3/3 porque alguien reportó los tres ejes del tracto.
+    explicit = request.requested_configuration
+    candidates = _candidate_rules(
+        ruleset,
+        service_code,
+        None if explicit else request.axles,
+        request.container_size_ft,
+    )
     traces = [_rule_trace(rule, operating_kg, cargo_kg) for rule in candidates]
     trace_by_id = {item["rule_id"]: item for item in traces}
-    explicit = request.requested_configuration
     if explicit:
-        configuration = ruleset.configuration_aliases.get(explicit.upper(), explicit)
+        configuration = ruleset.normalize_configuration(explicit)
         selected = next((rule for rule in candidates if rule.sicetac_configuration == configuration), None)
         if selected is None:
-            return {"engine_version": "1.0.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "requires_catalog_entry", "normalized_input": {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "operating_gross_weight_kg": operating_kg}, "requested_configuration": explicit, "recommendation": None, "rule_trace": traces, "warnings": ["La configuración explícita no existe en la regla técnica publicada."], "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}
+            return {"engine_version": "1.2.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "requires_catalog_entry", "normalized_input": {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "operating_gross_weight_kg": operating_kg, "configuration": {"raw": explicit, "canonical": configuration, "source": "published_ruleset"}}, "requested_configuration": explicit, "recommendation": None, "rule_trace": traces, "warnings": ["La configuración explícita no existe en la regla técnica publicada."], "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}
         selected_trace, selection = trace_by_id[selected.rule_id], "explicit"
     else:
         automatic_candidates = candidates
@@ -260,4 +268,7 @@ def evaluate_quote(raw_request: dict[str, Any], ruleset: RuleSet) -> dict[str, A
             "No se informó peso de carga: se cotiza con la configuración declarada; "
             "la capacidad SICE queda sin validar."
         )
-    return {"engine_version": "1.1.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "recommended" if not warnings else "provisional", "normalized_input": {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "load_and_container_weight_kg": operating_kg, "weight_includes_tare": request.weight_includes_tare, "weight_validation": "performed" if weight_provided else "not_provided"}, "requested_configuration": explicit, "recommendation": recommendation, "rule_trace": traces, "warnings": warnings, "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}
+    normalized_input = {"service_code": service_code, "cargo_kg": cargo_kg, "tare_kg": tare_kg, "load_and_container_weight_kg": operating_kg, "weight_includes_tare": request.weight_includes_tare, "weight_validation": "performed" if weight_provided else "not_provided"}
+    if explicit:
+        normalized_input["configuration"] = {"raw": explicit, "canonical": configuration, "source": "published_ruleset"}
+    return {"engine_version": "1.2.0", "request_id": request.request_id, "scope_id": request.scope_id, "ruleset": {"id": ruleset.ruleset_id, "version": ruleset.version, "source_snapshot_id": ruleset.source_snapshot_id}, "status": "recommended" if not warnings else "provisional", "normalized_input": normalized_input, "requested_configuration": explicit, "recommendation": recommendation, "rule_trace": traces, "warnings": warnings, "emission": {"allowed": False, "reason": "La emisión depende de reglas comerciales externas."}}

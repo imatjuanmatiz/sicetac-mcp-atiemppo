@@ -4,6 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+import re
+import unicodedata
+
+
+def _alias_key(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", str(value or "").strip().upper())
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r"[\s_-]+", " ", text).strip()
 
 
 @dataclass(frozen=True)
@@ -111,6 +119,7 @@ class RuleSet:
     emission_allowed: bool
     container_tares_kg: dict[int, int]
     configuration_aliases: dict[str, str]
+    body_type_aliases: dict[str, str]
     vehicle_equivalences: tuple[VehicleEquivalence, ...]
     vehicle_rules: tuple[VehicleRule, ...]
 
@@ -124,7 +133,16 @@ class RuleSet:
             source_snapshot_id=str(raw["source_snapshot_id"]),
             emission_allowed=bool(raw.get("emission_allowed", False)),
             container_tares_kg={int(size): int(weight) for size, weight in raw.get("container_tares_kg", {}).items()},
-            configuration_aliases={str(key).upper(): str(value) for key, value in raw.get("configuration_aliases", {}).items()},
+            configuration_aliases={_alias_key(key): str(value) for key, value in raw.get("configuration_aliases", {}).items()},
+            body_type_aliases={_alias_key(key): str(value) for key, value in raw.get("body_type_aliases", {}).items()},
             vehicle_equivalences=tuple(VehicleEquivalence.from_mapping(item) for item in raw.get("vehicle_equivalences", [])),
             vehicle_rules=tuple(VehicleRule.from_mapping(item) for item in raw.get("vehicle_rules", [])),
         )
+
+    def normalize_body_type(self, value: str) -> str:
+        """Resuelve una carrocería sólo con aliases publicados en el ruleset."""
+        return self.body_type_aliases.get(_alias_key(value), value)
+
+    def normalize_configuration(self, value: str) -> str:
+        """Resuelve una configuración sólo con aliases publicados en el ruleset."""
+        return self.configuration_aliases.get(_alias_key(value), value)
