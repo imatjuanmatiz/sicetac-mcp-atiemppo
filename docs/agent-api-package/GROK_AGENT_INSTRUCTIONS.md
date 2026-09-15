@@ -34,7 +34,8 @@ Supabase y devuelve `input_resolution` con la configuración, carrocería y
 municipio canónicos que realmente se enviaron al helper SICETAC. Esto incluye
 denominaciones operativas de ubicaciones, como una zona franca; cuando existe,
 el Core también usa su código DANE publicado para distinguir municipios
-homónimos. Si hay una
+homónimos. El ruleset conserva el código exactamente como está almacenado en
+`municipios` (por ejemplo, un cero inicial no se rellena). Si hay una
 configuración completa declarada, no envíes `axles`: ese número puede referirse
 sólo al tracto y nunca debe degradar el equipo completo.
 

@@ -17,7 +17,9 @@ RULESET = {
     "location_aliases": {
         "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
         "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "05615000"},
+        # El catálogo municipios conserva los códigos que comienzan en cero
+        # sin dicho cero: Rionegro, Antioquia es 5615000.
+        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "5615000"},
     },
     "vehicle_equivalences": [],
     "vehicle_rules": [
@@ -69,7 +71,7 @@ class DeclaredVehicleNormalizationTests(unittest.TestCase):
         resolved = load_ruleset(RULESET).normalize_location("Zona Franca de Rionegro")
         self.assertEqual(resolved["municipality"], "Rionegro")
         self.assertEqual(resolved["department"], "Antioquia")
-        self.assertEqual(resolved["dane_code"], "05615000")
+        self.assertEqual(resolved["dane_code"], "5615000")
 
 
 if __name__ == "__main__":

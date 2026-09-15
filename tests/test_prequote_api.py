@@ -25,7 +25,7 @@ RULESET = {
     "location_aliases": {
         "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
         "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "05615000"},
+        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "5615000"},
     },
     "vehicle_equivalences": [],
     "vehicle_rules": [
@@ -173,9 +173,9 @@ class PrequoteApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 200)
         destination = response.json()["data"]["input_resolution"]["locations"]["destination"]
-        self.assertEqual(destination["dane_code"], "05615000")
+        self.assertEqual(destination["dane_code"], "5615000")
         self.assertEqual(destination["dane_source"], "published_ruleset_alias")
-        self.assertEqual(sicetac.call_args.args[0].codigo_dane_destino, "05615000")
+        self.assertEqual(sicetac.call_args.args[0].codigo_dane_destino, "5615000")
 
     def test_empty_container_is_forwarded_as_loaded_container_series(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
