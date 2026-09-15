@@ -32,7 +32,9 @@ destino, la configuración y la carrocería tal como los declaró el usuario.
 El Core los resuelve únicamente contra el ruleset técnico publicado en
 Supabase y devuelve `input_resolution` con la configuración, carrocería y
 municipio canónicos que realmente se enviaron al helper SICETAC. Esto incluye
-denominaciones operativas de ubicaciones, como una zona franca. Si hay una
+denominaciones operativas de ubicaciones, como una zona franca; cuando existe,
+el Core también usa su código DANE publicado para distinguir municipios
+homónimos. Si hay una
 configuración completa declarada, no envíes `axles`: ese número puede referirse
 sólo al tracto y nunca debe degradar el equipo completo.
 

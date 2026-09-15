@@ -491,16 +491,20 @@ def _prequote_sicetac_input(
     destino: str | None = None,
     origen_regreso: str | None = None,
     destino_regreso: str | None = None,
+    codigo_dane_origen: str | None = None,
+    codigo_dane_destino: str | None = None,
+    codigo_dane_origen_regreso: str | None = None,
+    codigo_dane_destino_regreso: str | None = None,
 ) -> ConsultaInput:
     return ConsultaInput(
         origen=data.origen if origen is None else origen,
         destino=data.destino if destino is None else destino,
         origen_regreso=data.origen_regreso if origen_regreso is None else origen_regreso,
         destino_regreso=data.destino_regreso if destino_regreso is None else destino_regreso,
-        codigo_dane_origen=data.codigo_dane_origen,
-        codigo_dane_destino=data.codigo_dane_destino,
-        codigo_dane_origen_regreso=data.codigo_dane_origen_regreso,
-        codigo_dane_destino_regreso=data.codigo_dane_destino_regreso,
+        codigo_dane_origen=codigo_dane_origen or data.codigo_dane_origen,
+        codigo_dane_destino=codigo_dane_destino or data.codigo_dane_destino,
+        codigo_dane_origen_regreso=codigo_dane_origen_regreso or data.codigo_dane_origen_regreso,
+        codigo_dane_destino_regreso=codigo_dane_destino_regreso or data.codigo_dane_destino_regreso,
         vehiculo=configuration,
         carroceria=carroceria or data.carroceria,
         mes=data.mes,
@@ -524,13 +528,17 @@ def _resolve_prequote_location(
 
     Los aliases operativos son conocimiento del ruleset. Cuando el consumidor
     ya entrega DANE, ese código continúa siendo la autoridad de la consulta;
-    el alias se conserva únicamente como trazabilidad de la entrada.
+    si no lo hace, el DANE publicado con el alias evita confundir homónimos.
     """
     resolved = ruleset.normalize_location(raw_location)
+    published_dane = resolved.get("dane_code")
+    effective_dane = dane_code or published_dane
     return {
         **resolved,
-        "sicetac": raw_location if dane_code else (resolved["municipality"] or None),
+        "sicetac": resolved["municipality"] or raw_location,
+        "dane_code": effective_dane,
         "dane_code_provided": bool(dane_code),
+        "dane_source": "input" if dane_code else ("published_ruleset_alias" if published_dane else None),
     }
 
 
@@ -677,6 +685,10 @@ def market_prequote(
                 destino=input_resolution["locations"]["destination"]["sicetac"],
                 origen_regreso=input_resolution["locations"]["return_origin"]["sicetac"],
                 destino_regreso=input_resolution["locations"]["return_destination"]["sicetac"],
+                codigo_dane_origen=input_resolution["locations"]["origin"]["dane_code"],
+                codigo_dane_destino=input_resolution["locations"]["destination"]["dane_code"],
+                codigo_dane_origen_regreso=input_resolution["locations"]["return_origin"]["dane_code"],
+                codigo_dane_destino_regreso=input_resolution["locations"]["return_destination"]["dane_code"],
             )
             sicetac_reference = calcular_sicetac_resumen(sicetac_input)
             if consulta_solicita_peajes(sicetac_input):

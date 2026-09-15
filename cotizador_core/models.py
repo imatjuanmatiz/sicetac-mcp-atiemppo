@@ -19,10 +19,13 @@ def _location_alias(value: Any) -> dict[str, str]:
     if isinstance(value, str):
         municipality = value.strip()
         department = None
+        dane_code = None
     elif isinstance(value, dict):
         municipality = str(value.get("municipality") or value.get("municipio") or "").strip()
         department_value = value.get("department") or value.get("departamento")
         department = str(department_value).strip() if department_value else None
+        dane_value = value.get("dane_code") or value.get("codigo_dane")
+        dane_code = str(dane_value).strip() if dane_value else None
     else:
         raise ValueError("Cada location_alias debe ser texto o un objeto con municipality")
     if not municipality:
@@ -30,6 +33,8 @@ def _location_alias(value: Any) -> dict[str, str]:
     result = {"municipality": municipality}
     if department:
         result["department"] = department
+    if dane_code:
+        result["dane_code"] = dane_code
     return result
 
 
@@ -185,11 +190,13 @@ class RuleSet:
                 "raw": raw,
                 "municipality": canonical["municipality"],
                 "department": canonical.get("department"),
+                "dane_code": canonical.get("dane_code"),
                 "source": "published_ruleset_alias",
             }
         return {
             "raw": raw,
             "municipality": raw,
             "department": None,
+            "dane_code": None,
             "source": "input",
         }
