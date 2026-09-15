@@ -184,6 +184,45 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(detail["input_resolution"]["locations"]["destination"]["dane_source"], "catalog")
         self.assertEqual(detail["resolved_route"]["codigo_dane_destino"], "68276000")
 
+    def test_missing_return_route_maps_catalog_dane_to_return_locations(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api,
+            "calcular_sicetac_resumen",
+            side_effect=SicetacError(
+                404,
+                "Ruta no registrada y no se proporcionaron distancias manuales",
+                payload={
+                    "reason": "OD_PAIR_NOT_IN_SICETAC_CATALOG",
+                    "resolved_route": {
+                        "input_origen": "Floridablanca, Santander",
+                        "input_destino": "Buenaventura",
+                        "codigo_dane_origen": "68276000",
+                        "codigo_dane_destino": "76109000",
+                    },
+                },
+            ),
+        ):
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Zona Franca Santander",
+                    "origen_regreso": "Zona Franca Santander", "destino_regreso": "Buenaventura",
+                    "cargo_weight_value": 0, "cargo_weight_unit": "kg", "service_code": "contenedor",
+                    "container_size_ft": 40, "requested_configuration": "C2S2",
+                    "carroceria": "Portacontenedores", "viaje_redondo": True,
+                    "tipo_contenedor": "CARGADO", "tipo_contenedor_regreso": "VACIO", "peajes": False,
+                },
+            )
+        self.assertEqual(response.status_code, 404)
+        detail = response.json()["detail"]
+        self.assertFalse(detail["ask_for_manual_distance"])
+        locations = detail["input_resolution"]["locations"]
+        self.assertIsNone(locations["origin"]["dane_code"])
+        self.assertIsNone(locations["destination"]["dane_code"])
+        self.assertEqual(locations["return_origin"]["dane_code"], "68276000")
+        self.assertEqual(locations["return_origin"]["dane_source"], "catalog")
+        self.assertEqual(locations["return_destination"]["dane_code"], "76109000")
+        self.assertEqual(locations["return_destination"]["dane_source"], "catalog")
+
     def test_consumer_dane_does_not_replace_the_municipality_from_equivalences(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
             commercial_api, "calcular_sicetac_resumen", return_value={

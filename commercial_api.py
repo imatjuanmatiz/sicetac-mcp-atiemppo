@@ -556,6 +556,8 @@ def _resolve_prequote_location(
 def _apply_catalog_location_resolution(
     input_resolution: dict[str, Any] | None,
     sicetac_reference: dict[str, Any] | None,
+    *,
+    route_leg: str | None = None,
 ) -> None:
     """Reemplaza los hints de entrada por la resolución canónica del helper."""
     if not input_resolution or not isinstance(sicetac_reference, dict):
@@ -570,6 +572,9 @@ def _apply_catalog_location_resolution(
             "return_origin": regreso.get("resolved_route"),
             "return_destination": regreso.get("resolved_route"),
         }
+    elif route_leg == "regreso":
+        route = sicetac_reference.get("resolved_route")
+        routes = {"return_origin": route, "return_destination": route}
     else:
         route = sicetac_reference.get("resolved_route")
         routes = {"origin": route, "destination": route}
@@ -586,6 +591,24 @@ def _apply_catalog_location_resolution(
         location["dane_code"] = code
         location["dane_source"] = "catalog"
         location["dane_mismatch"] = bool(route.get(mismatch_key))
+
+
+def _is_return_route_resolution(
+    input_resolution: dict[str, Any] | None,
+    resolved_route: dict[str, Any] | None,
+) -> bool:
+    """Identifica el tramo que devolvió el helper cuando falla un viaje redondo.
+
+    ``calcular_sicetac_resumen`` reporta sólo la ruta que falló. La comparación
+    es por nombre ya normalizado por el ruleset, antes de que exista un DANE
+    canónico para el regreso.
+    """
+    if not input_resolution or not isinstance(resolved_route, dict):
+        return False
+    return_origin = (input_resolution.get("locations") or {}).get("return_origin") or {}
+    expected = return_origin.get("sicetac")
+    actual = resolved_route.get("input_origen")
+    return bool(expected and actual and str(expected).casefold() == str(actual).casefold())
 
 
 def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]:
@@ -768,9 +791,11 @@ def market_prequote(
         status_code = exc.status_code
         if status_code == 404:
             reason = (exc.payload or {}).get("reason") or "ROUTE_OR_MUNICIPALITY_NOT_FOUND"
+            resolved_route = (exc.payload or {}).get("resolved_route")
             _apply_catalog_location_resolution(
                 input_resolution,
-                {"resolved_route": (exc.payload or {}).get("resolved_route")},
+                {"resolved_route": resolved_route},
+                route_leg="regreso" if _is_return_route_resolution(input_resolution, resolved_route) else None,
             )
             raise HTTPException(
                 status_code=404,
@@ -778,7 +803,7 @@ def market_prequote(
                     "message": exc.detail,
                     "reason": reason,
                     "input_resolution": input_resolution,
-                    "resolved_route": (exc.payload or {}).get("resolved_route"),
+                    "resolved_route": resolved_route,
                     "ask_for_manual_distance": reason not in {
                         "OD_PAIR_NOT_IN_SICETAC_CATALOG",
                         "MUNICIPALITY_NOT_FOUND",
