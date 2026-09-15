@@ -22,6 +22,10 @@ RULESET = {
     "container_tares_kg": {"40": 4100},
     "configuration_aliases": {"C2S2": "2S2", "C3S3": "3S3"},
     "body_type_aliases": {"FURGON SECO": "General - Furgon"},
+    "location_aliases": {
+        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+    },
     "vehicle_equivalences": [],
     "vehicle_rules": [
         {
@@ -118,6 +122,24 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(body["input_resolution"]["body_type"]["sicetac"], "General - Furgon")
         self.assertEqual(sicetac.call_args.args[0].vehiculo, "C3S3")
         self.assertEqual(sicetac.call_args.args[0].carroceria, "General - Furgon")
+
+    def test_prequote_resolves_operational_destination_before_the_municipality_helper(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Zona Franca Santander",
+                    "service_code": "carga_general", "requested_configuration": "C3S3",
+                    "carroceria": "furgón seco", "peajes": False,
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        destination = response.json()["data"]["input_resolution"]["locations"]["destination"]
+        self.assertEqual(destination["municipality"], "Floridablanca")
+        self.assertEqual(destination["department"], "Santander")
+        self.assertEqual(destination["source"], "published_ruleset_alias")
+        self.assertEqual(sicetac.call_args.args[0].destino, "Floridablanca")
 
     def test_empty_container_is_forwarded_as_loaded_container_series(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(

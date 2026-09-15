@@ -14,6 +14,25 @@ def _alias_key(value: Any) -> str:
     return re.sub(r"[\s_-]+", " ", text).strip()
 
 
+def _location_alias(value: Any) -> dict[str, str]:
+    """Valida una localidad canónica declarada en el ruleset publicado."""
+    if isinstance(value, str):
+        municipality = value.strip()
+        department = None
+    elif isinstance(value, dict):
+        municipality = str(value.get("municipality") or value.get("municipio") or "").strip()
+        department_value = value.get("department") or value.get("departamento")
+        department = str(department_value).strip() if department_value else None
+    else:
+        raise ValueError("Cada location_alias debe ser texto o un objeto con municipality")
+    if not municipality:
+        raise ValueError("Cada location_alias debe declarar municipality")
+    result = {"municipality": municipality}
+    if department:
+        result["department"] = department
+    return result
+
+
 @dataclass(frozen=True)
 class QuoteInput:
     scope_id: str
@@ -120,6 +139,7 @@ class RuleSet:
     container_tares_kg: dict[int, int]
     configuration_aliases: dict[str, str]
     body_type_aliases: dict[str, str]
+    location_aliases: dict[str, dict[str, str]]
     vehicle_equivalences: tuple[VehicleEquivalence, ...]
     vehicle_rules: tuple[VehicleRule, ...]
 
@@ -135,6 +155,10 @@ class RuleSet:
             container_tares_kg={int(size): int(weight) for size, weight in raw.get("container_tares_kg", {}).items()},
             configuration_aliases={_alias_key(key): str(value) for key, value in raw.get("configuration_aliases", {}).items()},
             body_type_aliases={_alias_key(key): str(value) for key, value in raw.get("body_type_aliases", {}).items()},
+            location_aliases={
+                _alias_key(key): _location_alias(value)
+                for key, value in raw.get("location_aliases", {}).items()
+            },
             vehicle_equivalences=tuple(VehicleEquivalence.from_mapping(item) for item in raw.get("vehicle_equivalences", [])),
             vehicle_rules=tuple(VehicleRule.from_mapping(item) for item in raw.get("vehicle_rules", [])),
         )
@@ -146,3 +170,26 @@ class RuleSet:
     def normalize_configuration(self, value: str) -> str:
         """Resuelve una configuración sólo con aliases publicados en el ruleset."""
         return self.configuration_aliases.get(_alias_key(value), value)
+
+    def normalize_location(self, value: str | None) -> dict[str, str | None]:
+        """Resuelve una localidad operativa al municipio canónico publicado.
+
+        El resultado se entrega al helper municipal existente, que conserva la
+        responsabilidad de resolver contra el catálogo SICETAC y sus códigos
+        DANE. Esta capa sólo traduce nombres operativos como zonas francas.
+        """
+        raw = str(value or "").strip()
+        canonical = self.location_aliases.get(_alias_key(raw))
+        if canonical:
+            return {
+                "raw": raw,
+                "municipality": canonical["municipality"],
+                "department": canonical.get("department"),
+                "source": "published_ruleset_alias",
+            }
+        return {
+            "raw": raw,
+            "municipality": raw,
+            "department": None,
+            "source": "input",
+        }

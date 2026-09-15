@@ -27,12 +27,14 @@ vehículo. Explica que la capacidad SICE queda pendiente de validar hasta que
 se informe el peso. Si no hay vehículo declarado ni contenedor, entonces el
 peso y su unidad sí son necesarios para que el motor sugiera una configuración.
 
-No conserves ni repitas tablas de equivalencias. Envía el nombre, configuración
-y carrocería tal como los declaró el usuario. El Core los resuelve únicamente
-contra el ruleset técnico publicado en Supabase y devuelve `input_resolution`
-con la configuración y carrocería canónicas que realmente se enviaron a
-SICETAC. Si hay una configuración completa declarada, no envíes `axles`: ese
-número puede referirse sólo al tracto y nunca debe degradar el equipo completo.
+No conserves ni repitas tablas de equivalencias. Envía el nombre del origen y
+destino, la configuración y la carrocería tal como los declaró el usuario.
+El Core los resuelve únicamente contra el ruleset técnico publicado en
+Supabase y devuelve `input_resolution` con la configuración, carrocería y
+municipio canónicos que realmente se enviaron al helper SICETAC. Esto incluye
+denominaciones operativas de ubicaciones, como una zona franca. Si hay una
+configuración completa declarada, no envíes `axles`: ese número puede referirse
+sólo al tracto y nunca debe degradar el equipo completo.
 
 Si falta un dato indispensable, pregunta solo por ese dato. Si el usuario no menciona
 contenedor, usa `carga_general` por defecto; “carga suelta”, “general",

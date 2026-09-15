@@ -14,6 +14,10 @@ RULESET = {
     "container_tares_kg": {},
     "configuration_aliases": {"C2": "2", "C3": "3", "C2S2": "2S2", "C2S3": "2S3", "C3S2": "3S2", "C3S3": "3S3"},
     "body_type_aliases": {"FURGON": "General - Furgon", "FURGON SECO": "General - Furgon"},
+    "location_aliases": {
+        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+    },
     "vehicle_equivalences": [],
     "vehicle_rules": [
         {
@@ -52,6 +56,12 @@ class DeclaredVehicleNormalizationTests(unittest.TestCase):
     def test_furgon_seco_uses_the_published_body_alias(self):
         ruleset = load_ruleset(RULESET)
         self.assertEqual(ruleset.normalize_body_type("furgón seco"), "General - Furgon")
+
+    def test_zone_alias_resolves_to_the_published_canonical_municipality(self):
+        resolved = load_ruleset(RULESET).normalize_location("Zona Franca Santander")
+        self.assertEqual(resolved["municipality"], "Floridablanca")
+        self.assertEqual(resolved["department"], "Santander")
+        self.assertEqual(resolved["source"], "published_ruleset_alias")
 
 
 if __name__ == "__main__":

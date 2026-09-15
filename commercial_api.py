@@ -487,12 +487,16 @@ def _prequote_sicetac_input(
     configuration: str,
     *,
     carroceria: str | None = None,
+    origen: str | None = None,
+    destino: str | None = None,
+    origen_regreso: str | None = None,
+    destino_regreso: str | None = None,
 ) -> ConsultaInput:
     return ConsultaInput(
-        origen=data.origen,
-        destino=data.destino,
-        origen_regreso=data.origen_regreso,
-        destino_regreso=data.destino_regreso,
+        origen=data.origen if origen is None else origen,
+        destino=data.destino if destino is None else destino,
+        origen_regreso=data.origen_regreso if origen_regreso is None else origen_regreso,
+        destino_regreso=data.destino_regreso if destino_regreso is None else destino_regreso,
         codigo_dane_origen=data.codigo_dane_origen,
         codigo_dane_destino=data.codigo_dane_destino,
         codigo_dane_origen_regreso=data.codigo_dane_origen_regreso,
@@ -509,6 +513,25 @@ def _prequote_sicetac_input(
         rutasid_regreso=data.rutasid_regreso,
         resumen=True,
     )
+
+
+def _resolve_prequote_location(
+    ruleset: Any,
+    raw_location: str | None,
+    dane_code: str | None,
+) -> dict[str, Any]:
+    """Prepara una localidad para el helper municipal sin reemplazar un DANE.
+
+    Los aliases operativos son conocimiento del ruleset. Cuando el consumidor
+    ya entrega DANE, ese código continúa siendo la autoridad de la consulta;
+    el alias se conserva únicamente como trazabilidad de la entrada.
+    """
+    resolved = ruleset.normalize_location(raw_location)
+    return {
+        **resolved,
+        "sicetac": raw_location if dane_code else (resolved["municipality"] or None),
+        "dane_code_provided": bool(dane_code),
+    }
 
 
 def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]:
@@ -630,6 +653,16 @@ def market_prequote(
                 "raw": data.carroceria,
                 "sicetac": ruleset.normalize_body_type(data.carroceria),
             },
+            "locations": {
+                "origin": _resolve_prequote_location(ruleset, data.origen, data.codigo_dane_origen),
+                "destination": _resolve_prequote_location(ruleset, data.destino, data.codigo_dane_destino),
+                "return_origin": _resolve_prequote_location(
+                    ruleset, data.origen_regreso, data.codigo_dane_origen_regreso,
+                ),
+                "return_destination": _resolve_prequote_location(
+                    ruleset, data.destino_regreso, data.codigo_dane_destino_regreso,
+                ),
+            },
         }
         if recommendation.get("sicetac_configuration"):
             # El ruleset conserva su configuración técnica genérica (p. ej. 2S2),
@@ -640,6 +673,10 @@ def market_prequote(
                 data,
                 sicetac_vehicle,
                 carroceria=ruleset.normalize_body_type(data.carroceria),
+                origen=input_resolution["locations"]["origin"]["sicetac"],
+                destino=input_resolution["locations"]["destination"]["sicetac"],
+                origen_regreso=input_resolution["locations"]["return_origin"]["sicetac"],
+                destino_regreso=input_resolution["locations"]["return_destination"]["sicetac"],
             )
             sicetac_reference = calcular_sicetac_resumen(sicetac_input)
             if consulta_solicita_peajes(sicetac_input):
