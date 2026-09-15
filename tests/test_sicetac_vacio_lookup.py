@@ -388,12 +388,18 @@ class SicetacVacioLookupTests(unittest.TestCase):
         self.assertEqual(result["valor_plaza_regreso_no_aplica"], "CONTENEDOR_VACIO")
 
     @patch("sicetac_service.calcular_sicetac_resumen")
-    def test_viaje_redondo_returns_variants_until_each_route_is_selected(
+    def test_viaje_redondo_uses_lowest_rutasid_and_keeps_variants(
         self, resumen
     ) -> None:
         resumen.side_effect = [
-            {"variantes": [{"RUTASID": "106", "totales": {"H2": 1, "H4": 2, "H8": 3}}]},
-            {"variantes": [{"RUTASID": "107", "totales": {"H2": 4, "H4": 5, "H8": 6}}]},
+            {"variantes": [
+                {"RUTASID": "206", "totales": {"H2": 10, "H4": 20, "H8": 30}},
+                {"RUTASID": "106", "totales": {"H2": 1, "H4": 2, "H8": 3}},
+            ]},
+            {"variantes": [
+                {"RUTASID": "207", "totales": {"H2": 40, "H4": 50, "H8": 60}},
+                {"RUTASID": "107", "totales": {"H2": 4, "H4": 5, "H8": 6}},
+            ]},
         ]
 
         result = _calcular_viaje_redondo_contenedor(
@@ -405,8 +411,10 @@ class SicetacVacioLookupTests(unittest.TestCase):
             )
         )
 
-        self.assertTrue(result["requiere_seleccion_ruta"])
-        self.assertNotIn("totales", result)
+        self.assertNotIn("requiere_seleccion_ruta", result)
+        self.assertEqual(result["totales"], {"H2": 5.0, "H4": 7.0, "H8": 9.0})
+        self.assertEqual(result["ida"]["rutasid"], "106")
+        self.assertEqual(result["regreso"]["rutasid"], "107")
         self.assertEqual(result["ida"]["variantes"][0]["RUTASID"], "106")
         self.assertEqual(result["regreso"]["variantes"][0]["RUTASID"], "107")
 

@@ -1015,6 +1015,52 @@ def _copiar_consulta(data: ConsultaInput, **updates: Any) -> ConsultaInput:
     return data.copy(update=updates)
 
 
+def _ordenar_variantes_por_rutasid(variantes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Ordena las alternativas SICETAC por identificador de ruta ascendente."""
+    def key(item: dict[str, Any]) -> tuple[int, int, str]:
+        raw = _clean_id(item.get("RUTASID") or item.get("ID_SICE"))
+        try:
+            return (0, int(raw), "")
+        except (TypeError, ValueError):
+            return (1, 0, raw)
+
+    return sorted(variantes, key=key)
+
+
+def _promover_variante_principal(respuesta: dict[str, Any]) -> dict[str, Any]:
+    """Usa la menor RUTASID como principal, conservando rutas alternativas."""
+    variantes = respuesta.get("variantes")
+    if not isinstance(variantes, list) or not variantes:
+        return respuesta
+
+    ordenadas = _ordenar_variantes_por_rutasid(
+        [item for item in variantes if isinstance(item, dict)]
+    )
+    if not ordenadas:
+        return respuesta
+
+    principal = ordenadas[0]
+    rutasid = _clean_id(principal.get("RUTASID") or principal.get("ID_SICE")) or None
+    detalle = principal.get("detalle_lookup")
+    respuesta["variantes"] = ordenadas
+    respuesta["rutasid"] = rutasid
+    respuesta["nombre_sice"] = principal.get("NOMBRE_SICE")
+    respuesta["ruta"] = principal.get("RUTA")
+    respuesta["totales"] = principal.get("totales") or {}
+    respuesta["detalle_lookup"] = {
+        "rutasid": rutasid,
+        "nombre_sice": principal.get("NOMBRE_SICE"),
+        "ruta": principal.get("RUTA"),
+        **(detalle if isinstance(detalle, dict) else {}),
+    }
+    respuesta["seleccion_variante"] = {
+        "rutasid_principal": rutasid,
+        "criterio": "menor_rutasid",
+        "alternativas_disponibles": max(len(ordenadas) - 1, 0),
+    }
+    return respuesta
+
+
 def _seleccionar_variante_tramo(
     respuesta: dict[str, Any], rutasid: str | None, nombre_tramo: str
 ) -> dict[str, Any] | None:
@@ -1028,7 +1074,7 @@ def _seleccionar_variante_tramo(
     if not variantes:
         raise SicetacError(404, f"No hay una tarifa oficial para el tramo de {nombre_tramo}.")
     if not rutasid:
-        return None
+        return _promover_variante_principal(respuesta)
 
     rutasid_normalizado = _clean_id(rutasid)
     variante = next(
@@ -1554,6 +1600,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
+    _promover_variante_principal(respuesta)
     if manual_mode:
         respuesta["manual_mode_applied"] = True
         respuesta["manual_input"] = {
@@ -1750,6 +1797,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
                 "metodo": lookup_rows[0]["lookup_method"],
                 "variantes": variantes,
             }
+            _promover_variante_principal(respuesta)
             if resolved_route:
                 _attach_resolved_route(respuesta, resolved_route)
             _attach_valor_plaza(
@@ -1920,6 +1968,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         "modo_viaje": data.modo_viaje.upper(),
         "variantes": variantes,
     }
+    _promover_variante_principal(respuesta)
     if manual_mode:
         respuesta["manual_mode_applied"] = True
         respuesta["manual_input"] = {
