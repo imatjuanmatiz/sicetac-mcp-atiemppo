@@ -143,6 +143,32 @@ class PrequoteApiTests(unittest.TestCase):
             "CONTAINER_EMPTY_NO_MARKET_PROXY",
         )
 
+    def test_prequote_passes_explicit_empty_return_route_as_one_combined_request(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api,
+            "calcular_sicetac_resumen",
+            return_value={"tipo_consulta": "VIAJE_REDONDO_CONTENEDOR", "totales": {"H4": 456}},
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Buenaventura", "destino": "Sincelejo",
+                    "origen_regreso": "Sincelejo", "destino_regreso": "Cartagena",
+                    "cargo_weight_value": 23900, "cargo_weight_unit": "kg",
+                    "service_code": "contenedor", "container_size_ft": 40,
+                    "requested_configuration": "C2S2", "peajes": False,
+                    "carroceria": "Portacontenedores", "modo_viaje": "CARGADO",
+                    "viaje_redondo": True, "tipo_contenedor": "CARGADO",
+                    "tipo_contenedor_regreso": "VACIO",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        consulta = sicetac.call_args.args[0]
+        self.assertTrue(consulta.viaje_redondo)
+        self.assertEqual(consulta.origen_regreso, "Sincelejo")
+        self.assertEqual(consulta.destino_regreso, "Cartagena")
+        self.assertEqual(consulta.tipo_contenedor_regreso, "VACIO")
+        self.assertEqual(response.json()["data"]["market_analysis"]["available"], False)
+
     def test_prequote_exposes_observed_market_as_a_separate_analysis_layer(self):
         sicetac_result = {
             "mes": 202609,

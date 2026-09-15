@@ -45,6 +45,19 @@ class SicetacVacioLookupTests(unittest.TestCase):
         result = helper.buscar_municipio_por_codigo("08560004")
         self.assertEqual(result["codigo_dane"], "8560004")
 
+    def test_name_resolution_accepts_municipality_and_department(self) -> None:
+        helper = SICETACHelper(
+            pd.DataFrame(
+                [{
+                    "codigo_dane": 70001000,
+                    "nombre_oficial": "SINCELEJO",
+                    "departamento": "SUCRE",
+                }]
+            )
+        )
+        result = helper.buscar_municipio("Sincelejo, Sucre")
+        self.assertEqual(result["codigo_dane"], "70001000")
+
     def test_all_service_options_map_to_a_vacio_body(self) -> None:
         expected = {
             "General - Estacas": "ESTACAS_VACIO",
@@ -94,6 +107,57 @@ class SicetacVacioLookupTests(unittest.TestCase):
         )
         self.assertEqual(rows[0]["lookup_method"], "lookup_vacio_oficial")
         self.assertEqual(rows[0]["lookup_column"], "portacontenedores_vacio")
+
+    @patch("sicetac_service.get_valor_plaza_puertos_df")
+    def test_port_market_layer_keeps_two_months_and_one_c2_proxy_range_per_month(self, get_port_market) -> None:
+        get_port_market.return_value = pd.DataFrame(
+            [
+                {
+                    "mes_codigo": 202607,
+                    "valor_en_plaza": 4_100_000,
+                    "fuente_valor_en_plaza": "rndc_proxy",
+                    "segmento_operativo": "contenedor_cargado",
+                    "rango_toneladas_vehiculo": "C2_proxy_mas_4_6_t",
+                    "proxy_peso_estado": "proxy_toneladas_reportadas_por_viaje",
+                    "metodo_clasificacion_contenedor": "proxy_prorrateo_viajes_estadisticas",
+                    "viajes_reportados": 20,
+                },
+                {
+                    "mes_codigo": 202607,
+                    "valor_en_plaza": 4_100_000,
+                    "fuente_valor_en_plaza": "rndc_proxy",
+                    "segmento_operativo": "contenedor_cargado",
+                    "rango_toneladas_vehiculo": "C2_proxy_0_4_t",
+                    "proxy_peso_estado": "proxy_toneladas_reportadas_por_viaje",
+                    "metodo_clasificacion_contenedor": "proxy_prorrateo_viajes_estadisticas",
+                    "viajes_reportados": 10,
+                },
+                {
+                    "mes_codigo": 202606,
+                    "valor_en_plaza": 3_900_000,
+                    "fuente_valor_en_plaza": "rndc_proxy",
+                    "segmento_operativo": "contenedor_cargado",
+                    "rango_toneladas_vehiculo": "C2_proxy_0_4_t",
+                    "proxy_peso_estado": "proxy_toneladas_reportadas_por_viaje",
+                    "metodo_clasificacion_contenedor": "proxy_prorrateo_viajes_estadisticas",
+                    "viajes_reportados": 12,
+                },
+            ]
+        )
+
+        from sicetac_service import _build_valor_plaza_summary
+
+        result = _build_valor_plaza_summary(
+            route_code="76109000-11001000",
+            configuracion_lookup="2",
+            carroceria="Portacontenedores",
+            tipo_contenedor="CARGADO",
+        )
+
+        self.assertEqual(result["source_layer"], "valor_en_plaza_puertos_desagregada")
+        self.assertEqual([row["mes_codigo"] for row in result["meses"]], [202607, 202606])
+        self.assertEqual(result["meses"][0]["rango_toneladas_vehiculo"], "C2_proxy_mas_4_6_t")
+        self.assertIn("no PBV", result["selection_note"])
 
     @patch("sicetac_service.get_sicetac_valorhora_df")
     @patch("sicetac_service.get_sicetac_movilizacion_df")

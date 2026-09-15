@@ -28,6 +28,7 @@ Al inicio de cada sesión el agente consulta el perfil autenticado vigente:
 
 `GET {SICETAC_API_BASE_URL}/v1/agent-profile`
 
+
 No consume cuota. Devuelve la versión de contrato, la política del agente, el
 ruleset publicado y las instrucciones que deben prevalecer sobre esta copia
 del paquete. Así las mejoras compatibles del motor se reflejan sin reemplazar
@@ -56,7 +57,11 @@ regla técnica operativa. Un equipo menor solo se consulta cuando el usuario lo
 solicita expresamente mediante `requested_configuration`. Para el retorno con
 contenedor vacío, se mantiene `modo_viaje: "CARGADO"` y se envía
 `tipo_contenedor: "VACIO"`; `modo_viaje: "VACIO"` corresponde a un vehículo
-sin carga ni contenedor.
+sin carga ni contenedor. Para una ida cargada y un vacío que no regresa al
+origen, envía `viaje_redondo: true`, `tipo_contenedor: "CARGADO"`,
+`tipo_contenedor_regreso: "VACIO"`, `origen_regreso` y `destino_regreso` en la
+misma solicitud. Si esos dos últimos campos se omiten, el motor invierte la
+ruta automáticamente.
 
 Ejemplo de solicitud: [examples/prequote-container-40.json](examples/prequote-container-40.json).
 Ejemplo de respuesta saneada: [examples/prequote-response-sanitized.json](examples/prequote-response-sanitized.json).

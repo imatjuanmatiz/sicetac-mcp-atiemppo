@@ -33,6 +33,7 @@ class SICETACHelper:
         text = str(value or "").strip().upper()
         text = unicodedata.normalize("NFKD", text)
         text = "".join(ch for ch in text if not unicodedata.combining(ch))
+        text = re.sub(r"[,;]+", " ", text)
         text = re.sub(r"\s+", " ", text)
         return text
 
@@ -151,6 +152,27 @@ class SICETACHelper:
                                     result[c] = row[c]
                         result['coincidencia_aproximada'] = cercanos[0]
                         return result
+
+        # Admite la forma habitual "Municipio, Departamento" sin cambiar el
+        # identificador DANE ni hacer una coincidencia difusa entre municipios.
+        # Solo se acepta cuando el nombre oficial y el departamento forman
+        # exactamente la expresión recibida.
+        if "departamento" in df.columns and "nombre_oficial" in df.columns:
+            combinados = (
+                df["nombre_oficial"].map(self._normalize_name)
+                + " "
+                + df["departamento"].map(self._normalize_name)
+            )
+            match = df[combinados == nombre_input_norm]
+            if not match.empty:
+                row = match.iloc[0]
+                result = {codigo_col: self._clean_code(row[codigo_col])}
+                if extra_cols:
+                    for c in extra_cols:
+                        if c in row:
+                            result[c] = row[c]
+                result["resolution_mode"] = "name_department"
+                return result
         return None
 
     def ruta_existe(self, origen_input, destino_input, df_rutas):

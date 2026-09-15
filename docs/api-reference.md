@@ -17,6 +17,7 @@ Campos relevantes:
 
 - `origen`
 - `destino`
+- `origen_regreso`, `destino_regreso`: tramo explícito del retorno vacío; si se omiten, el motor invierte la ruta de ida.
 - `codigo_dane_origen`
 - `codigo_dane_destino`
 - `vehiculo`
@@ -103,7 +104,22 @@ Use `viaje_redondo: true`. La API calcula la ida con contenedor cargado e invier
 }
 ```
 
-La respuesta conserva `ida` y `regreso`, y suma sus escenarios `H2`, `H4` y `H8` en `totales`. El regreso no incluye valor en plaza.
+La respuesta conserva `ida` y `regreso`, y suma sus escenarios `H2`, `H4` y `H8` en `totales`. El regreso no incluye valor en plaza. Cuando el vacío termina en un municipio distinto al origen de la ida, envía ese tramo explícitamente:
+
+```json
+{
+  "origen": "Buenaventura",
+  "destino": "Sincelejo",
+  "origen_regreso": "Sincelejo",
+  "destino_regreso": "Cartagena",
+  "carroceria": "Portacontenedores",
+  "viaje_redondo": true,
+  "tipo_contenedor": "CARGADO",
+  "tipo_contenedor_regreso": "VACIO",
+  "resumen": true
+}
+```
+
 Si la ruta tiene variantes, la primera respuesta trae `requiere_seleccion_ruta: true` y las alternativas de cada tramo; reintenta indicando `rutasid_ida` y `rutasid_regreso`.
 
 ## `POST /consulta`

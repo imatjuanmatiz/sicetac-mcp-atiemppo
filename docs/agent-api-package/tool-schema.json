@@ -8,6 +8,8 @@
   "properties": {
     "origen": {"type": "string", "minLength": 2, "description": "Municipio de origen."},
     "destino": {"type": "string", "minLength": 2, "description": "Municipio de destino."},
+    "origen_regreso": {"type": ["string", "null"], "description": "Municipio de origen del tramo de retorno vacío. Si se omite, el motor invierte origen y destino."},
+    "destino_regreso": {"type": ["string", "null"], "description": "Municipio de destino del tramo de retorno vacío. Úselo cuando el vacío no regresa al origen de la ida."},
     "codigo_dane_origen": {"type": "string", "description": "Código DANE opcional de origen."},
     "codigo_dane_destino": {"type": "string", "description": "Código DANE opcional de destino."},
     "cargo_weight_value": {"type": "number", "minimum": 0, "maximum": 100000, "description": "Opcional cuando se declara vehículo y carrocería; si se informa, sirve para validar capacidad SICE."},
@@ -22,6 +24,9 @@
     "peajes": {"type": "boolean", "default": true},
     "modo_viaje": {"type": "string", "enum": ["CARGADO", "VACIO"], "default": "CARGADO", "description": "VACIO significa vehículo sin carga ni contenedor."},
     "tipo_contenedor": {"type": ["string", "null"], "enum": ["CARGADO", "VACIO", null], "description": "Solo para Portacontenedores. Un contenedor vacío transportado usa tipo_contenedor=VACIO y modo_viaje=CARGADO."},
-    "rutasid_ida": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta."}
+    "viaje_redondo": {"type": "boolean", "default": false, "description": "Compone ida cargada y retorno con contenedor vacío en una sola consulta de resumen."},
+    "tipo_contenedor_regreso": {"type": ["string", "null"], "enum": ["VACIO", null], "description": "Para viaje_redondo, el retorno debe ser VACIO."},
+    "rutasid_ida": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta para la ida."},
+    "rutasid_regreso": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta para el regreso."}
   }
 }

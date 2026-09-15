@@ -34,6 +34,11 @@ TABLES: Dict[str, str] = {
     "sicetac_valorhora": os.getenv("SICETAC_TABLE_SICETAC_VALORHORA", "sicetac_valorhora_vigentes"),
     "sicetac_vacio": os.getenv("SICETAC_TABLE_SICETAC_VACIO", "sicetac_vacio_vigentes"),
     "valor_plaza": os.getenv("SICETAC_TABLE_VALOR_PLAZA", "valor_en_plaza_mensual_descriptiva"),
+    # Capa privada de puertos. El servidor usa service_role; anon/authenticated
+    # no tienen grants ni políticas de lectura para estas tablas.
+    "valor_plaza_puertos": os.getenv(
+        "SICETAC_TABLE_VALOR_PLAZA_PUERTOS", "valor_en_plaza_puertos_desagregada"
+    ),
     "peajes_detalle": os.getenv("SICETAC_TABLE_PEAJES_DETALLE", "peajes_detalle_vigentes"),
     "peajes_resumen": os.getenv("SICETAC_TABLE_PEAJES_RESUMEN", "peajes_resumen_vigentes"),
     "peajes_inventario": os.getenv("SICETAC_TABLE_PEAJES_INVENTARIO", "peajes_inventario"),
@@ -299,6 +304,59 @@ def get_valor_plaza_df(route_code: str, configuracion: str) -> pd.DataFrame:
         return df
     except Exception as e:
         logger.warning(f"⚠️ No se pudo consultar valor plaza {route_norm} / {configuracion_norm}: {e}")
+        return pd.DataFrame()
+
+
+@lru_cache(maxsize=4096)
+def get_valor_plaza_puertos_df(
+    route_code: str,
+    configuracion: str,
+    segmento_operativo: str,
+    tipo_carga: str,
+) -> pd.DataFrame:
+    """Consulta la capa privada desagregada para un origen portuario.
+
+    La tabla solo contiene puertos y conserva la observación por ruta. El
+    puerto es una dimensión de reporte derivada del origen; no reemplaza la
+    llave ruta/configuración/segmento.
+    """
+    table = TABLES.get("valor_plaza_puertos", "valor_en_plaza_puertos_desagregada")
+    route_norm = str(route_code or "").strip()
+    configuracion_norm = str(configuracion or "").strip().upper()
+    segmento_norm = str(segmento_operativo or "").strip().lower()
+    tipo_carga_norm = str(tipo_carga or "").strip().lower()
+    if not route_norm or not configuracion_norm or not segmento_norm or not tipo_carga_norm:
+        return pd.DataFrame()
+    try:
+        rows = _fetch_table_filtered(
+            table,
+            filters=[
+                ("ruta", "eq", route_norm),
+                ("configuracion", "ilike", configuracion_norm),
+                ("segmento_operativo", "eq", segmento_norm),
+                ("tipo_carga", "eq", tipo_carga_norm),
+            ],
+        )
+        if not rows:
+            return pd.DataFrame()
+        df = _alias_columns(pd.DataFrame(rows))
+        if "mes_codigo" in df.columns:
+            df["mes_codigo"] = pd.to_numeric(df["mes_codigo"], errors="coerce")
+            df = df.sort_values(
+                by=["mes_codigo", "viajes_reportados"],
+                ascending=[False, False],
+                na_position="last",
+            )
+        return df
+    except Exception as e:
+        logger.warning(
+            "⚠️ No se pudo consultar capa portuaria %s / %s / %s / %s: %s",
+            route_norm,
+            configuracion_norm,
+            segmento_norm,
+            tipo_carga_norm,
+            e,
+        )
         return pd.DataFrame()
 
 

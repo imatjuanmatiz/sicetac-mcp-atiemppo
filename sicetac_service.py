@@ -18,6 +18,7 @@ from supabase_data import (
     get_sicetac_vacio_df,
     get_sicetac_valorhora_df,
     get_valor_plaza_df,
+    get_valor_plaza_puertos_df,
     get_table_df,
 )
 from sicetac_helper import SICETACHelper
@@ -34,8 +35,12 @@ from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
 class ConsultaInput(BaseModel):
     origen: str | None = None
     destino: str | None = None
+    origen_regreso: str | None = None
+    destino_regreso: str | None = None
     codigo_dane_origen: str | None = None
     codigo_dane_destino: str | None = None
+    codigo_dane_origen_regreso: str | None = None
+    codigo_dane_destino_regreso: str | None = None
     vehiculo: str = "C3S3"
     mes: int | None = None
     carroceria: str = "GENERAL"
@@ -525,6 +530,26 @@ def _valor_plaza_selector(carroceria: str | None) -> tuple[str, str, str | None]
     return ("valor_en_plaza_carga_normal", "Carga normal", "fuente_carga_normal")
 
 
+PORT_ORIGIN_CODES = {
+    "76109000",  # Buenaventura
+    "47001000",  # Santa Marta
+    "08001000",  # Barranquilla
+    "13001000",  # Cartagena
+    "05837002",  # Nueva Colonia / Puerto Antioquia
+}
+
+
+def _port_layer_segment(carroceria: str | None) -> str:
+    """Mapea el servicio solicitado al segmento de la capa portuaria."""
+    if "PORTACONTEN" in _normalize_lookup_text(carroceria):
+        return "contenedor_cargado"
+    return "carga_general"
+
+
+def _port_layer_load_type(carroceria: str | None) -> str:
+    return "refrigerada" if "REFRIGER" in _normalize_lookup_text(carroceria) else "carga_normal"
+
+
 def _mes_label(mes_codigo: Any) -> str:
     digits = re.sub(r"\D", "", str(mes_codigo or ""))
     if len(digits) >= 6:
@@ -537,14 +562,44 @@ def _build_valor_plaza_summary(
     route_code: str | None,
     configuracion_lookup: str | None,
     carroceria: str | None,
-    max_months: int = 3,
+    tipo_contenedor: str | None = None,
+    max_months: int = 2,
 ) -> dict[str, Any] | None:
     route_norm = str(route_code or "").strip()
     configuracion_norm = str(configuracion_lookup or "").strip().upper()
     if not route_norm or not configuracion_norm:
         return None
 
-    df_plaza = get_valor_plaza_df(route_norm, configuracion_norm)
+    origin_code = route_norm.split("-", 1)[0].zfill(8)
+    port_layer = origin_code in PORT_ORIGIN_CODES
+    port_segment = _port_layer_segment(carroceria) if port_layer else None
+    port_load_type = _port_layer_load_type(carroceria) if port_layer else None
+    port_fallback_used = False
+    if port_layer:
+        df_plaza = get_valor_plaza_puertos_df(
+            route_norm,
+            configuracion_norm,
+            port_segment or "carga_general",
+            port_load_type or "carga_normal",
+        )
+        if df_plaza.empty and port_load_type != "carga_normal":
+            df_plaza = get_valor_plaza_puertos_df(
+                route_norm,
+                configuracion_norm,
+                port_segment or "carga_general",
+                "carga_normal",
+            )
+            port_fallback_used = not df_plaza.empty
+        if df_plaza.empty:
+            # El corte portuario es parcial (por ejemplo, un puerto sin valor
+            # observado). Conserva la serie histórica general sin etiquetarla
+            # como portuaria cuando no existe cobertura desagregada.
+            df_plaza = get_valor_plaza_df(route_norm, configuracion_norm)
+            port_layer = False
+            port_segment = None
+            port_load_type = None
+    else:
+        df_plaza = get_valor_plaza_df(route_norm, configuracion_norm)
     if df_plaza.empty:
         return None
 
@@ -555,11 +610,28 @@ def _build_valor_plaza_summary(
     meses: list[dict[str, Any]] = []
     valores: list[float] = []
     fallback_used = False
+    meses_vistos: set[int] = set()
 
     for _, row in df_plaza.iterrows():
-        valor = row.get(preferred_column)
-        fuente = row.get(preferred_source_column)
-        tipo_utilizado = label
+        if port_layer:
+            valor = row.get("valor_en_plaza")
+            fuente = row.get("fuente_valor_en_plaza")
+            tipo_utilizado = "Carga normal"
+            if port_load_type == "refrigerada" and not port_fallback_used:
+                tipo_utilizado = "Refrigerada"
+            try:
+                mes_int = int(row.get("mes_codigo"))
+            except (TypeError, ValueError):
+                mes_int = None
+            # Para C2 hay varios rangos proxy en el mismo mes. La consulta no
+            # trae PBV ni peso solicitado, por lo que se conserva solo el rango
+            # con mayor numero de viajes; nunca se mezclan rangos.
+            if mes_int is not None and mes_int in meses_vistos:
+                continue
+        else:
+            valor = row.get(preferred_column)
+            fuente = row.get(preferred_source_column)
+            tipo_utilizado = label
 
         if pd.isna(valor) or valor in (None, ""):
             if preferred_column != fallback_column:
@@ -575,15 +647,25 @@ def _build_valor_plaza_summary(
         if pd.isna(valor_float):
             continue
 
-        meses.append(
-            {
-                "mes_codigo": int(row.get("mes_codigo")) if not pd.isna(row.get("mes_codigo")) else row.get("mes_codigo"),
-                "mes_label": _mes_label(row.get("mes_codigo")),
-                "valor": valor_float,
-                "fuente": str(fuente).strip() or None,
-                "tipo_carga_usado": tipo_utilizado,
-            }
-        )
+        observation = {
+            "mes_codigo": int(row.get("mes_codigo")) if not pd.isna(row.get("mes_codigo")) else row.get("mes_codigo"),
+            "mes_label": _mes_label(row.get("mes_codigo")),
+            "valor": valor_float,
+            "fuente": str(fuente).strip() or None,
+            "tipo_carga_usado": tipo_utilizado,
+        }
+        if port_layer:
+            observation.update(
+                {
+                    "segmento_operativo": row.get("segmento_operativo"),
+                    "rango_toneladas_vehiculo": row.get("rango_toneladas_vehiculo"),
+                    "proxy_peso_estado": row.get("proxy_peso_estado"),
+                    "metodo_clasificacion_contenedor": row.get("metodo_clasificacion_contenedor"),
+                }
+            )
+            if mes_int is not None:
+                meses_vistos.add(mes_int)
+        meses.append(observation)
         valores.append(valor_float)
         if len(meses) >= max_months:
             break
@@ -597,9 +679,17 @@ def _build_valor_plaza_summary(
         "configuracion_analisis": configuracion_norm,
         "tipo_carga_label": label,
         "tipo_carga_column": preferred_column,
-        "fallback_to_carga_normal": fallback_used,
+        "fallback_to_carga_normal": fallback_used or port_fallback_used,
         "meses": meses,
         "promedio_ultimos_meses": promedio,
+        "source_layer": "valor_en_plaza_puertos_desagregada" if port_layer else "valor_en_plaza_mensual_descriptiva",
+        "port_origin_code": origin_code if port_layer else None,
+        "segmento_operativo": port_segment,
+        "selection_note": (
+            "Origen portuario: se conserva un solo rango C2 por mes, el de mayor numero de viajes reportados; es proxy de toneladas reportadas y no PBV."
+            if port_layer and configuracion_norm == "2"
+            else None
+        ),
     }
 
 
@@ -622,6 +712,7 @@ def _attach_valor_plaza(
         route_code=route_code,
         configuracion_lookup=configuracion_lookup,
         carroceria=carroceria,
+        tipo_contenedor=tipo_contenedor,
     )
     if plaza:
         payload["valor_plaza"] = plaza
@@ -1031,10 +1122,10 @@ def _calcular_viaje_redondo_contenedor(data: ConsultaInput) -> dict[str, Any]:
     regreso_data = _copiar_consulta(
         data,
         viaje_redondo=False,
-        origen=data.destino,
-        destino=data.origen,
-        codigo_dane_origen=data.codigo_dane_destino,
-        codigo_dane_destino=data.codigo_dane_origen,
+        origen=data.origen_regreso or data.destino,
+        destino=data.destino_regreso or data.origen,
+        codigo_dane_origen=data.codigo_dane_origen_regreso or data.codigo_dane_destino,
+        codigo_dane_destino=data.codigo_dane_destino_regreso or data.codigo_dane_origen,
         modo_viaje="CARGADO",
         tipo_contenedor="VACIO",
         tipo_contenedor_regreso=None,

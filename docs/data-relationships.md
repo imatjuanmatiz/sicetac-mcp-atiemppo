@@ -52,8 +52,10 @@ Los nombres pueden cambiar por variables `SICETAC_TABLE_*`; estas son las relaci
 | Vacío | `sicetac_vacio_vigentes` | Valores de la modalidad vacía |
 | Peajes | `peajes_vigentes` y fuentes de detalle/resumen/inventario | Costo y composición de peajes |
 | Valor en plaza | `valor_en_plaza_mensual_descriptiva` | Referencia diferenciada cuando existe cobertura |
+| Valor en plaza portuario | `valor_en_plaza_puertos_desagregada` | Capa privada por ruta, configuración y segmento `contenedor_cargado`/`contenedor_vacio`/`carga_general`; conserva los dos meses más recientes y marca la segmentación como proxy |
+| Resumen portuario por rango | `valor_en_plaza_puertos_rangos_vehiculo` | Promedios ponderados y mediana por puerto, configuración y rango C2 proxy; se usa para análisis agregado, no como llave de cotización |
 
-El cliente obtiene el resultado mediante la API; no necesita replicar estas tablas ni acceder a ellas. El helper no crea rutas que no existan, no acredita transitabilidad actual y no habilita cuentas comerciales.
+Las dos tablas portuarias están en `public` con RLS activo, sin políticas ni grants para `anon`/`authenticated`; únicamente el servidor con `service_role` las consulta. En una ruta cuyo origen sea uno de los puertos cubiertos, la API prefiere la capa portuaria por ruta/configuración/segmento y limita la serie a dos meses. Para C2 selecciona el rango con más viajes reportados por mes y lo devuelve explícitamente como proxy de toneladas, no como PBV. Si no hay cobertura, conserva el fallback histórico. El cliente obtiene el resultado mediante la API; no necesita replicar estas tablas ni acceder a ellas. El helper no crea rutas que no existan, no acredita transitabilidad actual y no habilita cuentas comerciales.
 
 ## Relación con la selección de vehículo
 

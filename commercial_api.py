@@ -448,8 +448,12 @@ from cotizador_rules import (
 class PrequoteInput(BaseModel):
     origen: str | None = None
     destino: str | None = None
+    origen_regreso: str | None = None
+    destino_regreso: str | None = None
     codigo_dane_origen: str | None = None
     codigo_dane_destino: str | None = None
+    codigo_dane_origen_regreso: str | None = None
+    codigo_dane_destino_regreso: str | None = None
     # El vehículo y la carrocería declarados bastan para consultar la
     # referencia SICETAC. El peso, cuando existe, sólo valida capacidad SICE;
     # no se debe inventar a partir de la capacidad máxima del vehículo.
@@ -465,7 +469,10 @@ class PrequoteInput(BaseModel):
     peajes: bool = True
     modo_viaje: str = "CARGADO"
     tipo_contenedor: str | None = None
+    viaje_redondo: bool = False
+    tipo_contenedor_regreso: str | None = None
     rutasid_ida: str | None = Field(None, max_length=64)
+    rutasid_regreso: str | None = Field(None, max_length=64)
 
 
 class TermObservationInput(BaseModel):
@@ -484,15 +491,22 @@ def _prequote_sicetac_input(
     return ConsultaInput(
         origen=data.origen,
         destino=data.destino,
+        origen_regreso=data.origen_regreso,
+        destino_regreso=data.destino_regreso,
         codigo_dane_origen=data.codigo_dane_origen,
         codigo_dane_destino=data.codigo_dane_destino,
+        codigo_dane_origen_regreso=data.codigo_dane_origen_regreso,
+        codigo_dane_destino_regreso=data.codigo_dane_destino_regreso,
         vehiculo=configuration,
         carroceria=carroceria or data.carroceria,
         mes=data.mes,
         peajes=data.peajes,
         modo_viaje=data.modo_viaje,
         tipo_contenedor=data.tipo_contenedor,
+        viaje_redondo=data.viaje_redondo,
+        tipo_contenedor_regreso=data.tipo_contenedor_regreso,
         rutasid_ida=data.rutasid_ida,
+        rutasid_regreso=data.rutasid_regreso,
         resumen=True,
     )
 
@@ -504,6 +518,17 @@ def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]
     carga. Sirve para contraste analítico, no para emitir una tarifa ni para
     reemplazar el cálculo técnico SICETAC.
     """
+    if isinstance(sicetac_reference, dict) and sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
+        ida_analysis = _market_analysis(sicetac_reference.get("ida"))
+        regreso_analysis = _market_analysis(sicetac_reference.get("regreso"))
+        return {
+            **ida_analysis,
+            "legs": {
+                "ida": ida_analysis,
+                "regreso": regreso_analysis,
+            },
+            "note": "El valor de mercado se informa para la ida cuando existe; el retorno vacío no usa proxy de mercado cargado.",
+        }
     if not isinstance(sicetac_reference, dict):
         return {
             "available": False,

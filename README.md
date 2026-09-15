@@ -118,6 +118,7 @@ Variables útiles:
 - `SICETAC_TABLE_VEHICULOS`
 - `SICETAC_TABLE_PARAMETROS`
 - `SICETAC_TABLE_COSTOS_FIJOS`
+- `SICETAC_TABLE_VALOR_PLAZA_PUERTOS` (por defecto `valor_en_plaza_puertos_desagregada`; lectura interna con `service_role`)
 - `SICETAC_TABLE_PEAJES`
 - `SICETAC_TABLE_PEAJES_DETALLE`
 - `SICETAC_TABLE_PEAJES_RESUMEN`
