@@ -6,8 +6,9 @@ Este mapa describe relaciones lógicas verificadas en `sicetac_service.py`, `sic
 
 ```mermaid
 flowchart TD
-    N[Nombres o códigos de origen y destino] --> H[Helper y catálogo municipal]
-    H --> OD[Par dirigido de códigos DANE]
+    N[Nombres o códigos de origen y destino] --> E[Tabla de equivalencias: municipio]
+    E --> H[Helper y catálogo municipal]
+    H --> OD[Par dirigido de códigos DANE del catálogo]
     OD --> R[Una o varias variantes RUTASID]
     V[Catálogo: tipo_vehiculo] --> C[Configuración de análisis y ejes]
     B[Catálogo: etiqueta de carrocería] --> S[Serie cargada, vacía o contenedor vacío]
@@ -23,8 +24,8 @@ flowchart TD
 
 | Entrada o identidad | Relación | Qué debe conservar el integrador |
 | --- | --- | --- |
-| Nombre/alias municipal | El helper busca en municipio y variaciones; puede resolver por aproximación | Nombre/departamento efectivamente resueltos y modo de resolución |
-| `codigo_dane_origen`, `codigo_dane_destino` | Identifican un par OD dirigido; el orden importa | Códigos como texto y `resolved_route.route_code` |
+| Nombre/alias municipal | La tabla de equivalencias determina el municipio; el helper confirma contra el catálogo y produce el DANE | Municipio, departamento y DANE del catálogo; un código SICE del alias no sustituye esa resolución |
+| `codigo_dane_origen`, `codigo_dane_destino` | El consumidor puede enviarlos para verificar; el helper no deja que un código incorrecto cambie el municipio | Códigos como texto y `resolved_route.route_code` |
 | OD | Puede tener varias rutas/vías oficiales | `RUTASID`, nombre y vía elegidos; no usar OD como identificador único de variante |
 | `vehiculo` | Se relaciona con fila del catálogo, configuración de análisis/lookup y ejes | Código solicitado y configuración devuelta |
 | `carroceria` | Selecciona una categoría y columnas de costo asociadas | Etiqueta exacta y opción/columna efectiva si viene informada |
@@ -34,7 +35,7 @@ flowchart TD
 | Ruta + categoría física de peaje | Relacionan peajes de la vía con el vehículo | Detalle y alcance si se solicita; no duplicar componentes en el total |
 | `consumer_id` | Identifica al consumidor autenticado y su plan/cuota | `meta.consumer_id`, `request_id` y consumo; nunca la clave en los resultados |
 
-La API acepta códigos DANE como texto y el helper normaliza representaciones con o sin cero inicial. El catálogo comercial nuevo devuelve la representación normalizada por ese mismo helper. Reutiliza el valor del servicio en vez de fabricar un código a partir del nombre.
+La API acepta códigos DANE como texto. El orden de resolución es: equivalencia operativa → municipio → helper del catálogo. `68276` y `68276000` son el mismo municipio. El catálogo comercial devuelve la forma de 8 dígitos que produce el helper. Reutiliza ese valor; no fabriques un código a partir del nombre ni uses un código SICE del alias como llave de búsqueda.
 
 ## Fuentes del servidor
 

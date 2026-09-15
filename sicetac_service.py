@@ -21,7 +21,11 @@ from supabase_data import (
     get_valor_plaza_puertos_df,
     get_table_df,
 )
-from sicetac_helper import SICETACHelper
+from sicetac_helper import (
+    SICETACHelper,
+    canonical_municipality_dane,
+    format_dane_municipality,
+)
 from peajes_totalizador import (
     TOLL_RULE_VERSION,
     TollTotalizationError,
@@ -92,6 +96,7 @@ class ConsultaInput(BaseModel):
 class SicetacError(Exception):
     status_code: int
     detail: str
+    payload: dict[str, Any] | None = None
 
 
 SICE_COLUMN_OPTIONS: list[dict[str, str]] = [
@@ -470,10 +475,10 @@ def _clean_id(x) -> str:
 
 
 def _display_name(input_value: str | None, resolved_name: str | None) -> str:
-    text = str(input_value or "").strip()
-    if text:
-        return text
-    return str(resolved_name or "").strip()
+    resolved = str(resolved_name or "").strip()
+    if resolved:
+        return resolved
+    return str(input_value or "").strip()
 
 
 def _resolved_route_payload(
@@ -483,8 +488,10 @@ def _resolved_route_payload(
     origen_info: dict[str, Any] | None,
     destino_info: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    cod_origen = _clean_id(origen_info.get("codigo_dane")) if origen_info else ""
-    cod_destino = _clean_id(destino_info.get("codigo_dane")) if destino_info else ""
+    raw_origen = origen_info.get("codigo_dane") if origen_info else None
+    raw_destino = destino_info.get("codigo_dane") if destino_info else None
+    cod_origen = format_dane_municipality(raw_origen) or _clean_id(raw_origen)
+    cod_destino = format_dane_municipality(raw_destino) or _clean_id(raw_destino)
     return {
         "input_origen": str(origen_input or "").strip() or None,
         "input_destino": str(destino_input or "").strip() or None,
@@ -496,6 +503,8 @@ def _resolved_route_payload(
         "destino_departamento": destino_info.get("departamento") if destino_info else None,
         "origen_resolution_mode": origen_info.get("resolution_mode") if origen_info else None,
         "destino_resolution_mode": destino_info.get("resolution_mode") if destino_info else None,
+        "origen_dane_mismatch": bool(origen_info.get("codigo_hint_mismatch")) if origen_info else False,
+        "destino_dane_mismatch": bool(destino_info.get("codigo_hint_mismatch")) if destino_info else False,
         "route_code": f"{cod_origen}-{cod_destino}" if cod_origen and cod_destino else None,
     }
 
@@ -505,7 +514,19 @@ def _resolve_route_inputs(data: ConsultaInput, helper: SICETACHelper) -> tuple[d
     destino_info = helper.resolver_municipio_input(data.destino, data.codigo_dane_destino)
 
     if not origen_info or not destino_info:
-        raise SicetacError(404, "Origen o destino no encontrado")
+        raise SicetacError(
+            404,
+            "Origen o destino no encontrado",
+            payload={
+                "reason": "MUNICIPALITY_NOT_FOUND",
+                "input_origen": str(data.origen or "").strip() or None,
+                "input_destino": str(data.destino or "").strip() or None,
+                "codigo_dane_origen": str(data.codigo_dane_origen or "").strip() or None,
+                "codigo_dane_destino": str(data.codigo_dane_destino or "").strip() or None,
+                "origen_resolved": bool(origen_info),
+                "destino_resolved": bool(destino_info),
+            },
+        )
 
     resolved_route = _resolved_route_payload(
         origen_input=data.origen,
@@ -764,7 +785,12 @@ def _get_rutas_index(df_rutas: pd.DataFrame) -> dict[tuple[str, str], list[pd.Se
 
     index: dict[tuple[str, str], list[pd.Series]] = {}
     for _, row in df_rutas.iterrows():
-        key = (_clean_id(row["CODIGO_DANE_ORIGEN"]), _clean_id(row["CODIGO_DANE_DESTINO"]))
+        key = (
+            canonical_municipality_dane(row["CODIGO_DANE_ORIGEN"]),
+            canonical_municipality_dane(row["CODIGO_DANE_DESTINO"]),
+        )
+        if not key[0] or not key[1]:
+            continue
         index.setdefault(key, []).append(row)
     _RUTAS_INDEX = index
     return _RUTAS_INDEX
@@ -1345,18 +1371,27 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         destino_display = _display_name(data.destino, None)
     else:
         origen_info, destino_info, resolved_route, origen_display, destino_display = _resolve_route_inputs(data, helper)
-        cod_origen_str = _clean_id(origen_info["codigo_dane"])
-        cod_destino_str = _clean_id(destino_info["codigo_dane"])
+        cod_origen_str = format_dane_municipality(origen_info["codigo_dane"]) or _clean_id(origen_info["codigo_dane"])
+        cod_destino_str = format_dane_municipality(destino_info["codigo_dane"]) or _clean_id(destino_info["codigo_dane"])
+        origin_key = canonical_municipality_dane(origen_info["codigo_dane"])
+        destination_key = canonical_municipality_dane(destino_info["codigo_dane"])
 
         rutas_index = _get_rutas_index(df_rutas)
-        ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+        ruta_rows = rutas_index.get((origin_key, destination_key), [])
         if not ruta_rows:
-            ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+            ruta_rows = rutas_index.get((destination_key, origin_key), [])
         ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
 
         if ruta.empty:
             if not _has_manual_distances(data):
-                raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+                raise SicetacError(
+                    404,
+                    "Ruta no registrada y no se proporcionaron distancias manuales",
+                    payload={
+                        "reason": "OD_PAIR_NOT_IN_SICETAC_CATALOG",
+                        "resolved_route": resolved_route,
+                    },
+                )
             fila_ruta = None
         else:
             fila_ruta = ruta.iloc[0]
@@ -1590,18 +1625,27 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         destino_display = _display_name(data.destino, None)
     else:
         origen_info, destino_info, resolved_route, origen_display, destino_display = _resolve_route_inputs(data, helper)
-        cod_origen_str = _clean_id(origen_info["codigo_dane"])
-        cod_destino_str = _clean_id(destino_info["codigo_dane"])
+        cod_origen_str = format_dane_municipality(origen_info["codigo_dane"]) or _clean_id(origen_info["codigo_dane"])
+        cod_destino_str = format_dane_municipality(destino_info["codigo_dane"]) or _clean_id(destino_info["codigo_dane"])
+        origin_key = canonical_municipality_dane(origen_info["codigo_dane"])
+        destination_key = canonical_municipality_dane(destino_info["codigo_dane"])
 
         rutas_index = _get_rutas_index(df_rutas)
-        ruta_rows = rutas_index.get((cod_origen_str, cod_destino_str), [])
+        ruta_rows = rutas_index.get((origin_key, destination_key), [])
         if not ruta_rows:
-            ruta_rows = rutas_index.get((cod_destino_str, cod_origen_str), [])
+            ruta_rows = rutas_index.get((destination_key, origin_key), [])
         ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
 
         if ruta.empty:
             if not _has_manual_distances(data):
-                raise SicetacError(404, "Ruta no registrada y no se proporcionaron distancias manuales")
+                raise SicetacError(
+                    404,
+                    "Ruta no registrada y no se proporcionaron distancias manuales",
+                    payload={
+                        "reason": "OD_PAIR_NOT_IN_SICETAC_CATALOG",
+                        "resolved_route": resolved_route,
+                    },
+                )
             fila_ruta = None
         else:
             fila_ruta = ruta.iloc[0]

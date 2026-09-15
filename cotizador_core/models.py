@@ -19,13 +19,10 @@ def _location_alias(value: Any) -> dict[str, str]:
     if isinstance(value, str):
         municipality = value.strip()
         department = None
-        dane_code = None
     elif isinstance(value, dict):
         municipality = str(value.get("municipality") or value.get("municipio") or "").strip()
         department_value = value.get("department") or value.get("departamento")
         department = str(department_value).strip() if department_value else None
-        dane_value = value.get("dane_code") or value.get("codigo_dane")
-        dane_code = str(dane_value).strip() if dane_value else None
     else:
         raise ValueError("Cada location_alias debe ser texto o un objeto con municipality")
     if not municipality:
@@ -33,8 +30,6 @@ def _location_alias(value: Any) -> dict[str, str]:
     result = {"municipality": municipality}
     if department:
         result["department"] = department
-    if dane_code:
-        result["dane_code"] = dane_code
     return result
 
 
@@ -179,9 +174,9 @@ class RuleSet:
     def normalize_location(self, value: str | None) -> dict[str, str | None]:
         """Resuelve una localidad operativa al municipio canónico publicado.
 
-        El resultado se entrega al helper municipal existente, que conserva la
-        responsabilidad de resolver contra el catálogo SICETAC y sus códigos
-        DANE. Esta capa sólo traduce nombres operativos como zonas francas.
+        Esta capa sólo nombra el municipio (y el departamento, si hace falta
+        para homónimos). El helper municipal confirma el DANE del catálogo;
+        el código del alias no se usa como llave de búsqueda.
         """
         raw = str(value or "").strip()
         canonical = self.location_aliases.get(_alias_key(raw))
@@ -190,13 +185,11 @@ class RuleSet:
                 "raw": raw,
                 "municipality": canonical["municipality"],
                 "department": canonical.get("department"),
-                "dane_code": canonical.get("dane_code"),
                 "source": "published_ruleset_alias",
             }
         return {
             "raw": raw,
             "municipality": raw,
             "department": None,
-            "dane_code": None,
             "source": "input",
         }

@@ -6,6 +6,67 @@ import unicodedata
 
 logging.basicConfig(level=logging.INFO)
 
+
+def dane_digits(value) -> str:
+    """Conserva sólo dígitos de un DANE, sin el cero inicial de columnas numéricas."""
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    if re.fullmatch(r"\d+\.0+", raw):
+        raw = raw.split(".", 1)[0]
+    digits = re.sub(r"\D", "", raw)
+    if not digits:
+        return ""
+    return digits.lstrip("0") or "0"
+
+
+def canonical_municipality_dane(value) -> str:
+    """Municipio DIVIPOLA: 68276000 y 68276 identifican el mismo cabecera.
+
+    El catálogo mezcla 5 dígitos (municipio) y 8 dígitos (municipio + 000).
+    Un código más largo que no termina en 000 se conserva: es un centro poblado.
+    """
+    digits = dane_digits(value)
+    if not digits:
+        return ""
+    if digits.endswith("000") and len(digits) >= 7:
+        return digits[:-3] or "0"
+    return digits
+
+
+def format_dane_municipality(value) -> str | None:
+    """Forma de 8 dígitos para trazabilidad (p. ej. Floridablanca → 68276000)."""
+    digits = dane_digits(value)
+    if not digits:
+        return None
+    canon = canonical_municipality_dane(value)
+    if len(canon) <= 5:
+        return canon.zfill(5) + "000"
+    if len(digits) <= 7:
+        return digits.zfill(8)
+    return digits
+
+
+def dane_query_pairs(origen, destino) -> list[tuple[str, str]]:
+    """Pares OD equivalentes para consultar tablas que guardan 5 u 8 dígitos."""
+    seen: set[tuple[str, str]] = set()
+    pairs: list[tuple[str, str]] = []
+
+    def add(origin_code, destination_code) -> None:
+        origin = str(origin_code or "").strip()
+        destination = str(destination_code or "").strip()
+        if not origin or not destination or (origin, destination) in seen:
+            return
+        seen.add((origin, destination))
+        pairs.append((origin, destination))
+
+    add(origen, destino)
+    add(canonical_municipality_dane(origen), canonical_municipality_dane(destino))
+    add(format_dane_municipality(origen), format_dane_municipality(destino))
+    add(dane_digits(origen), dane_digits(destino))
+    return pairs
+
+
 class SICETACHelper:
     def __init__(self, municipios_source):
         if isinstance(municipios_source, pd.DataFrame):
@@ -16,18 +77,7 @@ class SICETACHelper:
         self.codigo_municipio_col = 'codigo_dane'
 
     def _clean_code(self, value):
-        raw = str(value or "").strip()
-        if not raw:
-            return None
-        # Las columnas de Supabase son numéricas y, por tanto, pueden perder el
-        # cero inicial de un código DANE de ocho dígitos. Normalizamos ambos
-        # formatos al mismo identificador numérico antes de resolver la ruta.
-        if re.fullmatch(r"\d+\.0+", raw):
-            raw = raw.split(".", 1)[0]
-        digits = re.sub(r"\D", "", raw)
-        if digits:
-            return digits.lstrip("0") or "0"
-        return raw or None
+        return dane_digits(value) or None
 
     def _normalize_name(self, value):
         text = str(value or "").strip().upper()
@@ -65,7 +115,7 @@ class SICETACHelper:
         return resultado
 
     def buscar_municipio_por_codigo(self, codigo_input):
-        codigo = self._clean_code(codigo_input)
+        codigo = canonical_municipality_dane(codigo_input)
         if not codigo:
             return None
 
@@ -73,7 +123,7 @@ class SICETACHelper:
             logging.warning("✘ Columna codigo_dane no disponible en municipios")
             return None
 
-        serie_codigos = self.df_municipios[self.codigo_municipio_col].map(self._clean_code)
+        serie_codigos = self.df_municipios[self.codigo_municipio_col].map(canonical_municipality_dane)
         match = self.df_municipios[serie_codigos == codigo]
         if match.empty:
             logging.warning(f"✘ Municipio NO encontrado por código: {codigo_input}")
@@ -89,99 +139,129 @@ class SICETACHelper:
         return result
 
     def resolver_municipio_input(self, nombre_input=None, codigo_input=None):
-        if codigo_input is not None and str(codigo_input).strip():
-            resultado = self.buscar_municipio_por_codigo(codigo_input)
-            if resultado:
-                resultado['resolution_mode'] = 'code'
-                if nombre_input is not None and str(nombre_input).strip():
-                    resultado['input_nombre'] = str(nombre_input).strip()
-                return resultado
+        """Equivalencia → municipio; el catálogo del helper confirma el DANE.
 
-        if nombre_input is not None and str(nombre_input).strip():
-            resultado = self.buscar_municipio(nombre_input)
+        Un código SICE/DANE publicado no sustituye el municipio ya determinado.
+        Si el código no coincide con ese municipio, se conserva el DANE del
+        catálogo y se marca el desacuerdo.
+        """
+        nombre = str(nombre_input or "").strip() or None
+        codigo = str(codigo_input or "").strip() or None
+
+        if nombre:
+            resultado = self.buscar_municipio(nombre)
             if resultado:
                 resultado[self.codigo_municipio_col] = self._clean_code(resultado[self.codigo_municipio_col])
                 resultado['resolution_mode'] = 'name'
-                resultado['input_nombre'] = str(nombre_input).strip()
-                if codigo_input is not None and str(codigo_input).strip():
-                    resultado['input_codigo'] = self._clean_code(codigo_input)
+                resultado['input_nombre'] = nombre
+                if codigo:
+                    resultado['input_codigo'] = self._clean_code(codigo)
+                    if canonical_municipality_dane(codigo) != canonical_municipality_dane(resultado[self.codigo_municipio_col]):
+                        resultado['codigo_hint_mismatch'] = True
+                return resultado
+
+        if codigo:
+            resultado = self.buscar_municipio_por_codigo(codigo)
+            if resultado:
+                resultado['resolution_mode'] = 'code'
+                if nombre:
+                    resultado['input_nombre'] = nombre
                 return resultado
 
         return None
 
+    def _split_name_and_department(self, df, nombre_input_norm):
+        if "departamento" not in df.columns or not nombre_input_norm:
+            return nombre_input_norm, None
+        departments = (
+            df["departamento"].dropna().map(self._normalize_name).drop_duplicates().tolist()
+        )
+        for department in sorted(departments, key=len, reverse=True):
+            if not department:
+                continue
+            suffix = " " + department
+            if nombre_input_norm.endswith(suffix):
+                name = nombre_input_norm[: -len(suffix)].strip()
+                if name:
+                    return name, department
+        return nombre_input_norm, None
+
+    def _row_result(self, row, codigo_col, extra_cols=None, **extra):
+        result = {codigo_col: self._clean_code(row[codigo_col])}
+        if extra_cols:
+            for col in extra_cols:
+                if col in row:
+                    result[col] = row[col]
+        result.update(extra)
+        return result
+
     def _buscar_codigo(self, df, nombre_input, columnas_nombres, codigo_col, extra_cols=None):
         nombre_input = str(nombre_input).strip()
         nombre_input_norm = self._normalize_name(nombre_input)
+        search_name, search_dept = self._split_name_and_department(df, nombre_input_norm)
+        working = df
+        if search_dept and "departamento" in df.columns:
+            working = df[df["departamento"].map(self._normalize_name) == search_dept]
+            if working.empty:
+                working = df
+
         exact_candidates = []
         for col in columnas_nombres:
-            if col in df.columns:
-                normalized_col = df[col].map(self._normalize_name)
-                match = df[normalized_col == nombre_input_norm]
+            if col in working.columns:
+                normalized_col = working[col].map(self._normalize_name)
+                match = working[normalized_col == search_name]
                 if not match.empty:
                     for _, row in match.iterrows():
-                        exact_candidates.append((self._candidate_priority(row, col, nombre_input), row))
+                        exact_candidates.append((self._candidate_priority(row, col, search_name), row))
 
         if exact_candidates:
             exact_candidates.sort(key=lambda item: item[0], reverse=True)
-            row = exact_candidates[0][1]
-            result = {codigo_col: self._clean_code(row[codigo_col])}
-            if extra_cols:
-                for c in extra_cols:
-                    if c in row:
-                        result[c] = row[c]
-            return result
+            extra = {"resolution_mode": "name_department"} if search_dept else {}
+            return self._row_result(exact_candidates[0][1], codigo_col, extra_cols, **extra)
+
+        if "departamento" in working.columns and "nombre_oficial" in working.columns:
+            combinados = (
+                working["nombre_oficial"].map(self._normalize_name)
+                + " "
+                + working["departamento"].map(self._normalize_name)
+            )
+            match = working[combinados == nombre_input_norm]
+            if not match.empty:
+                return self._row_result(
+                    match.iloc[0], codigo_col, extra_cols, resolution_mode="name_department",
+                )
 
         for col in columnas_nombres:
-            if col in df.columns:
-                opciones = df[col].dropna().astype(str).map(self._normalize_name).unique().tolist()
-                cercanos = get_close_matches(nombre_input_norm, opciones, n=1, cutoff=0.8)
+            if col in working.columns:
+                opciones = working[col].dropna().astype(str).map(self._normalize_name).unique().tolist()
+                cercanos = get_close_matches(search_name, opciones, n=1, cutoff=0.8)
                 if cercanos:
-                    normalized_col = df[col].map(self._normalize_name)
-                    match = df[normalized_col == cercanos[0]]
+                    normalized_col = working[col].map(self._normalize_name)
+                    match = working[normalized_col == cercanos[0]]
                     if not match.empty:
                         ranked = sorted(
-                            [(self._candidate_priority(row, col, nombre_input), row) for _, row in match.iterrows()],
+                            [(self._candidate_priority(row, col, search_name), row) for _, row in match.iterrows()],
                             key=lambda item: item[0],
                             reverse=True,
                         )
-                        row = ranked[0][1]
-                        result = {codigo_col: self._clean_code(row[codigo_col])}
-                        if extra_cols:
-                            for c in extra_cols:
-                                if c in row:
-                                    result[c] = row[c]
-                        result['coincidencia_aproximada'] = cercanos[0]
-                        return result
-
-        # Admite la forma habitual "Municipio, Departamento" sin cambiar el
-        # identificador DANE ni hacer una coincidencia difusa entre municipios.
-        # Solo se acepta cuando el nombre oficial y el departamento forman
-        # exactamente la expresión recibida.
-        if "departamento" in df.columns and "nombre_oficial" in df.columns:
-            combinados = (
-                df["nombre_oficial"].map(self._normalize_name)
-                + " "
-                + df["departamento"].map(self._normalize_name)
-            )
-            match = df[combinados == nombre_input_norm]
-            if not match.empty:
-                row = match.iloc[0]
-                result = {codigo_col: self._clean_code(row[codigo_col])}
-                if extra_cols:
-                    for c in extra_cols:
-                        if c in row:
-                            result[c] = row[c]
-                result["resolution_mode"] = "name_department"
-                return result
+                        return self._row_result(
+                            ranked[0][1],
+                            codigo_col,
+                            extra_cols,
+                            coincidencia_aproximada=cercanos[0],
+                        )
         return None
 
     def ruta_existe(self, origen_input, destino_input, df_rutas):
         cod_origen = self.buscar_municipio(origen_input)
         cod_destino = self.buscar_municipio(destino_input)
-        if cod_origen and cod_destino:
-            existe = df_rutas[
-                (df_rutas['codigo_dane_origen'] == cod_origen['codigo_dane']) &
-                (df_rutas['codigo_dane_destino'] == cod_destino['codigo_dane'])
-            ]
-            return not existe.empty
-        return False
+        if not (cod_origen and cod_destino):
+            return False
+        origin_key = canonical_municipality_dane(cod_origen['codigo_dane'])
+        destination_key = canonical_municipality_dane(cod_destino['codigo_dane'])
+        origen_col = df_rutas['codigo_dane_origen'].map(canonical_municipality_dane)
+        destino_col = df_rutas['codigo_dane_destino'].map(canonical_municipality_dane)
+        existe = df_rutas[(origen_col == origin_key) & (destino_col == destination_key)]
+        if existe.empty:
+            existe = df_rutas[(origen_col == destination_key) & (destino_col == origin_key)]
+        return not existe.empty

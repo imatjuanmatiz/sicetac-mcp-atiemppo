@@ -57,7 +57,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "default_service_code": "carga_general",
             "general_aliases": ["carga_suelta", "general", "mercancia_general", "suelta"],
             "vehicle_selection": "Con vehículo explícito, use esa configuración y la carrocería declarada para la referencia SICETAC; el peso sólo valida capacidad SICE y jamás se infiere desde la capacidad. Sin vehículo y sin contenedor, sugiera la configuración cuya banda inclusiva contiene la carga y cumple capacidad SICE.",
-            "published_homologation": "Envíe los términos declarados. El Core resuelve nombres de vehículo, configuraciones, carrocerías y localidades operativas exclusivamente contra los aliases del ruleset publicado de Supabase; no mantenga ni replique una tabla de equivalencias en el agente.",
+            "published_homologation": "Envíe los términos declarados. El Core usa la tabla de equivalencias para nombrar el municipio y después el helper confirma el DANE del catálogo. No use un código SICE del alias como llave de búsqueda ni replique esa tabla en el agente.",
             "axles": "Si hay requested_configuration completa, no envíe axles: una cifra aislada puede describir sólo el tracto. Si no hay configuración completa, axles sirve como señal secundaria para selección automática.",
             "container": {
                 "only_when_explicitly_named": True,
@@ -84,7 +84,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "capacity_and_pbv": "Seleccione por capacidad SICE igual o superior a la carga reportada. Si pbv_assessment=requires_vehicle_tare, no declare incompatibilidad: el PBV total requiere las taras del equipo.",
             "declared_vehicle_without_weight": "Si weight_validation=not_provided, informe que se usaron el vehículo y la carrocería declarados, y que la capacidad SICE no fue validada por falta de peso.",
             "capacity_only_alternatives": "Si el motor devuelve capacity_only_alternatives, preséntelas sólo como sugerencias por peso. No reducen ni invalidan el vehículo programado: valide volumen, dimensiones y operación.",
-            "input_resolution": "Use input_resolution para explicar qué configuración, carrocería y municipio canónicos del ruleset publicado se enviaron a SICETAC. Si no existe homologación, no la invente.",
+            "input_resolution": "Use input_resolution para explicar qué configuración, carrocería, municipio y DANE canónicos se enviaron a SICETAC. 68276 y 68276000 son el mismo municipio. Si un 404 trae reason=OD_PAIR_NOT_IN_SICETAC_CATALOG, reporte esos códigos; no pida distancia manual ni sustituya el municipio.",
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },
         "allowed_operations": ["GET /v1/agent-profile", "GET /v1/usage", "POST /v1/prequotes"],

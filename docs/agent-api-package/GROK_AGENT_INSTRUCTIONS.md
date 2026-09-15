@@ -29,15 +29,13 @@ peso y su unidad sí son necesarios para que el motor sugiera una configuración
 
 No conserves ni repitas tablas de equivalencias. Envía el nombre del origen y
 destino, la configuración y la carrocería tal como los declaró el usuario.
-El Core los resuelve únicamente contra el ruleset técnico publicado en
-Supabase y devuelve `input_resolution` con la configuración, carrocería y
-municipio canónicos que realmente se enviaron al helper SICETAC. Esto incluye
-denominaciones operativas de ubicaciones, como una zona franca; cuando existe,
-el Core también usa su código DANE publicado para distinguir municipios
-homónimos. El ruleset conserva el código exactamente como está almacenado en
-`municipios` (por ejemplo, un cero inicial no se rellena). Si hay una
-configuración completa declarada, no envíes `axles`: ese número puede referirse
-sólo al tracto y nunca debe degradar el equipo completo.
+El Core nombra el municipio con el ruleset publicado y el helper confirma el
+DANE del catálogo. Un código SICE del alias no sustituye esa resolución. Si el
+usuario da un DANE, envíalo para verificar; si no coincide con el municipio,
+el catálogo manda. Los homónimos se distinguen por departamento (por ejemplo
+«Rionegro, Antioquia»). Si hay una configuración completa declarada, no envíes
+`axles`: ese número puede referirse sólo al tracto y nunca debe degradar el
+equipo completo.
 
 Si falta un dato indispensable, pregunta solo por ese dato. Si el usuario no menciona
 contenedor, usa `carga_general` por defecto; “carga suelta”, “general",
@@ -107,6 +105,9 @@ margen, seguro, disponibilidad, fecha de entrega o regla comercial.
 ## Respuesta ante error
 
 - `401`: “La conexión técnica del agente necesita revisión administrativa.”
+- `404` con municipios ya resueltos: informa origen, destino y DANE usados.
+  No pidas distancia manual ni cambies el municipio. `68276` y `68276000` son
+  el mismo código.
 - `422`: pide el dato específico faltante o inválido.
 - `429`: “El piloto alcanzó su límite temporal de consultas.”
 - `503` o timeout: “El motor técnico no está disponible temporalmente.”

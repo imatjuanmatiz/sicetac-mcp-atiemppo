@@ -15,11 +15,9 @@ RULESET = {
     "configuration_aliases": {"C2": "2", "C3": "3", "C2S2": "2S2", "C2S3": "2S3", "C3S2": "3S2", "C3S3": "3S3"},
     "body_type_aliases": {"FURGON": "General - Furgon", "FURGON SECO": "General - Furgon"},
     "location_aliases": {
-        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        # El catálogo municipios conserva los códigos que comienzan en cero
-        # sin dicho cero: Rionegro, Antioquia es 5615000.
-        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "5615000"},
+        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia"},
     },
     "vehicle_equivalences": [],
     "vehicle_rules": [
@@ -64,14 +62,12 @@ class DeclaredVehicleNormalizationTests(unittest.TestCase):
         resolved = load_ruleset(RULESET).normalize_location("Zona Franca Santander")
         self.assertEqual(resolved["municipality"], "Floridablanca")
         self.assertEqual(resolved["department"], "Santander")
-        self.assertEqual(resolved["dane_code"], "68276000")
         self.assertEqual(resolved["source"], "published_ruleset_alias")
 
-    def test_homonymous_municipality_alias_carries_its_published_dane_code(self):
+    def test_homonymous_municipality_alias_carries_its_published_department(self):
         resolved = load_ruleset(RULESET).normalize_location("Zona Franca de Rionegro")
         self.assertEqual(resolved["municipality"], "Rionegro")
         self.assertEqual(resolved["department"], "Antioquia")
-        self.assertEqual(resolved["dane_code"], "5615000")
 
 
 if __name__ == "__main__":

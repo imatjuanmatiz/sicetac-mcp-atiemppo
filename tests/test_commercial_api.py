@@ -213,7 +213,7 @@ class CommercialApiTests(unittest.TestCase):
             usage = self.client.get("/v1/usage", headers={"X-API-Key": self.api_key})
         self.assertEqual(missing.status_code, 401)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["items"][0]["codigo_dane"], "5001000")
+        self.assertEqual(response.json()["items"][0]["codigo_dane"], "05001000")
         self.assertNotIn("private_column", response.text)
         self.assertEqual(usage.json()["used"], 0)
 

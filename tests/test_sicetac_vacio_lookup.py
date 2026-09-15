@@ -17,7 +17,13 @@ from sicetac_service import (
     _validar_contexto_tipo_contenedor,
     calcular_sicetac,
 )
-from sicetac_helper import SICETACHelper
+from sicetac_helper import (
+    SICETACHelper,
+    canonical_municipality_dane,
+    dane_query_pairs,
+    format_dane_municipality,
+)
+import sicetac_service
 
 
 class SicetacVacioLookupTests(unittest.TestCase):
@@ -44,6 +50,89 @@ class SicetacVacioLookupTests(unittest.TestCase):
         )
         result = helper.buscar_municipio_por_codigo("08560004")
         self.assertEqual(result["codigo_dane"], "8560004")
+
+    def test_floridablanca_five_and_eight_digit_codes_are_equivalent(self) -> None:
+        self.assertEqual(canonical_municipality_dane("68276000"), "68276")
+        self.assertEqual(canonical_municipality_dane("68276"), "68276")
+        self.assertEqual(format_dane_municipality("68276"), "68276000")
+        self.assertEqual(format_dane_municipality("68276000"), "68276000")
+        pairs = dane_query_pairs("68276000", "76109000")
+        self.assertIn(("68276", "76109"), pairs)
+        self.assertIn(("68276000", "76109000"), pairs)
+
+    def test_equivalence_name_wins_over_a_mismatched_sice_code(self) -> None:
+        helper = SICETACHelper(
+            pd.DataFrame(
+                [
+                    {
+                        "codigo_dane": 68276,
+                        "nombre_oficial": "FLORIDABLANCA",
+                        "departamento": "SANTANDER",
+                    },
+                    {
+                        "codigo_dane": 13001000,
+                        "nombre_oficial": "CARTAGENA DE INDIAS",
+                        "departamento": "BOLIVAR",
+                    },
+                ]
+            )
+        )
+        result = helper.resolver_municipio_input("Floridablanca, Santander", "13001000")
+        self.assertEqual(result["nombre_oficial"], "FLORIDABLANCA")
+        self.assertEqual(canonical_municipality_dane(result["codigo_dane"]), "68276")
+        self.assertTrue(result["codigo_hint_mismatch"])
+        self.assertEqual(result["resolution_mode"], "name")
+
+    def test_department_disambiguates_homonymous_municipalities(self) -> None:
+        helper = SICETACHelper(
+            pd.DataFrame(
+                [
+                    {
+                        "codigo_dane": 5615000,
+                        "nombre_oficial": "RIONEGRO",
+                        "departamento": "ANTIOQUIA",
+                    },
+                    {
+                        "codigo_dane": 68615000,
+                        "nombre_oficial": "RIONEGRO",
+                        "departamento": "SANTANDER",
+                    },
+                ]
+            )
+        )
+        result = helper.resolver_municipio_input("Rionegro, Antioquia")
+        self.assertEqual(canonical_municipality_dane(result["codigo_dane"]), "5615")
+        self.assertEqual(result["departamento"], "ANTIOQUIA")
+
+    def test_municipality_lookup_accepts_eight_digit_when_catalog_has_five(self) -> None:
+        helper = SICETACHelper(
+            pd.DataFrame(
+                [{
+                    "codigo_dane": 68276,
+                    "nombre_oficial": "FLORIDABLANCA",
+                    "departamento": "SANTANDER",
+                }]
+            )
+        )
+        result = helper.buscar_municipio_por_codigo("68276000")
+        self.assertEqual(result["nombre_oficial"], "FLORIDABLANCA")
+        self.assertEqual(canonical_municipality_dane(result["codigo_dane"]), "68276")
+
+    def test_route_index_matches_five_digit_catalog_with_eight_digit_query(self) -> None:
+        sicetac_service._RUTAS_INDEX = None
+        try:
+            routes = pd.DataFrame(
+                [{
+                    "CODIGO_DANE_ORIGEN": 68276,
+                    "CODIGO_DANE_DESTINO": 76109,
+                    "ID_SICE": "99",
+                    "NOMBRE_SICE": "FLORIDABLANCA-BUENAVENTURA",
+                }]
+            )
+            index = sicetac_service._get_rutas_index(routes)
+            self.assertEqual(len(index[("68276", "76109")]), 1)
+        finally:
+            sicetac_service._RUTAS_INDEX = None
 
     def test_name_resolution_accepts_municipality_and_department(self) -> None:
         helper = SICETACHelper(

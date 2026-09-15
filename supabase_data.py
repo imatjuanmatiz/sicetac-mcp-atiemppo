@@ -8,6 +8,8 @@ from typing import Any, Dict, List
 import pandas as pd
 from supabase import create_client
 
+from sicetac_helper import dane_query_pairs
+
 logger = logging.getLogger("supabase_data")
 
 # ---------------------------
@@ -217,15 +219,19 @@ def get_sicetac_movilizacion_df(
     configuracion_norm = str(configuracion or "").strip().upper()
     if not origen_norm or not destino_norm or not configuracion_norm:
         return pd.DataFrame()
-    filters: list[tuple[str, str, Any]] = [
-        ("origen", "eq", origen_norm),
-        ("destino", "eq", destino_norm),
-        ("configuracion", "ilike", configuracion_norm),
-    ]
-    if mes_codigo is not None:
-        filters.append(("mes_codigo", "eq", int(mes_codigo)))
     try:
-        rows = _fetch_table_filtered(table, filters=filters)
+        rows: list[Any] = []
+        for origin_code, destination_code in dane_query_pairs(origen_norm, destino_norm):
+            filters: list[tuple[str, str, Any]] = [
+                ("origen", "eq", origin_code),
+                ("destino", "eq", destination_code),
+                ("configuracion", "ilike", configuracion_norm),
+            ]
+            if mes_codigo is not None:
+                filters.append(("mes_codigo", "eq", int(mes_codigo)))
+            rows = _fetch_table_filtered(table, filters=filters)
+            if rows:
+                break
         if not rows:
             return pd.DataFrame()
         df = _alias_columns(pd.DataFrame(rows))
@@ -255,15 +261,19 @@ def get_sicetac_vacio_df(
     configuracion_norm = str(configuracion or "").strip().upper()
     if not origen_norm or not destino_norm or not configuracion_norm:
         return pd.DataFrame()
-    filters: list[tuple[str, str, Any]] = [
-        ("origen", "eq", origen_norm),
-        ("destino", "eq", destino_norm),
-        ("configuracion", "ilike", configuracion_norm),
-    ]
-    if mes_codigo is not None:
-        filters.append(("mes_codigo", "eq", int(mes_codigo)))
     try:
-        rows = _fetch_table_filtered(table, filters=filters)
+        rows: list[Any] = []
+        for origin_code, destination_code in dane_query_pairs(origen_norm, destino_norm):
+            filters: list[tuple[str, str, Any]] = [
+                ("origen", "eq", origin_code),
+                ("destino", "eq", destination_code),
+                ("configuracion", "ilike", configuracion_norm),
+            ]
+            if mes_codigo is not None:
+                filters.append(("mes_codigo", "eq", int(mes_codigo)))
+            rows = _fetch_table_filtered(table, filters=filters)
+            if rows:
+                break
         if not rows:
             return pd.DataFrame()
         df = _alias_columns(pd.DataFrame(rows))

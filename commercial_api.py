@@ -30,6 +30,7 @@ from sicetac_service import (
     consulta_solicita_peajes,
     get_sice_column_options,
 )
+from sicetac_helper import format_dane_municipality
 from supabase_data import get_client, get_table_df
 
 
@@ -380,8 +381,9 @@ def commercial_municipalities(consumer: ApiConsumer = Depends(require_consumer))
         return {"items": []}
     catalog = df[columns].copy()
     if "codigo_dane" in catalog:
-        from sicetac_helper import SICETACHelper
-        catalog["codigo_dane"] = catalog["codigo_dane"].fillna("").map(SICETACHelper(catalog)._clean_code)
+        catalog["codigo_dane"] = catalog["codigo_dane"].fillna("").map(
+            lambda value: format_dane_municipality(value) or value
+        )
     return {"items": _json_safe(catalog.fillna("").drop_duplicates().to_dict(orient="records"))}
 
 
@@ -519,27 +521,71 @@ def _prequote_sicetac_input(
     )
 
 
+def _helper_location_name(resolved: dict[str, Any], raw_location: str | None) -> str | None:
+    municipality = resolved.get("municipality") or raw_location
+    department = resolved.get("department")
+    if municipality and department:
+        return f"{municipality}, {department}"
+    return municipality
+
+
 def _resolve_prequote_location(
     ruleset: Any,
     raw_location: str | None,
     dane_code: str | None,
 ) -> dict[str, Any]:
-    """Prepara una localidad para el helper municipal sin reemplazar un DANE.
+    """La tabla de equivalencias nombra el municipio; el helper confirma el DANE.
 
-    Los aliases operativos son conocimiento del ruleset. Cuando el consumidor
-    ya entrega DANE, ese código continúa siendo la autoridad de la consulta;
-    si no lo hace, el DANE publicado con el alias evita confundir homónimos.
+    Un código SICE/DANE publicado en el alias no se usa como llave de búsqueda.
+    Sirve para trazabilidad. El DANE que envía el consumidor se pasa al helper
+    para verificar, no para sustituir el municipio ya determinado.
     """
     resolved = ruleset.normalize_location(raw_location)
-    published_dane = resolved.get("dane_code")
-    effective_dane = dane_code or published_dane
+    consumer_dane = (format_dane_municipality(dane_code) or dane_code) if dane_code else None
     return {
         **resolved,
-        "sicetac": resolved["municipality"] or raw_location,
-        "dane_code": effective_dane,
+        "sicetac": _helper_location_name(resolved, raw_location),
+        "dane_code": consumer_dane,
+        "provided_dane_code": consumer_dane,
         "dane_code_provided": bool(dane_code),
-        "dane_source": "input" if dane_code else ("published_ruleset_alias" if published_dane else None),
+        "dane_source": "unverified_input" if dane_code else None,
+        "dane_mismatch": None,
     }
+
+
+def _apply_catalog_location_resolution(
+    input_resolution: dict[str, Any] | None,
+    sicetac_reference: dict[str, Any] | None,
+) -> None:
+    """Reemplaza los hints de entrada por la resolución canónica del helper."""
+    if not input_resolution or not isinstance(sicetac_reference, dict):
+        return
+
+    if sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
+        ida = sicetac_reference.get("ida") or {}
+        regreso = sicetac_reference.get("regreso") or {}
+        routes = {
+            "origin": ida.get("resolved_route"),
+            "destination": ida.get("resolved_route"),
+            "return_origin": regreso.get("resolved_route"),
+            "return_destination": regreso.get("resolved_route"),
+        }
+    else:
+        route = sicetac_reference.get("resolved_route")
+        routes = {"origin": route, "destination": route}
+
+    for location_key, route in routes.items():
+        if not isinstance(route, dict):
+            continue
+        code_key = "codigo_dane_origen" if location_key in {"origin", "return_origin"} else "codigo_dane_destino"
+        mismatch_key = "origen_dane_mismatch" if location_key in {"origin", "return_origin"} else "destino_dane_mismatch"
+        code = route.get(code_key)
+        location = input_resolution["locations"].get(location_key)
+        if not code or not isinstance(location, dict):
+            continue
+        location["dane_code"] = code
+        location["dane_source"] = "catalog"
+        location["dane_mismatch"] = bool(route.get(mismatch_key))
 
 
 def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]:
@@ -632,6 +678,7 @@ def market_prequote(
     request_id = str(uuid4())
     month, reserved_usage = _reserve_unit(consumer, request_id=request_id, request=request)
     status_code = 200
+    input_resolution: dict[str, Any] | None = None
     try:
         ruleset = load_published_market_ruleset()
         decision = evaluate_quote(
@@ -691,6 +738,7 @@ def market_prequote(
                 codigo_dane_destino_regreso=input_resolution["locations"]["return_destination"]["dane_code"],
             )
             sicetac_reference = calcular_sicetac_resumen(sicetac_input)
+            _apply_catalog_location_resolution(input_resolution, sicetac_reference)
             if consulta_solicita_peajes(sicetac_input):
                 sicetac_reference = adjuntar_peajes_a_respuesta(sicetac_reference, sicetac_input.vehiculo)
         return _json_response(
@@ -718,6 +766,25 @@ def market_prequote(
         raise HTTPException(status_code=422, detail=str(exc))
     except SicetacError as exc:
         status_code = exc.status_code
+        if status_code == 404:
+            reason = (exc.payload or {}).get("reason") or "ROUTE_OR_MUNICIPALITY_NOT_FOUND"
+            _apply_catalog_location_resolution(
+                input_resolution,
+                {"resolved_route": (exc.payload or {}).get("resolved_route")},
+            )
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "message": exc.detail,
+                    "reason": reason,
+                    "input_resolution": input_resolution,
+                    "resolved_route": (exc.payload or {}).get("resolved_route"),
+                    "ask_for_manual_distance": reason not in {
+                        "OD_PAIR_NOT_IN_SICETAC_CATALOG",
+                        "MUNICIPALITY_NOT_FOUND",
+                    },
+                },
+            )
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
     except HTTPException as exc:
         status_code = exc.status_code

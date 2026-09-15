@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 import commercial_api
 from cotizador_core import load_ruleset
 from main import app
+from sicetac_service import SicetacError
 
 
 RULESET = {
@@ -23,9 +24,9 @@ RULESET = {
     "configuration_aliases": {"C2S2": "2S2", "C3S3": "3S3"},
     "body_type_aliases": {"FURGON SECO": "General - Furgon"},
     "location_aliases": {
-        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander", "dane_code": "68276000"},
-        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia", "dane_code": "5615000"},
+        "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
+        "ZONA FRANCA DE RIONEGRO": {"municipality": "Rionegro", "department": "Antioquia"},
     },
     "vehicle_equivalences": [],
     "vehicle_rules": [
@@ -87,7 +88,10 @@ class PrequoteApiTests(unittest.TestCase):
 
     def test_declared_vehicle_and_body_are_enough_to_request_a_reference(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H4": 123},
+                "resolved_route": {"codigo_dane_origen": "11001000", "codigo_dane_destino": "68276000"},
+            }
         ) as sicetac:
             response = self.client.post(
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
@@ -126,7 +130,10 @@ class PrequoteApiTests(unittest.TestCase):
 
     def test_prequote_resolves_operational_destination_before_the_municipality_helper(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H4": 123},
+                "resolved_route": {"codigo_dane_origen": "11001000", "codigo_dane_destino": "68276000"},
+            }
         ) as sicetac:
             response = self.client.post(
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
@@ -140,12 +147,52 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(destination["municipality"], "Floridablanca")
         self.assertEqual(destination["department"], "Santander")
         self.assertEqual(destination["source"], "published_ruleset_alias")
-        self.assertEqual(sicetac.call_args.args[0].destino, "Floridablanca")
-        self.assertEqual(sicetac.call_args.args[0].codigo_dane_destino, "68276000")
+        self.assertEqual(destination["dane_code"], "68276000")
+        self.assertEqual(destination["dane_source"], "catalog")
+        self.assertEqual(sicetac.call_args.args[0].destino, "Floridablanca, Santander")
+        self.assertIsNone(sicetac.call_args.args[0].codigo_dane_destino)
 
-    def test_consumer_dane_remains_authoritative_over_a_published_alias_code(self):
+    def test_missing_route_returns_resolved_dane_and_does_not_ask_for_km(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+            commercial_api,
+            "calcular_sicetac_resumen",
+            side_effect=SicetacError(
+                404,
+                "Ruta no registrada y no se proporcionaron distancias manuales",
+                payload={
+                    "reason": "OD_PAIR_NOT_IN_SICETAC_CATALOG",
+                    "resolved_route": {
+                        "codigo_dane_origen": "11001000",
+                        "codigo_dane_destino": "68276000",
+                    },
+                },
+            ),
+        ):
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Zona Franca Santander",
+                    "service_code": "carga_general", "requested_configuration": "C3S3",
+                    "carroceria": "furgón seco", "peajes": False,
+                },
+            )
+        self.assertEqual(response.status_code, 404)
+        detail = response.json()["detail"]
+        self.assertEqual(detail["reason"], "OD_PAIR_NOT_IN_SICETAC_CATALOG")
+        self.assertFalse(detail["ask_for_manual_distance"])
+        self.assertEqual(detail["input_resolution"]["locations"]["destination"]["municipality"], "Floridablanca")
+        self.assertEqual(detail["input_resolution"]["locations"]["destination"]["dane_code"], "68276000")
+        self.assertEqual(detail["input_resolution"]["locations"]["destination"]["dane_source"], "catalog")
+        self.assertEqual(detail["resolved_route"]["codigo_dane_destino"], "68276000")
+
+    def test_consumer_dane_does_not_replace_the_municipality_from_equivalences(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H4": 123},
+                "resolved_route": {
+                    "codigo_dane_origen": "11001000", "codigo_dane_destino": "68276000",
+                    "destino_dane_mismatch": True,
+                },
+            }
         ) as sicetac:
             response = self.client.post(
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
@@ -156,13 +203,20 @@ class PrequoteApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 200)
         destination = response.json()["data"]["input_resolution"]["locations"]["destination"]
-        self.assertEqual(destination["dane_code"], "13001000")
-        self.assertEqual(destination["dane_source"], "input")
+        self.assertEqual(destination["municipality"], "Floridablanca")
+        self.assertEqual(destination["provided_dane_code"], "13001000")
+        self.assertEqual(destination["dane_code"], "68276000")
+        self.assertEqual(destination["dane_source"], "catalog")
+        self.assertTrue(destination["dane_mismatch"])
+        self.assertEqual(sicetac.call_args.args[0].destino, "Floridablanca, Santander")
         self.assertEqual(sicetac.call_args.args[0].codigo_dane_destino, "13001000")
 
-    def test_homonymous_location_alias_is_sent_to_sicetac_with_its_published_dane(self):
+    def test_homonymous_location_alias_sends_municipality_and_department_to_the_helper(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={"route": "test-route", "totales": {"H4": 123}}
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H4": 123},
+                "resolved_route": {"codigo_dane_origen": "11001000", "codigo_dane_destino": "05615000"},
+            }
         ) as sicetac:
             response = self.client.post(
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
@@ -173,9 +227,12 @@ class PrequoteApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 200)
         destination = response.json()["data"]["input_resolution"]["locations"]["destination"]
-        self.assertEqual(destination["dane_code"], "5615000")
-        self.assertEqual(destination["dane_source"], "published_ruleset_alias")
-        self.assertEqual(sicetac.call_args.args[0].codigo_dane_destino, "5615000")
+        self.assertEqual(destination["municipality"], "Rionegro")
+        self.assertEqual(destination["department"], "Antioquia")
+        self.assertEqual(destination["dane_code"], "05615000")
+        self.assertEqual(destination["dane_source"], "catalog")
+        self.assertEqual(sicetac.call_args.args[0].destino, "Rionegro, Antioquia")
+        self.assertIsNone(sicetac.call_args.args[0].codigo_dane_destino)
 
     def test_empty_container_is_forwarded_as_loaded_container_series(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
