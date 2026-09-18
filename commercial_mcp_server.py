@@ -65,7 +65,8 @@ def cotizar_sicetac(
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False))
 def precotizar_transporte(
-    origen: str, destino: str, cargo_weight_value: float, cargo_weight_unit: str,
+    origen: str, destino: str, cargo_weight_value: float | None = None,
+    cargo_weight_unit: str | None = None,
     service_code: str = "carga_general", container_size_ft: int | None = None,
     axles: int | None = None, requested_configuration: str | None = None,
     carroceria: str = "General - Estacas", mes: int | None = None,
@@ -74,6 +75,9 @@ def precotizar_transporte(
 ) -> dict:
     """Aplica el Core técnico y luego SICETAC. Consume una unidad y no emite precio comercial.
 
+    Sin vehículo, identifique por peso de la carga y tara si es contenedor.
+    Con requested_configuration búsquelo directo y calcule; el peso es
+    opcional para validar capacidad, no para poder cotizar.
     Para un contenedor vacío transportado use modo_viaje=CARGADO y
     tipo_contenedor=VACIO; VACIO solo significa vehículo sin carga ni contenedor.
     El agente debe explicar PBV, SICE y advertencias como referencia técnica.

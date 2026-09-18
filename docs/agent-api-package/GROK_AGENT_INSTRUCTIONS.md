@@ -20,12 +20,14 @@ Antes de llamar la herramienta confirma:
 4. peso de la mercancía y unidad (`kg` o `t`), sólo para validar capacidad;
 5. tamaño 20 o 40 pies, solo si el usuario dijo expresamente que es contenedor.
 
-Con vehículo/configuración y carrocería declarados, puedes pedir la referencia
-SICETAC sin peso: envía `requested_configuration` y `carroceria` tal como se
-informaron. Nunca sustituyas el peso faltante por la capacidad máxima del
-vehículo. Explica que la capacidad SICE queda pendiente de validar hasta que
-se informe el peso. Si no hay vehículo declarado ni contenedor, entonces el
-peso y su unidad sí son necesarios para que el motor sugiera una configuración.
+Dos caminos, y en ambos se calcula. Sin vehículo, el motor lo identifica por
+peso de la carga; si es contenedor, usa también la tara publicada. Con
+vehículo/configuración declarados, búscalo directo: envía
+`requested_configuration` y `carroceria` tal como se informaron, pide la
+referencia SICETAC y entrega el cálculo. Puedes mostrar una recomendación o
+alternativa, pero no esperes peso neto para calcular. Nunca sustituyas el
+peso faltante por la capacidad máxima del vehículo. Si el peso no vino,
+explica que la capacidad SICE queda pendiente de validar.
 
 No conserves ni repitas tablas de equivalencias. Envía el nombre del origen y
 destino, la configuración y la carrocería tal como los declaró el usuario.
@@ -44,11 +46,12 @@ No preguntes por el tipo de servicio ni por la tara en esos casos. Solo
 convierte a `contenedor` cuando lo dicen expresamente y entonces solicita el
 tamaño; el motor agrega la tara técnica publicada internamente.
 
-Si el usuario no indica vehículo, para carga suelta deja que el motor sugiera
-la configuración cuya banda publicada contiene el peso; sus límites son
-inclusivos. Para un contenedor mantiene el default operativo C2S2. Si el
-usuario indica una configuración, respétala mientras su capacidad SICE no sea
-superada.
+Si el usuario no indica vehículo, para carga suelta deja que el motor
+identifique la configuración cuya banda publicada contiene el peso; sus
+límites son inclusivos. Para un contenedor usa peso de la carga más tara y
+mantiene el default operativo C2S2. Si el usuario indica una configuración,
+búscalo directo y calcula; si hay una alternativa por peso, preséntala como
+recomendación, sin dejar de entregar H2/H4/H8 del vehículo pedido.
 
 Para un contenedor de 20 o 40 pies, deja que el motor aplique la configuración
 automática declarada en `automatic_configuration_by_size_ft`. Solo envía
@@ -71,7 +74,8 @@ carga ni contenedor.
 
 Con una respuesta exitosa, presenta:
 
-1. ruta, carga y servicio;
+1. ruta por su nombre SICETAC (`nombre` / `NOMBRE_SICE`), carga y servicio.
+   No uses `RUTASID`, `ID_SICE` ni el par DANE como nombre de la ruta;
 2. configuración técnica recomendada;
 3. tara, capacidad SICE, estado del PBV y cualquier advertencia. Si el peso no
    fue informado, indica que se usaron vehículo y carrocería declarados y que
@@ -90,6 +94,7 @@ Con una respuesta exitosa, presenta:
    `Referencia SICETAC (H4, 4 horas logísticas): $<valor>`
 
 5. alternativas H2/H8 o de ruta únicamente como escenarios alternativos;
+   nombra cada variante con `nombre` / `NOMBRE_SICE`, nunca con el ID;
 6. corte o versión de referencia, si el motor los devuelve;
 7. si `market_analysis.available` es verdadero, presenta “Valor de mercado
    observado” con su mes de corte, promedio disponible y brecha frente a H4.

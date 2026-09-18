@@ -107,9 +107,16 @@ class CommercialClient:
         for name, code in (("origen", "codigo_dane_origen"), ("destino", "codigo_dane_destino")):
             if not any(isinstance(payload.get(key), str) and payload[key].strip() for key in (name, code)):
                 raise ValueError(f"Falta {name} o {code} como texto.")
-        for field in ("cargo_weight_value", "cargo_weight_unit"):
-            if payload.get(field) in (None, ""):
-                raise ValueError(f"Falta {field} para aplicar el motor técnico.")
+        weight_value = payload.get("cargo_weight_value")
+        weight_unit = payload.get("cargo_weight_unit")
+        if (weight_value in (None, "")) != (weight_unit in (None, "")):
+            raise ValueError("cargo_weight_value y cargo_weight_unit deben informarse juntos")
+        declared_vehicle = str(payload.get("requested_configuration") or "").strip()
+        if weight_value in (None, "") and not declared_vehicle:
+            raise ValueError(
+                "Falta cargo_weight_value para aplicar el motor técnico, "
+                "o declare requested_configuration."
+            )
         result = self._request("POST", "/v1/prequotes", payload)
         if not isinstance(result.get("data"), dict) or not isinstance(result.get("meta"), dict):
             raise CommercialClientError("La pre-cotización no contiene data y meta del contrato comercial v1.")

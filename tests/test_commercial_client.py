@@ -103,8 +103,10 @@ class ClientTests(unittest.TestCase):
         self.assertFalse(quote.annotations.idempotentHint)
         self.assertFalse(quote.annotations.readOnlyHint)
         prequote = tools["precotizar_transporte"]
-        self.assertIn("cargo_weight_value", prequote.inputSchema["required"])
-        self.assertIn("cargo_weight_unit", prequote.inputSchema["required"])
+        self.assertNotIn("cargo_weight_value", prequote.inputSchema.get("required") or [])
+        self.assertNotIn("cargo_weight_unit", prequote.inputSchema.get("required") or [])
+        self.assertIn("origen", prequote.inputSchema["required"])
+        self.assertIn("destino", prequote.inputSchema["required"])
         self.assertFalse(prequote.annotations.idempotentHint)
         self.assertTrue(tools["consultar_instrucciones_vigentes"].annotations.readOnlyHint)
 
@@ -162,6 +164,37 @@ class ClientTests(unittest.TestCase):
         self.assertIn("data", result)
         self.assertEqual(client.prequote.call_args.args[0]["cargo_weight_value"], 18)
         self.assertEqual(client.prequote.call_args.args[0]["container_size_ft"], 40)
+
+    def test_prequote_allows_declared_vehicle_without_cargo_weight(self):
+        client = CommercialClient(
+            "https://example.test",
+            "test-only",
+            transport=httpx.MockTransport(lambda req: httpx.Response(
+                200, json={"data": {"technical_decision": {}}, "meta": {}},
+            )),
+        )
+        result = client.prequote({
+            "origen": "Buenaventura",
+            "destino": "Valledupar",
+            "requested_configuration": "C2S2",
+            "carroceria": "General - Estacas",
+        })
+        self.assertIn("data", result)
+
+    def test_prequote_still_requires_weight_without_declared_vehicle(self):
+        client = CommercialClient("https://example.test", "test-only")
+        with self.assertRaises(ValueError):
+            client.prequote({"origen": "Buenaventura", "destino": "Valledupar"})
+
+    def test_prequote_rejects_weight_unit_without_value(self):
+        client = CommercialClient("https://example.test", "test-only")
+        with self.assertRaises(ValueError):
+            client.prequote({
+                "origen": "Buenaventura",
+                "destino": "Valledupar",
+                "requested_configuration": "C2S2",
+                "cargo_weight_unit": "t",
+            })
 
 
 if __name__ == "__main__":

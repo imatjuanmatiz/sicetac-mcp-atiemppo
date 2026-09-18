@@ -168,8 +168,44 @@ class RuleSet:
         return self.body_type_aliases.get(_alias_key(value), value)
 
     def normalize_configuration(self, value: str) -> str:
-        """Resuelve una configuración sólo con aliases publicados en el ruleset."""
-        return self.configuration_aliases.get(_alias_key(value), value)
+        """Resuelve una configuración sólo con aliases publicados en el ruleset.
+
+        Acepta el alias exacto o un término compuesto (p. ej. «Patineta 2S2»).
+        Si hay conflicto, prevalece el código SICETAC explícito sobre el
+        nombre comercial.
+        """
+        key = _alias_key(value)
+        if not key:
+            return value
+        exact = self.configuration_aliases.get(key)
+        if exact:
+            return exact
+        resolved: list[tuple[str, str]] = []
+        seen: set[str] = set()
+        for token in [key, *key.split()]:
+            if token in seen:
+                continue
+            seen.add(token)
+            canonical = self.configuration_aliases.get(token)
+            if canonical:
+                resolved.append((token, canonical))
+        if not resolved:
+            return value
+        canonicals = {item[1] for item in resolved}
+        if len(canonicals) == 1:
+            return next(iter(canonicals))
+
+        def _code_like(alias: str) -> bool:
+            compact = alias.replace(" ", "")
+            return bool(
+                re.fullmatch(r"(?:C)?\d(?:S\d)?(?:M?\d+)?", compact)
+                or re.fullmatch(r"\d{3,4}", compact)
+            )
+
+        coded = [canon for alias, canon in resolved if _code_like(alias)]
+        if len(set(coded)) == 1:
+            return coded[0]
+        return value
 
     def normalize_location(self, value: str | None) -> dict[str, str | None]:
         """Resuelve una localidad operativa al municipio canónico publicado.

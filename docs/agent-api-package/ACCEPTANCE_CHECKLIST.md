@@ -19,6 +19,8 @@ un canal seguro y se guarda como secreto del bot.
 4. El bot reporta por defecto `H4, 4 horas logísticas` junto al valor principal.
 5. El bot separa rutas y escenarios alternativos; no suma sus valores.
 6. Datos incompletos: el bot pide solo el campo faltante y no llama el API.
+   Si ya hay vehículo/configuración declarada, la falta de peso neto no es
+   un dato faltante: debe cotizar.
 7. `GET /v1/usage` confirma que la prueba admitida consumió una unidad.
 8. Error `429` o clave revocada: el bot informa límite/acceso, sin reintento.
 

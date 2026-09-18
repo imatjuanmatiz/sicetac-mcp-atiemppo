@@ -13,7 +13,7 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.14.2"
+AGENT_POLICY_VERSION = "2026.09.17.1"
 MINIMUM_BRIDGE_VERSION = "1.1.0"
 
 
@@ -50,13 +50,13 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
         "input_policy": {
             "required": ["origen", "destino"],
             "conditional": {
-                "with_declared_vehicle": "requested_configuration y carroceria permiten solicitar la referencia sin peso; nunca derive el peso desde la capacidad máxima.",
-                "without_declared_vehicle": "Para carga_general, solicite cargo_weight_value y cargo_weight_unit antes de seleccionar automáticamente.",
+                "with_declared_vehicle": "Busque requested_configuration directo y calcule. Una recomendación o alternativa no sustituye el cálculo ni espera peso. Nunca derive el peso desde la capacidad máxima.",
+                "without_declared_vehicle": "Identifique el vehículo por peso de la carga; si es contenedor, use también la tara publicada. En carga_general solicite cargo_weight_value y cargo_weight_unit.",
                 "weight_validation": "Si se informa peso, envíe cargo_weight_value y cargo_weight_unit juntos para validar capacidad SICE.",
             },
             "default_service_code": "carga_general",
             "general_aliases": ["carga_suelta", "general", "mercancia_general", "suelta"],
-            "vehicle_selection": "Con vehículo explícito, use esa configuración y la carrocería declarada para la referencia SICETAC; el peso sólo valida capacidad SICE y jamás se infiere desde la capacidad. Sin vehículo y sin contenedor, sugiera la configuración cuya banda inclusiva contiene la carga y cumple capacidad SICE.",
+            "vehicle_selection": "Sin vehículo, identifique por peso de la carga y tara si es contenedor. Con vehículo solicitado, búsquelo directo, calcule y, si aplica, recomiende una alternativa; el cálculo no espera peso. El peso jamás se infiere desde la capacidad máxima.",
             "published_homologation": "Envíe los términos declarados. El Core usa la tabla de equivalencias para nombrar el municipio y después el helper confirma el DANE del catálogo. No use un código SICE del alias como llave de búsqueda ni replique esa tabla en el agente.",
             "axles": "Si hay requested_configuration completa, no envíe axles: una cifra aislada puede describir sólo el tracto. Si no hay configuración completa, axles sirve como señal secundaria para selección automática.",
             "container": {
@@ -79,7 +79,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
         },
         "output_policy": {
             "primary_reference": "H4, 4 horas logísticas",
-            "alternatives": "H2, H8 y rutas alternativas son escenarios; no se suman.",
+            "alternatives": "H2, H8 y rutas alternativas son escenarios; no se suman. Nombre cada ruta seleccionada y cada variante con NOMBRE_SICE / nombre; nunca con RUTASID, ID_SICE ni el par DANE.",
             "market_analysis": "Presente market_analysis como valor de mercado observado RNDC/proxy, con su corte y brecha frente a H4. Nunca lo trate como tarifa comercial.",
             "capacity_and_pbv": "Seleccione por capacidad SICE igual o superior a la carga reportada. Si pbv_assessment=requires_vehicle_tare, no declare incompatibilidad: el PBV total requiere las taras del equipo.",
             "declared_vehicle_without_weight": "Si weight_validation=not_provided, informe que se usaron el vehículo y la carrocería declarados, y que la capacidad SICE no fue validada por falta de peso.",

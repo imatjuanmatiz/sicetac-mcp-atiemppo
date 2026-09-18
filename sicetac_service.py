@@ -1746,6 +1746,8 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
                     "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
                     "totales": lookup_rows[0]["totales"],
                     "metodo": lookup_rows[0]["lookup_method"],
+                    "nombre_sice": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("nombre_sice"),
+                    "ruta": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("ruta"),
                     "detalle_lookup": {
                         "rutasid": lookup_rows[0]["rutasid"],
                         "nombre_sice": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("nombre_sice"),
@@ -1771,7 +1773,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             for idx, item in enumerate(lookup_rows, start=1):
                 route_info = route_metadata.get(item["rutasid"], {})
                 variantes.append({
-                    "NOMBRE_SICE": route_info.get("nombre_sice") or (f"RUTASID {item['rutasid']}" if item["rutasid"] else f"Ruta {idx}"),
+                    "NOMBRE_SICE": route_info.get("nombre_sice") or route_info.get("ruta") or f"Ruta {idx}",
                     "RUTASID": item["rutasid"],
                     "RUTA": route_info.get("ruta"),
                     "ID_SICE": route_info.get("id_sice") or item["rutasid"],

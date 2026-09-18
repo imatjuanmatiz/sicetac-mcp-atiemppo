@@ -393,12 +393,12 @@ class SicetacVacioLookupTests(unittest.TestCase):
     ) -> None:
         resumen.side_effect = [
             {"variantes": [
-                {"RUTASID": "206", "totales": {"H2": 10, "H4": 20, "H8": 30}},
-                {"RUTASID": "106", "totales": {"H2": 1, "H4": 2, "H8": 3}},
+                {"RUTASID": "206", "NOMBRE_SICE": "BOGOTA MEDELLIN VIA HONDA", "totales": {"H2": 10, "H4": 20, "H8": 30}},
+                {"RUTASID": "106", "NOMBRE_SICE": "BOGOTA MEDELLIN VIA LA PINTADA", "totales": {"H2": 1, "H4": 2, "H8": 3}},
             ]},
             {"variantes": [
-                {"RUTASID": "207", "totales": {"H2": 40, "H4": 50, "H8": 60}},
-                {"RUTASID": "107", "totales": {"H2": 4, "H4": 5, "H8": 6}},
+                {"RUTASID": "207", "NOMBRE_SICE": "MEDELLIN BOGOTA VIA HONDA", "totales": {"H2": 40, "H4": 50, "H8": 60}},
+                {"RUTASID": "107", "NOMBRE_SICE": "MEDELLIN BOGOTA VIA LA PINTADA", "totales": {"H2": 4, "H4": 5, "H8": 6}},
             ]},
         ]
 
@@ -414,9 +414,13 @@ class SicetacVacioLookupTests(unittest.TestCase):
         self.assertNotIn("requiere_seleccion_ruta", result)
         self.assertEqual(result["totales"], {"H2": 5.0, "H4": 7.0, "H8": 9.0})
         self.assertEqual(result["ida"]["rutasid"], "106")
+        self.assertEqual(result["ida"]["nombre_sice"], "BOGOTA MEDELLIN VIA LA PINTADA")
         self.assertEqual(result["regreso"]["rutasid"], "107")
+        self.assertEqual(result["regreso"]["nombre_sice"], "MEDELLIN BOGOTA VIA LA PINTADA")
         self.assertEqual(result["ida"]["variantes"][0]["RUTASID"], "106")
+        self.assertEqual(result["ida"]["variantes"][0]["NOMBRE_SICE"], "BOGOTA MEDELLIN VIA LA PINTADA")
         self.assertEqual(result["regreso"]["variantes"][0]["RUTASID"], "107")
+        self.assertEqual(result["regreso"]["variantes"][0]["NOMBRE_SICE"], "MEDELLIN BOGOTA VIA LA PINTADA")
 
 
 if __name__ == "__main__":

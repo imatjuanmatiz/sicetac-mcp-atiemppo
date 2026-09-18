@@ -39,6 +39,13 @@ RULESET = {
             "container_sizes_ft": [40], "provisional": True,
         },
         {
+            "rule_id": "general_2s2", "service_code": "carga_general",
+            "sicetac_configuration": "2S2", "commercial_label": "C2S2",
+            "priority": 1, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 22000,
+            "axle_count": 4, "vehicle_model_code": "C2S2", "provisional": True,
+        },
+        {
             "rule_id": "general_3s3", "service_code": "carga_general",
             "sicetac_configuration": "3S3", "commercial_label": "C3S3",
             "priority": 2, "min_operating_weight_kg": None,
@@ -108,6 +115,27 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(decision["normalized_input"]["weight_validation"], "not_provided")
         self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
         self.assertEqual(sicetac.call_args.args[0].carroceria, "Portacontenedores")
+
+    def test_declared_c2s2_general_cargo_quotes_without_net_weight(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "route": "test-route", "totales": {"H2": 1, "H4": 2, "H8": 3},
+            }
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Buenaventura", "destino": "Valledupar",
+                    "service_code": "carga_general",
+                    "requested_configuration": "C2S2", "peajes": False,
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        decision = response.json()["data"]["technical_decision"]
+        self.assertEqual(decision["recommendation"]["sicetac_configuration"], "2S2")
+        self.assertEqual(decision["recommendation"]["selection_basis"], "declared_configuration")
+        self.assertIsNone(decision["normalized_input"]["cargo_kg"])
+        self.assertEqual(decision["normalized_input"]["weight_validation"], "not_provided")
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
 
     def test_prequote_uses_published_aliases_before_calling_sicetac(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
