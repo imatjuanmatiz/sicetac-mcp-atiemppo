@@ -1,5 +1,13 @@
 {
   "data": {
+    "search": {
+      "ruta": "BOGOTA-BUENAVENTURA",
+      "configuracion": "C2S2",
+      "sicetac_h4": 0,
+      "sicetac_corte": 202609,
+      "valor_plaza": 0,
+      "valor_plaza_corte": "2026-08"
+    },
     "technical_decision": {
       "ruleset": {
         "id": "mercado_colombia_tecnico_2026_09_13_2",

@@ -14,6 +14,7 @@ import json
 import logging
 import math
 import os
+import re
 from typing import Any
 from uuid import uuid4
 
@@ -475,6 +476,7 @@ class PrequoteInput(BaseModel):
     tipo_contenedor_regreso: str | None = None
     rutasid_ida: str | None = Field(None, max_length=64)
     rutasid_regreso: str | None = Field(None, max_length=64)
+    view: str = Field("detail", max_length=16)
 
 
 class TermObservationInput(BaseModel):
@@ -691,6 +693,99 @@ def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]
     return analysis
 
 
+def _route_display_name(source: Any) -> str | None:
+    """Nombre humano de la ruta. Nunca un RUTASID ni un código numérico."""
+    if not isinstance(source, dict):
+        return None
+    lookup = source.get("detalle_lookup") if isinstance(source.get("detalle_lookup"), dict) else {}
+    raw = (
+        source.get("NOMBRE_SICE")
+        or source.get("nombre_sice")
+        or lookup.get("nombre_sice")
+        or source.get("RUTA")
+        or source.get("ruta")
+        or lookup.get("ruta")
+    )
+    if not isinstance(raw, str):
+        return None
+    nombre = raw.strip()
+    if not nombre or re.match(r"(?i)^rutasid\b", nombre) or nombre.isdigit():
+        return None
+    return nombre
+
+
+def _plaza_latest(valor_plaza: Any) -> dict[str, Any]:
+    if not isinstance(valor_plaza, dict):
+        return {"valor": None, "corte": None}
+    meses = valor_plaza.get("meses")
+    if isinstance(meses, list) and meses and isinstance(meses[0], dict):
+        latest = meses[0]
+        return {
+            "valor": latest.get("valor"),
+            "corte": latest.get("mes_label") or latest.get("mes_codigo"),
+        }
+    return {"valor": None, "corte": None}
+
+
+def _leg_search(leg: Any) -> dict[str, Any]:
+    row = leg if isinstance(leg, dict) else {}
+    plaza = _plaza_latest(row.get("valor_plaza"))
+    totals = row.get("totales") if isinstance(row.get("totales"), dict) else {}
+    return {
+        "ruta": _route_display_name(row),
+        "sicetac_h4": totals.get("H4"),
+        "sicetac_corte": row.get("mes"),
+        "valor_plaza": plaza["valor"],
+        "valor_plaza_corte": plaza["corte"],
+    }
+
+
+def _search_card(
+    sicetac_reference: dict[str, Any] | None,
+    input_resolution: dict[str, Any] | None,
+    decision: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Ficha de búsqueda: ruta encontrada, H4 y valor en plaza."""
+    recommendation = (decision or {}).get("recommendation") or {}
+    configuration = None
+    if isinstance(input_resolution, dict):
+        resolved = input_resolution.get("configuration") or {}
+        configuration = (
+            resolved.get("sicetac_vehicle")
+            or resolved.get("technical")
+            or resolved.get("raw")
+        )
+    configuration = (
+        configuration
+        or recommendation.get("vehicle_model_code")
+        or recommendation.get("sicetac_configuration")
+    )
+    if isinstance(sicetac_reference, dict) and sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
+        ida = _leg_search(sicetac_reference.get("ida"))
+        regreso = _leg_search(sicetac_reference.get("regreso"))
+        return {
+            "ruta": ida.get("ruta"),
+            "configuracion": configuration,
+            "sicetac_h4": ida.get("sicetac_h4"),
+            "sicetac_corte": ida.get("sicetac_corte"),
+            "valor_plaza": ida.get("valor_plaza"),
+            "valor_plaza_corte": ida.get("valor_plaza_corte"),
+            "ida": ida,
+            "regreso": regreso,
+        }
+    ref = sicetac_reference if isinstance(sicetac_reference, dict) else {}
+    plaza = _plaza_latest(ref.get("valor_plaza"))
+    totals = ref.get("totales") if isinstance(ref.get("totales"), dict) else {}
+    return {
+        "ruta": _route_display_name(ref),
+        "configuracion": configuration,
+        "sicetac_h4": totals.get("H4"),
+        "sicetac_corte": ref.get("mes"),
+        "valor_plaza": plaza["valor"],
+        "valor_plaza_corte": plaza["corte"],
+    }
+
+
 @router.post("/prequotes", summary="Pre-cotización técnica: Core de vehículos más SICETAC")
 def market_prequote(
     data: PrequoteInput,
@@ -764,9 +859,14 @@ def market_prequote(
             _apply_catalog_location_resolution(input_resolution, sicetac_reference)
             if consulta_solicita_peajes(sicetac_input):
                 sicetac_reference = adjuntar_peajes_a_respuesta(sicetac_reference, sicetac_input.vehiculo)
-        return _json_response(
-            {
-                "data": {
+        search = _search_card(sicetac_reference, input_resolution, decision)
+        payload: dict[str, Any] = {
+            "data": {"search": search},
+            "meta": _response_meta(consumer, request_id, 1, reserved_usage),
+        }
+        if str(data.view or "detail").strip().lower() != "search":
+            payload["data"].update(
+                {
                     "technical_decision": decision,
                     "input_resolution": input_resolution,
                     "sicetac_reference": sicetac_reference,
@@ -776,11 +876,9 @@ def market_prequote(
                         "emission_allowed": False,
                         "reason": "Las reglas comerciales pertenecen al proyecto consumidor.",
                     },
-                },
-                "meta": _response_meta(consumer, request_id, 1, reserved_usage),
-            },
-            request_id,
-        )
+                }
+            )
+        return _json_response(payload, request_id)
     except PublishedRuleSetUnavailable as exc:
         status_code = 503
         raise HTTPException(status_code=503, detail=str(exc))

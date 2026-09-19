@@ -13,7 +13,7 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.17.1"
+AGENT_POLICY_VERSION = "2026.09.19.1"
 MINIMUM_BRIDGE_VERSION = "1.1.0"
 
 
@@ -58,6 +58,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "general_aliases": ["carga_suelta", "general", "mercancia_general", "suelta"],
             "vehicle_selection": "Sin vehículo, identifique por peso de la carga y tara si es contenedor. Con vehículo solicitado, búsquelo directo, calcule y, si aplica, recomiende una alternativa; el cálculo no espera peso. El peso jamás se infiere desde la capacidad máxima.",
             "published_homologation": "Envíe los términos declarados. El Core usa la tabla de equivalencias para nombrar el municipio y después el helper confirma el DANE del catálogo. No use un código SICE del alias como llave de búsqueda ni replique esa tabla en el agente.",
+            "view": "Los agentes envían view=search. La ficha de búsqueda es data.search. view=detail queda para depuración o Instant.",
             "axles": "Si hay requested_configuration completa, no envíe axles: una cifra aislada puede describir sólo el tracto. Si no hay configuración completa, axles sirve como señal secundaria para selección automática.",
             "container": {
                 "only_when_explicitly_named": True,
@@ -78,13 +79,11 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             },
         },
         "output_policy": {
-            "primary_reference": "H4, 4 horas logísticas",
-            "alternatives": "H2, H8 y rutas alternativas son escenarios; no se suman. Nombre cada ruta seleccionada y cada variante con NOMBRE_SICE / nombre; nunca con RUTASID, ID_SICE ni el par DANE.",
-            "market_analysis": "Presente market_analysis como valor de mercado observado RNDC/proxy, con su corte y brecha frente a H4. Nunca lo trate como tarifa comercial.",
-            "capacity_and_pbv": "Seleccione por capacidad SICE igual o superior a la carga reportada. Si pbv_assessment=requires_vehicle_tare, no declare incompatibilidad: el PBV total requiere las taras del equipo.",
-            "declared_vehicle_without_weight": "Si weight_validation=not_provided, informe que se usaron el vehículo y la carrocería declarados, y que la capacidad SICE no fue validada por falta de peso.",
-            "capacity_only_alternatives": "Si el motor devuelve capacity_only_alternatives, preséntelas sólo como sugerencias por peso. No reducen ni invalidan el vehículo programado: valide volumen, dimensiones y operación.",
-            "input_resolution": "Use input_resolution para explicar qué configuración, carrocería, municipio y DANE canónicos se enviaron a SICETAC. 68276 y 68276000 son el mismo municipio. Si un 404 trae reason=OD_PAIR_NOT_IN_SICETAC_CATALOG, reporte esos códigos; no pida distancia manual ni sustituya el municipio.",
+            "view": "search",
+            "present": "Sólo data.search: ruta (NOMBRE_SICE), configuración entendida, SICETAC H4 con corte y valor en plaza con corte.",
+            "omit": "No presente tara, PBV, regla provisional, H2/H8, alternativas de ruta, capacity_only_alternatives ni el ensayo de market_analysis. Eso es view=detail, no la búsqueda.",
+            "route_name": "Use search.ruta. Nunca RUTASID, ID_SICE ni el par DANE como nombre.",
+            "plaza_missing": "Si search.valor_plaza es null, diga que no hay valor en plaza. No invente ni ponga cero.",
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },
         "allowed_operations": ["GET /v1/agent-profile", "GET /v1/usage", "POST /v1/prequotes"],

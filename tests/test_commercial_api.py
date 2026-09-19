@@ -72,6 +72,8 @@ class CommercialApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["ruleset"]["version"], "test-1")
         self.assertEqual(response.json()["input_policy"]["container"]["automatic_configuration_by_size_ft"]["20"], "2S2")
+        self.assertEqual(response.json()["output_policy"]["view"], "search")
+        self.assertIn("data.search", response.json()["output_policy"]["present"])
         self.assertFalse(response.json()["quota"]["consumes_units"])
         self.assertEqual(usage.json()["used"], 0)
 

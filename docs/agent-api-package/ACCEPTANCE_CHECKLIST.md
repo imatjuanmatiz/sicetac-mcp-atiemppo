@@ -16,8 +16,10 @@ un canal seguro y se guarda como secreto del bot.
 1. `GET /v1/health` devuelve `200`.
 2. Una clave inválida recibe `401` y no incrementa el uso.
 3. Solicitud completa de contenedor: Bogotá → Buenaventura, 15 t, 40 pies.
-4. El bot reporta por defecto `H4, 4 horas logísticas` junto al valor principal.
-5. El bot separa rutas y escenarios alternativos; no suma sus valores.
+4. El bot reporta la ficha `search`: ruta (`NOMBRE_SICE`), configuración,
+   `Referencia SICETAC (H4, 4 horas logísticas)` y valor en plaza (o “sin
+   valor en plaza”). No presenta tara, PBV ni H2/H8.
+5. El bot no suma escenarios ni convierte la ficha en un documento comercial.
 6. Datos incompletos: el bot pide solo el campo faltante y no llama el API.
    Si ya hay vehículo/configuración declarada, la falta de peso neto no es
    un dato faltante: debe cotizar.

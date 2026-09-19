@@ -1,26 +1,32 @@
-# Paquete de producción: agente externo → Motor técnico SICETAC
+# Paquete: agente de búsqueda → motor SICETAC
 
-Este paquete permite que un agente externo —por ejemplo un bot basado en Grok—
-use el motor técnico de pre-cotización de ATIEMPPO. El agente conversa y
-estructura los datos; el motor decide vehículo, PBV, SICE, tara, ruta y
-referencia SICETAC.
+Un proceso, muchos canales. Grok Bot, OpenClaw o el agente de otro cliente
+llaman el mismo API. **Al crear otro agente de búsqueda solo cambia la clave.**
+
+Hay dos oficios. Este paquete es el de **búsqueda** (entender el pedido suelto
+y devolver ruta + H4 + valor en plaza). El documento comercial de cotizados es
+**otro** agente: [OFICIO-COTIZACION-DOCUMENTO.md](OFICIO-COTIZACION-DOCUMENTO.md).
 
 No contiene precios comerciales, márgenes, disponibilidad de flota, secretos
 de ATIEMPPO ni acceso a Supabase/OpenClaw.
 
-## Lo que recibe el integrador
+## Cómo clonar un agente de búsqueda
+
+1. Copiar [PROMPT-AGENTE-BUSQUEDA.md](PROMPT-AGENTE-BUSQUEDA.md). Rellenar
+   `{{CLIENTE}}` y `{{LINEA_REPORTE}}`. No editar herramienta ni ficha.
+2. Guardar una **clave nueva** en el almacén secreto del bot. Nunca en el prompt.
+3. Canon: [CONTRATO-BUSQUEDA-SICETAC.md](CONTRATO-BUSQUEDA-SICETAC.md).
+4. Probar con [ACCEPTANCE_CHECKLIST.md](ACCEPTANCE_CHECKLIST.md).
 
 Por un canal seguro ATIEMPPO entrega únicamente:
 
 ```text
 SICETAC_API_BASE_URL=https://<entorno-entregado-por-atiemppo>
-SICETAC_API_KEY=<clave-piloto-individual>
+SICETAC_API_KEY=<clave-individual-de-ese-consumidor>
 ```
 
-La clave se guarda como secreto del bot o de su backend. Nunca se pone en el
-prompt, repositorio, frontend, captura de pantalla o mensaje de chat. Cada bot
-recibe su propio `consumer_id`, cuota y fecha de vencimiento; no reutilice la
-clave del piloto ATICA ni la de otro cliente.
+Cada bot recibe su propio `consumer_id`, cuota y vencimiento. No reutilizar la
+clave de ATICA ni la de otro cliente.
 
 ## Operaciones del piloto
 
@@ -37,6 +43,10 @@ el ZIP ni el prompt del cliente.
 La única operación que consume cuota en el flujo de pre-cotización es:
 
 `POST {SICETAC_API_BASE_URL}/v1/prequotes`
+
+Los agentes envían `view=search`. La ficha de búsqueda es `data.search`:
+ruta (`NOMBRE_SICE`), configuración, SICETAC H4 y valor en plaza. Tara, PBV,
+H2/H8 y reglas provisionales quedan en `view=detail`.
 
 Header:
 
@@ -66,22 +76,20 @@ ruta automáticamente.
 Ejemplo de solicitud: [examples/prequote-container-40.json](examples/prequote-container-40.json).
 Ejemplo de respuesta saneada: [examples/prequote-response-sanitized.json](examples/prequote-response-sanitized.json).
 
-## Qué devuelve el motor
+## Qué presenta el agente de búsqueda
 
-La respuesta tiene tres bloques:
+Con `view=search` el cuerpo útil es `data.search`:
 
-| Bloque | Uso permitido |
+| Campo | Qué es |
 | --- | --- |
-| `data.technical_decision` | Recomendación técnica, capacidad SICE, tara, estado verificable del PBV, advertencias y versión del ruleset. |
-| `data.sicetac_reference` | Referencia SICETAC, rutas/variantes, peajes y escenarios H2/H4/H8 cuando estén disponibles. |
-| `data.market_analysis` | Valor de mercado observado/proxy RNDC por ruta y configuración, con corte y brecha analítica frente a H4. No es tarifa comercial. |
-| `data.commercial` | Confirma que no existe configuración ni emisión comercial. |
+| `ruta` | Nombre SICETAC (`NOMBRE_SICE`) |
+| `configuracion` | La que usó el motor |
+| `sicetac_h4` + `sicetac_corte` | Referencia principal |
+| `valor_plaza` + `valor_plaza_corte` | Último valor en plaza; null → “sin valor en plaza” |
 
-El integrador debe reportar el valor principal como `H4, 4 horas logísticas`.
-Si presenta H2 u H8, debe marcarlos como escenarios alternativos, nunca
-sumarlos ni presentarlos como tarifa. Rutas alternativas tampoco se suman. Si
-hay `market_analysis`, reporta siempre su corte: su valor observado puede ser
-de un mes distinto al SICETAC y únicamente sirve como contraste analítico.
+`view=detail` conserva tara, PBV, H2/H8 y análisis de mercado. El agente de
+búsqueda no lo pide ni lo redacta. Instant y el agente de documento no
+sustituyen esta ficha.
 
 ## Errores y comportamiento del agente
 
@@ -100,15 +108,15 @@ consume cuota.
 
 ## Archivos del paquete
 
-- [GROK_AGENT_INSTRUCTIONS.md](GROK_AGENT_INSTRUCTIONS.md): instrucciones que
-  se pueden copiar al bot; el agente primero consulta el perfil vigente.
-- [CCL_OPENCLAW_QUICKSTART.md](CCL_OPENCLAW_QUICKSTART.md): instalación y
-  prueba mínima para un OpenClaw externo.
-- [CCL_ENV.example](CCL_ENV.example): nombres de secretos, sin incluir valores.
-- [tool-schema.json](tool-schema.json): esquema JSON de una herramienta HTTP
-  provider-neutral.
-- [ACCEPTANCE_CHECKLIST.md](ACCEPTANCE_CHECKLIST.md): prueba de recepción y
-  evidencia para el piloto.
+- [CONTRATO-BUSQUEDA-SICETAC.md](CONTRATO-BUSQUEDA-SICETAC.md): proceso único.
+- [PROMPT-AGENTE-BUSQUEDA.md](PROMPT-AGENTE-BUSQUEDA.md): prompt para clonar.
+- [GROK_BOT_ATICA.md](GROK_BOT_ATICA.md): instancia ATICA de ese prompt.
+- [OFICIO-COTIZACION-DOCUMENTO.md](OFICIO-COTIZACION-DOCUMENTO.md): el otro agente.
+- [GROK_AGENT_INSTRUCTIONS.md](GROK_AGENT_INSTRUCTIONS.md): notas extendidas.
+- [CCL_OPENCLAW_QUICKSTART.md](CCL_OPENCLAW_QUICKSTART.md): OpenClaw externo.
+- [CCL_ENV.example](CCL_ENV.example): nombres de secretos, sin valores.
+- [tool-schema.json](tool-schema.json): esquema de la herramienta HTTP.
+- [ACCEPTANCE_CHECKLIST.md](ACCEPTANCE_CHECKLIST.md): prueba de recepción.
 
 Para el contrato más amplio de clientes REST/MCP consulta
 [`../third-party-integration.md`](../third-party-integration.md). Este paquete

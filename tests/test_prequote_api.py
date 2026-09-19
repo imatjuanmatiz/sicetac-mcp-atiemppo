@@ -115,6 +115,38 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(decision["normalized_input"]["weight_validation"], "not_provided")
         self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
         self.assertEqual(sicetac.call_args.args[0].carroceria, "Portacontenedores")
+        search = response.json()["data"]["search"]
+        self.assertEqual(search["configuracion"], "C2S2")
+        self.assertEqual(search["sicetac_h4"], 123)
+
+    def test_view_search_returns_only_the_route_card(self):
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value={
+                "nombre_sice": "BOGOTA-BUENAVENTURA",
+                "mes": 202609,
+                "totales": {"H2": 1, "H4": 4500000, "H8": 3},
+                "valor_plaza": {"meses": [{"valor": 4100000, "mes_codigo": 202608, "mes_label": "2026-08"}]},
+            }
+        ):
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Buenaventura",
+                    "service_code": "carga_general",
+                    "requested_configuration": "C2S2", "peajes": False,
+                    "view": "search",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(set(body), {"search"})
+        self.assertEqual(body["search"], {
+            "ruta": "BOGOTA-BUENAVENTURA",
+            "configuracion": "C2S2",
+            "sicetac_h4": 4500000,
+            "sicetac_corte": 202609,
+            "valor_plaza": 4100000,
+            "valor_plaza_corte": "2026-08",
+        })
 
     def test_declared_c2s2_general_cargo_quotes_without_net_weight(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
