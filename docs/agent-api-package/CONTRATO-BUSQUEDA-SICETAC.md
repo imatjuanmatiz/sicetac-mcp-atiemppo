@@ -25,11 +25,17 @@ parte de `data.search` ya resuelta.
 3. Una llamada: `POST /v1/prequotes` con `view=search`.
 4. Presenta sólo `data.search`.
 
+## Horas
+Default 4 (H4). El usuario puede pedir 2, 8 u otra cifra; el agente la envía
+en `horas_logisticas` y la **conserva en el hilo** hasta que pida otra.
+La ficha presenta solo esa hora, no el menú H2/H4/H8.
+
 ## Ficha (`data.search`)
 
 - `ruta` — `NOMBRE_SICE`
 - `configuracion` — la que usó el motor
-- `sicetac_h4` + `sicetac_corte`
+- `horas_logisticas` + `horas_etiqueta` + `sicetac` (valor de esa hora)
+- `sicetac_corte`
 - `valor_plaza` + `valor_plaza_corte` (null → “sin valor en plaza”)
 
 Fuera de la ficha: tara, PBV, H2/H8, alternativas, regla provisional. Eso es

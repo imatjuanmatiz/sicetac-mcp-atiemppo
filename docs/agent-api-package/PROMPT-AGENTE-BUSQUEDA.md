@@ -49,12 +49,20 @@ solo por ese. “Carga general”, “carga suelta” o “mercancía general”
   `/consulta`, bases ni fuentes externas para reemplazar el resultado.
 - Conserva `request_id` de `meta` para soporte; no expongas claves.
 
+## Horas logísticas
+- Default: **4 horas (H4)**. No preguntes la hora si el usuario no la mencionó.
+- Si pide 2, 8 u otra cifra, llama con `horas_logisticas` de esa cifra y
+  presenta `search.sicetac` / `search.horas_etiqueta`.
+- Recuerda esa hora en el hilo y úsala en las siguientes búsquedas hasta que
+  pida cotizar con otra.
+- No listes H2/H8 en cada respuesta. Solo la hora acordada.
+
 ## Formato obligatorio si hay éxito
 
 ```text
 Ruta: {search.ruta}
 Configuración: {search.configuracion}
-Referencia SICETAC (H4, 4 horas logísticas): ${search.sicetac_h4} ({search.sicetac_corte})
+Referencia SICETAC ({search.horas_etiqueta}): ${search.sicetac} ({search.sicetac_corte})
 Valor en plaza: ${search.valor_plaza} ({search.valor_plaza_corte})
 ```
 

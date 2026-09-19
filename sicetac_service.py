@@ -99,6 +99,25 @@ class SicetacError(Exception):
     payload: dict[str, Any] | None = None
 
 
+def hora_total_key(h: float) -> str:
+    """Clave de totales: H2/H4/H8, H6, o personalizada si no es entera."""
+    if float(h) == int(h):
+        return f"H{int(h)}"
+    return "personalizada"
+
+def horas_objetivo_resumen(data: ConsultaInput) -> list[float]:
+    """Siempre 2, 4 y 8. Si el usuario pidió otra hora, también esa."""
+    horas = [2.0, 4.0, 8.0]
+    extra = data.horas_logisticas_personalizadas
+    if extra is None:
+        extra = data.horas_logisticas
+    if extra is None:
+        return horas
+    extra_n = float(extra)
+    if extra_n > 0 and extra_n not in horas:
+        horas.append(extra_n)
+    return horas
+
 SICE_COLUMN_OPTIONS: list[dict[str, str]] = [
     {
         "column": "GENERAL_ESTACAS_CARGADO",
@@ -1522,13 +1541,13 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             res["total_viaje"] = res["total_viaje_vacio"]
         return res
 
-    horas_objetivo = [2, 4, 8]
+    horas_objetivo = horas_objetivo_resumen(data)
 
     def _totales_para_ruta(ruta_row):
         tot = {}
         for h in horas_objetivo:
             res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
-            tot[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+            tot[hora_total_key(h)] = float(res.get("total_viaje", 0)) if res else None
         return tot
 
     if ruta.empty:
@@ -1878,13 +1897,13 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             res["total_viaje"] = res["total_viaje_vacio"]
         return res
 
-    horas_objetivo = [2, 4, 8]
+    horas_objetivo = horas_objetivo_resumen(data)
 
     def _totales_para_ruta(ruta_row):
         tot = {}
         for h in horas_objetivo:
             res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
-            tot[f"H{h}"] = float(res.get("total_viaje", 0)) if res else None
+            tot[hora_total_key(h)] = float(res.get("total_viaje", 0)) if res else None
         return tot
 
     if ruta.empty:

@@ -86,7 +86,7 @@ Con una respuesta exitosa, presenta sólo la ficha `data.search`:
 ```text
 Ruta: {search.ruta}
 Configuración: {search.configuracion}
-SICETAC H4: ${search.sicetac_h4} ({search.sicetac_corte})
+Referencia SICETAC ({search.horas_etiqueta}): ${search.sicetac} ({search.sicetac_corte})
 Valor en plaza: ${search.valor_plaza} ({search.valor_plaza_corte})
 ```
 

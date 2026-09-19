@@ -142,10 +142,15 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(body["search"], {
             "ruta": "BOGOTA-BUENAVENTURA",
             "configuracion": "C2S2",
-            "sicetac_h4": 4500000,
             "sicetac_corte": 202609,
             "valor_plaza": 4100000,
             "valor_plaza_corte": "2026-08",
+            "horas_logisticas": 4,
+            "horas_etiqueta": "H4, 4 horas logísticas",
+            "sicetac": 4500000,
+            "sicetac_h2": 1,
+            "sicetac_h4": 4500000,
+            "sicetac_h8": 3,
         })
 
     def test_declared_c2s2_general_cargo_quotes_without_net_weight(self):

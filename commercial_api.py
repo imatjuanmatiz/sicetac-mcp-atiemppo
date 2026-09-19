@@ -477,6 +477,7 @@ class PrequoteInput(BaseModel):
     rutasid_ida: str | None = Field(None, max_length=64)
     rutasid_regreso: str | None = Field(None, max_length=64)
     view: str = Field("detail", max_length=16)
+    horas_logisticas: float | None = Field(None, ge=0, le=48)
 
 
 class TermObservationInput(BaseModel):
@@ -519,6 +520,8 @@ def _prequote_sicetac_input(
         tipo_contenedor_regreso=data.tipo_contenedor_regreso,
         rutasid_ida=data.rutasid_ida,
         rutasid_regreso=data.rutasid_regreso,
+        horas_logisticas=data.horas_logisticas,
+        horas_logisticas_personalizadas=data.horas_logisticas,
         resumen=True,
     )
 
@@ -727,16 +730,39 @@ def _plaza_latest(valor_plaza: Any) -> dict[str, Any]:
     return {"valor": None, "corte": None}
 
 
-def _leg_search(leg: Any) -> dict[str, Any]:
+def _hour_selection(totales: dict[str, Any], horas: float | None) -> dict[str, Any]:
+    """Hora acordada (default 4). H2/H8 quedan en la ficha por si el usuario cambia."""
+    h = 4.0 if horas is None else float(horas)
+    if h == int(h):
+        key = f"H{int(h)}"
+        n = int(h)
+        etiqueta = f"H{n}, {n} horas logísticas" if n in (2, 4, 8) else f"{n} horas logísticas"
+        horas_out: float | int = n
+    else:
+        key = "personalizada"
+        etiqueta = f"{h:g} horas logísticas"
+        horas_out = h
+    return {
+        "horas_logisticas": horas_out,
+        "horas_etiqueta": etiqueta,
+        "sicetac": totales.get(key),
+        "sicetac_h2": totales.get("H2"),
+        "sicetac_h4": totales.get("H4"),
+        "sicetac_h8": totales.get("H8"),
+    }
+
+
+def _leg_search(leg: Any, horas: float | None = None) -> dict[str, Any]:
     row = leg if isinstance(leg, dict) else {}
     plaza = _plaza_latest(row.get("valor_plaza"))
     totals = row.get("totales") if isinstance(row.get("totales"), dict) else {}
+    hours = _hour_selection(totals, horas)
     return {
         "ruta": _route_display_name(row),
-        "sicetac_h4": totals.get("H4"),
         "sicetac_corte": row.get("mes"),
         "valor_plaza": plaza["valor"],
         "valor_plaza_corte": plaza["corte"],
+        **hours,
     }
 
 
@@ -744,8 +770,9 @@ def _search_card(
     sicetac_reference: dict[str, Any] | None,
     input_resolution: dict[str, Any] | None,
     decision: dict[str, Any] | None,
+    horas_logisticas: float | None = None,
 ) -> dict[str, Any]:
-    """Ficha de búsqueda: ruta encontrada, H4 y valor en plaza."""
+    """Ficha de búsqueda: ruta encontrada, SICETAC de la hora acordada y plaza."""
     recommendation = (decision or {}).get("recommendation") or {}
     configuration = None
     if isinstance(input_resolution, dict):
@@ -761,28 +788,34 @@ def _search_card(
         or recommendation.get("sicetac_configuration")
     )
     if isinstance(sicetac_reference, dict) and sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
-        ida = _leg_search(sicetac_reference.get("ida"))
-        regreso = _leg_search(sicetac_reference.get("regreso"))
+        ida = _leg_search(sicetac_reference.get("ida"), horas_logisticas)
+        regreso = _leg_search(sicetac_reference.get("regreso"), horas_logisticas)
         return {
             "ruta": ida.get("ruta"),
             "configuracion": configuration,
-            "sicetac_h4": ida.get("sicetac_h4"),
             "sicetac_corte": ida.get("sicetac_corte"),
             "valor_plaza": ida.get("valor_plaza"),
             "valor_plaza_corte": ida.get("valor_plaza_corte"),
             "ida": ida,
             "regreso": regreso,
+            "horas_logisticas": ida.get("horas_logisticas"),
+            "horas_etiqueta": ida.get("horas_etiqueta"),
+            "sicetac": ida.get("sicetac"),
+            "sicetac_h2": ida.get("sicetac_h2"),
+            "sicetac_h4": ida.get("sicetac_h4"),
+            "sicetac_h8": ida.get("sicetac_h8"),
         }
     ref = sicetac_reference if isinstance(sicetac_reference, dict) else {}
     plaza = _plaza_latest(ref.get("valor_plaza"))
     totals = ref.get("totales") if isinstance(ref.get("totales"), dict) else {}
+    hours = _hour_selection(totals, horas_logisticas)
     return {
         "ruta": _route_display_name(ref),
         "configuracion": configuration,
-        "sicetac_h4": totals.get("H4"),
         "sicetac_corte": ref.get("mes"),
         "valor_plaza": plaza["valor"],
         "valor_plaza_corte": plaza["corte"],
+        **hours,
     }
 
 
@@ -859,7 +892,10 @@ def market_prequote(
             _apply_catalog_location_resolution(input_resolution, sicetac_reference)
             if consulta_solicita_peajes(sicetac_input):
                 sicetac_reference = adjuntar_peajes_a_respuesta(sicetac_reference, sicetac_input.vehiculo)
-        search = _search_card(sicetac_reference, input_resolution, decision)
+        search = _search_card(
+            sicetac_reference, input_resolution, decision,
+            horas_logisticas=data.horas_logisticas,
+        )
         payload: dict[str, Any] = {
             "data": {"search": search},
             "meta": _response_meta(consumer, request_id, 1, reserved_usage),
