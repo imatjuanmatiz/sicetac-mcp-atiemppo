@@ -1069,7 +1069,7 @@ def _promover_variante_principal(respuesta: dict[str, Any]) -> dict[str, Any]:
     respuesta["nombre_sice"] = principal.get("NOMBRE_SICE")
     respuesta["ruta"] = principal.get("RUTA")
     respuesta["totales"] = principal.get("totales") or {}
-    for key in ("total_km", "detalle_costos", "detalle_consumo"):
+    for key in ("total_km", "detalle_costos", "detalle_consumo", "sicetac_tradicional"):
         if key in principal:
             respuesta[key] = principal[key]
     respuesta["detalle_lookup"] = {
@@ -1384,7 +1384,7 @@ def _kilometros_ruta(row) -> float:
     )), 2)
 
 
-def calcular_sicetac(data: ConsultaInput) -> dict:
+def _calcular_modelo_completo(data: ConsultaInput) -> dict:
     if bool(getattr(data, "modo_aumento", False)):
         raise SicetacError(
             400,
@@ -1690,7 +1690,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         origin_key = canonical_municipality_dane(origen_info["codigo_dane"])
         destination_key = canonical_municipality_dane(destino_info["codigo_dane"])
         if origin_key and origin_key == destination_key:
-            return calcular_sicetac(_copiar_consulta(data, resumen=False, modo_aumento=False))
+            return _calcular_modelo_completo(_copiar_consulta(data, resumen=False, modo_aumento=False))
 
         rutas_index = _get_rutas_index(df_rutas)
         ruta_rows = rutas_index.get((origin_key, destination_key), [])
@@ -1832,10 +1832,50 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
 
     if _es_contenedor_vacio(data.carroceria, data.tipo_contenedor):
         raise SicetacError(503, "No hay consolidado oficial vigente para Contenedor vacío en esta ruta/configuración.")
-    respuesta = calcular_sicetac(_copiar_consulta(data, resumen=False, modo_aumento=False))
+    respuesta = _calcular_modelo_completo(_copiar_consulta(data, resumen=False, modo_aumento=False))
     _attach_valor_plaza(respuesta, resolved_route=resolved_route,
                         configuracion_lookup=configuracion_lookup,
                         carroceria=data.carroceria, tipo_contenedor=data.tipo_contenedor)
+    return respuesta
+
+
+def calcular_sicetac(data: ConsultaInput) -> dict:
+    """Entrega el modelo y el total de la consulta habitual para la misma ruta."""
+    respuesta = _calcular_modelo_completo(data)
+    horas = data.horas_logisticas_personalizadas
+    if horas is None:
+        horas = data.horas_logisticas
+    if horas is None:
+        horas = 4.0
+
+    def adjuntar_referencia(detalle: dict) -> None:
+        rutasid = _clean_id(detalle.get("rutasid") or detalle.get("ID_SICE")) or None
+        if respuesta.get("estimado") or respuesta.get("manual_mode_applied"):
+            tradicional = respuesta
+        else:
+            tradicional = _calcular_sicetac_resumen_base(_copiar_consulta(
+                data, resumen=True, detalle_costos=False, detalle_consumo=False,
+                modo_aumento=False, rutasid=rutasid,
+            ))
+        totales = dict(tradicional.get("totales") or {})
+        key = hora_total_key(horas)
+        if key not in totales:
+            lookup = tradicional.get("detalle_lookup") or {}
+            if lookup.get("movilizacion") is not None and lookup.get("valor_hora") is not None:
+                totales[key] = round(float(lookup["movilizacion"]) + horas * float(lookup["valor_hora"]), 2)
+        detalle["sicetac_tradicional"] = {
+            "total_viaje": totales.get(key), "totales": totales,
+            "horas_logisticas": horas, "mes": tradicional.get("mes"),
+            "rutasid": rutasid, "metodo": tradicional.get("metodo"),
+            "estimado": not str(tradicional.get("metodo", "")).startswith("lookup"),
+        }
+
+    if respuesta.get("variantes"):
+        for variante in respuesta["variantes"]:
+            adjuntar_referencia(variante)
+        _promover_variante_principal(respuesta)
+    else:
+        adjuntar_referencia(respuesta)
     return respuesta
 
 

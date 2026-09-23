@@ -1,4 +1,4 @@
-"""Full-model arithmetic, retained inputs and isolation from the published lookup."""
+"""Full-model arithmetic and matching traditional totals for direct detail requests."""
 import unittest
 from unittest.mock import patch
 import pandas as pd
@@ -30,7 +30,7 @@ class CostDetailTests(unittest.TestCase):
         self.routes=pd.DataFrame([route])
         municipalities=pd.DataFrame([{"codigo_dane":11001000,"nombre_oficial":"BOGOTA"},{"codigo_dane":8001000,"nombre_oficial":"BARRANQUILLA"}])
         self.frames=[municipalities,pd.DataFrame([{"TIPO_VEHICULO":"C3S3","EJES_CONFIGURACION":"6"}]),pd.DataFrame([params]),self.fixed,pd.DataFrame(),self.routes,pd.DataFrame(),pd.DataFrame()]
-        for name,value in [("_refresh_cache",None),("_get_dataframes",self.frames),("get_peajes_detalle_df",pd.DataFrame()),("_attach_valor_plaza",None)]:
+        for name,value in [("_refresh_cache",None),("_get_dataframes",self.frames),("get_peajes_detalle_df",pd.DataFrame()),("_attach_valor_plaza",None),("_lookup_sicetac_totales",[])]:
             patcher=patch.object(svc,name,return_value=value);patcher.start();self.addCleanup(patcher.stop)
         for name in ("_RUTAS_INDEX","_PEAJES_INDEX"):
             patcher=patch.object(svc,name,None);patcher.start();self.addCleanup(patcher.stop)
@@ -43,8 +43,10 @@ class CostDetailTests(unittest.TestCase):
         return response.json()
 
     def test_full_model_reconciles_and_does_not_use_published_total(self):
-        with patch.object(svc,'_lookup_sicetac_totales',side_effect=AssertionError('must not query published total')):
+        with patch.object(svc,'_lookup_sicetac_totales',return_value=[self.published()]):
             r=self.request(horas_logisticas=6)
+        self.assertEqual(r['sicetac_tradicional']['total_viaje'],1600)
+        self.assertNotEqual(r['detalle_costos']['total_viaje'],1600)
         c=r['detalle_costos']; terrains=r['detalle_consumo']['por_terreno']
         self.assertEqual(r['total_km'],135)
         self.assertEqual(c['total_galones'],50)
@@ -58,6 +60,44 @@ class CostDetailTests(unittest.TestCase):
         self.assertAlmostEqual(c['costos_variables'],sum(c[k] for k in ['combustible','peajes','mantenimiento','imprevistos']),places=2)
         self.assertAlmostEqual(c['total_viaje'],c['costo_fijo']+c['costos_variables']+c['otros_costos'],places=2)
         self.assertEqual(c['total_viaje'],r['totales']['H6'])
+
+    @staticmethod
+    def published(rutasid='93', base=1000):
+        return {"rutasid":rutasid,"mes_codigo":202609,"totales":{"H2":base+200,"H4":base+400,"H8":base+800},"lookup_method":"lookup_consolidado","movilizacion":base,"valor_hora":100,"lookup_column":"GENERAL","lookup_label":"General"}
+
+    def test_direct_details_include_traditional_total_with_selected_hours(self):
+        for field in ('detalle_costos','detalle_consumo'):
+            for hours, expected in [(None,1400),(0,1000),(6,1600),(2.5,1250)]:
+                with self.subTest(field=field,hours=hours), patch.object(svc,'_lookup_sicetac_totales',return_value=[self.published()]):
+                    r=self.request(**{'detalle_costos':False,field:True,'horas_logisticas':hours})
+                    ref=r['sicetac_tradicional']
+                    self.assertEqual(ref['total_viaje'],expected)
+                    self.assertEqual(ref['horas_logisticas'],4 if hours is None else hours)
+                    self.assertEqual(ref['rutasid'],'93')
+                    self.assertEqual(ref['mes'],202609)
+                    self.assertFalse(ref['estimado'])
+                    self.assertEqual(_search_card(r,None,None,hours)['sicetac'],expected)
+                    text=self.client.post('/consulta_texto',json={'origen':'BOGOTA','destino':'BARRANQUILLA','vehiculo':'C3S3','mes':202609,field:True,'horas_logisticas':hours}).json()['texto']
+                    self.assertIn(f"Total SICETAC: ${expected:,}".replace(',','.'),text)
+
+    def test_traditional_total_matches_each_variant_not_the_primary(self):
+        self.frames[5]=pd.concat([self.routes,self.routes.assign(ID_SICE='94',KM_PLANO=120)],ignore_index=True)
+        with patch.object(svc,'_lookup_sicetac_totales',return_value=[self.published('94',2000),self.published('93',1000)]):
+            r=self.request()
+            self.assertEqual(r['sicetac_tradicional']['total_viaje'],1400)
+            self.assertEqual([v['sicetac_tradicional']['total_viaje'] for v in r['variantes']],[1400,2400])
+            selected=self.request(rutasid='94')
+            self.assertEqual(selected['sicetac_tradicional']['total_viaje'],2400)
+            self.assertEqual(selected['sicetac_tradicional']['rutasid'],'94')
+
+    def test_traditional_fallback_and_urban_remain_estimates(self):
+        for kwargs in ({},{'destino':'BOGOTA'}):
+            with self.subTest(kwargs=kwargs):
+                r=self.request(horas_logisticas=6,**kwargs)
+                ref=r['sicetac_tradicional']
+                self.assertTrue(ref['estimado'])
+                self.assertEqual(ref['total_viaje'],r['detalle_costos']['total_viaje'])
+                self.assertEqual(ref['metodo'],'modelo_completo')
 
     def test_zero_logistic_hours_is_preserved(self):
         r=self.request(horas_logisticas=0)

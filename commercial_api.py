@@ -814,15 +814,16 @@ def _search_card(
         }
     ref = sicetac_reference if isinstance(sicetac_reference, dict) else {}
     plaza = _plaza_latest(ref.get("valor_plaza"))
-    totals = ref.get("totales") if isinstance(ref.get("totales"), dict) else {}
+    price_reference = ref.get("sicetac_tradicional") or ref
+    totals = price_reference.get("totales") if isinstance(price_reference.get("totales"), dict) else {}
     hours = _hour_selection(totals, horas_logisticas)
     return {
         "ruta": _route_display_name(ref) or (f"{ref['origen']} a {ref['destino']}" if ref.get("origen") and ref.get("destino") else None),
         "kilometros": ref.get("total_km"),
-        "estimado": bool(ref.get("estimado")),
+        "estimado": bool(price_reference.get("estimado")),
         "supuestos": ref.get("supuestos", []),
         "configuracion": configuration,
-        "sicetac_corte": ref.get("mes"),
+        "sicetac_corte": price_reference.get("mes"),
         "valor_plaza": plaza["valor"],
         "valor_plaza_corte": plaza["corte"],
         **hours,
@@ -925,7 +926,7 @@ def market_prequote(
                 }
             )
         if data.view.lower() in {"costs", "detalle_costos", "consumption", "detalle_consumo"} and sicetac_reference:
-            for key in ("detalle_costos", "detalle_consumo"):
+            for key in ("detalle_costos", "detalle_consumo", "sicetac_tradicional"):
                 payload["data"][key] = sicetac_reference.get(key)
         return _json_response(payload, request_id)
     except PublishedRuleSetUnavailable as exc:

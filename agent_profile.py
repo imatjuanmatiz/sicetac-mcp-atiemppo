@@ -13,7 +13,7 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.22.1"
+AGENT_POLICY_VERSION = "2026.09.22.2"
 MINIMUM_BRIDGE_VERSION = "1.2.0"
 
 
@@ -88,6 +88,7 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },
         "cost_detail_policy": {
+            "total": "En ambos detalles, incluso pedidos directamente, presente primero sicetac_tradicional.total_viaje con sus horas_logisticas y mes. Procede de la consulta habitual para la misma ruta, variante y configuración. Conserve aparte el total del modelo; si estimado=true etiquete el total como estimado.",
             "preserve_context": ["origen", "destino", "requested_configuration", "carroceria", "mes", "rutasid", "horas_logisticas", "modo_viaje"],
             "costs": "Presente total_galones, horas_recorrido, horas_logisticas, rotaciones_calculadas, costo_fijo, costos_variables y otros_costos; variables incluye combustible, peajes, mantenimiento e imprevistos. No los sume dos veces.",
             "consumption": "Presente por_terreno: km, gal y costo_combustible, más total_galones y costo_combustible_total.",

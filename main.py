@@ -22,7 +22,7 @@ from sicetac_service import (
 from supabase_data import get_client, get_table_df
 from commercial_api import router as commercial_router
 
-app = FastAPI(title="API SICETAC", version="2.5.1")
+app = FastAPI(title="API SICETAC", version="2.5.2")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.
@@ -234,6 +234,9 @@ def calcular_sicetac_texto(data: ConsultaInput):
             lines = [f"{r['origen']} a {r['destino']} · {r['total_km']} km"]
             if r.get("estimado"):
                 lines.append("VALOR ESTIMADO: 30 km en terreno ondulado.")
+            tradicional = r["sicetac_tradicional"]
+            etiqueta = "Total SICETAC estimado" if tradicional["estimado"] else "Total SICETAC"
+            lines.append(f"{etiqueta}: {_format_cop(tradicional['total_viaje'])} ({tradicional['horas_logisticas']:g} horas logísticas; período {tradicional['mes']})")
             if data.detalle_consumo:
                 for terreno, item in r["detalle_consumo"]["por_terreno"].items():
                     lines.append(f"{terreno}: {item['km']:g} km, {item['gal']:.2f} gal, {_format_cop(item['costo_combustible'])}")

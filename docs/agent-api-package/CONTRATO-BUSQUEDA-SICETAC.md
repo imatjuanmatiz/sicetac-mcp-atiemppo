@@ -44,6 +44,10 @@ Fuera de la ficha: tara, PBV, H2/H8, alternativas, regla provisional. Eso es
 `view=detail`, para revisar la búsqueda. Para **detalle de costos** usar
 `view=costs`; para **detalle de consumo** usar `view=consumption`. Ambos ejecutan
 el modelo completo conservando ruta, vehículo, carrocería, mes, variante y horas.
+Incluyen `data.sicetac_tradicional` con el total de la consulta habitual, horas,
+mes y origen del valor, aun sin búsqueda previa. Mostrar ese total primero;
+`data.search.sicetac` también lo conserva. El total calculado del modelo permanece
+separado. Si la referencia es estimada, mostrarlo explícitamente.
 Ver [contrato del detalle](../cost-details.md).
 
 ## Qué cambia al crear otro agente

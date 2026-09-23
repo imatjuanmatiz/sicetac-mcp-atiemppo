@@ -1,6 +1,6 @@
 # Detalles del modelo de costos
 
-Versión API 2.5.0, puente MCP 1.2.0; publicación de septiembre de 2026.
+Versión API 2.5.2, puente MCP 1.2.0; publicación de septiembre de 2026.
 
 La consulta habitual conserva la búsqueda de movilización publicada más horas
 logísticas y añade `total_km` (`kilometros` en `data.search`). El modelo completo
@@ -8,7 +8,8 @@ es un cálculo independiente con sus propios componentes y total.
 
 ## Acciones
 
-- WhatsApp: después de consultar una ruta, escribir **detalle de costos** o
+- WhatsApp: escribir **detalle de costos Bogotá a Barranquilla C3S3**, o
+  después de consultar una ruta, escribir **detalle de costos** o
   **detalle de consumo**. Conserva vehículo, carrocería, modo, mes, variante y
   horas de la consulta. Sin una hora indicada, usa cuatro horas logísticas.
 - Web Instant: los botones de cada ruta llaman al mismo modelo de la API.
@@ -23,6 +24,16 @@ modo de viaje, mes, `rutasid` cuando se seleccionó una variante y
 `horas_logisticas`. No se utiliza el total publicado como entrada del modelo.
 
 ## Salida
+
+Ambos detalles, incluso solicitados directamente sin una consulta previa,
+incluyen `sicetac_tradicional`: `total_viaje`, `totales`, `horas_logisticas`,
+`mes`, `rutasid`, `metodo` y `estimado`. Este total se obtiene por el proceso
+habitual para la misma ruta, variante, vehículo, carrocería y horas (cuatro por
+defecto). Para horas personalizadas se aplica movilización + horas × valor hora.
+Se muestra primero, sin sustituir el total independiente del modelo. Si el
+proceso habitual recurre al modelo por falta de tarifa publicada, se identifica
+como estimado; los urbanos conservan el supuesto de 30 km ondulados.
+En `view=costs/consumption`, `data.search.sicetac` usa este total habitual.
 
 `detalle_costos` contiene galones, horas de recorrido/logística/totales,
 rotaciones mensuales calculadas, costo fijo del viaje, costos variables y
