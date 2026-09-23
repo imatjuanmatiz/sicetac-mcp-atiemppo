@@ -22,12 +22,13 @@
     "carroceria": {"type": "string", "default": "General - Estacas", "description": "Envíe el término declarado. El Core lo homologa contra el ruleset publicado antes de consultar SICETAC."},
     "mes": {"type": ["integer", "null"], "description": "Periodo YYYYMM opcional."},
     "peajes": {"type": "boolean", "default": false},
-    "view": {"type": "string", "enum": ["search", "detail"], "default": "search", "description": "search = ficha ruta + SICETAC de la hora acordada + plaza. detail = bloque técnico (tara, PBV, menú H2/H8)."},
+    "view": {"type": "string", "enum": ["search", "detail", "costs", "consumption"], "default": "search", "description": "search = ficha con kilómetros y tarifa publicada. detail = detalle de la búsqueda. costs = modelo completo de costos. consumption = consumo y combustible por terreno."},
     "horas_logisticas": {"type": ["number", "null"], "minimum": 0, "maximum": 48, "description": "Horas logísticas. Default 4 (H4). Envíe 2, 8 u otra cifra si el usuario la pidió y consérvela en el hilo."},
     "modo_viaje": {"type": "string", "enum": ["CARGADO", "VACIO"], "default": "CARGADO", "description": "VACIO significa vehículo sin carga ni contenedor."},
     "tipo_contenedor": {"type": ["string", "null"], "enum": ["CARGADO", "VACIO", null], "description": "Solo para Portacontenedores. Un contenedor vacío transportado usa tipo_contenedor=VACIO y modo_viaje=CARGADO."},
     "viaje_redondo": {"type": "boolean", "default": false, "description": "Compone ida cargada y retorno con contenedor vacío en una sola consulta de resumen."},
     "tipo_contenedor_regreso": {"type": ["string", "null"], "enum": ["VACIO", null], "description": "Para viaje_redondo, el retorno debe ser VACIO."},
+    "rutasid": {"type": ["string", "null"], "description": "Variante seleccionada; conservarla al pedir el detalle de costos o consumo."},
     "rutasid_ida": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta para la ida."},
     "rutasid_regreso": {"type": ["string", "null"], "description": "Úselo solo tras seleccionar una variante de ruta para el regreso."}
   }
