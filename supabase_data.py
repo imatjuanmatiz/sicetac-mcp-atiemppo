@@ -164,18 +164,25 @@ def _alias_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @lru_cache(maxsize=None)
-def get_table_df(key: str) -> pd.DataFrame:
+def _get_table_df_cached(key: str) -> pd.DataFrame:
     table = TABLES.get(key, key)
+    # Exceptions must escape the cached function: an initial network error is
+    # not an empty catalog and must not poison the cache until the next deploy.
+    rows = _fetch_table_all(table)
+    return _alias_columns(pd.DataFrame(rows)) if rows else pd.DataFrame()
+
+
+def get_table_df(key: str) -> pd.DataFrame:
     try:
-        rows = _fetch_table_all(table)
-        if not rows:
-            return pd.DataFrame()
-        df = pd.DataFrame(rows)
-        df = _alias_columns(df)
-        return df
-    except Exception as e:
-        logger.warning(f"⚠️ No se pudo cargar tabla {table}: {e}")
+        return _get_table_df_cached(key)
+    except Exception as exc:
+        logger.warning("No se pudo cargar tabla %s: %s", TABLES.get(key, key), exc)
         return pd.DataFrame()
+
+
+# Preserve the cache invalidation interface used by the service/admin refresh.
+get_table_df.cache_clear = _get_table_df_cached.cache_clear
+get_table_df.cache_info = _get_table_df_cached.cache_info
 
 
 @lru_cache(maxsize=512)

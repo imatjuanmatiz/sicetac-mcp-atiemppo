@@ -144,3 +144,13 @@ class CostDetailTests(unittest.TestCase):
         self.assertEqual(result["data"]["detalle_costos"]["total_viaje"],798891.45)
         self.assertTrue(result["data"]["estimado"])
         self.assertEqual(result["meta"]["units"],1)
+
+    def test_transient_table_error_does_not_poison_catalog_cache(self):
+        import supabase_data
+        supabase_data.get_table_df.cache_clear()
+        self.addCleanup(supabase_data.get_table_df.cache_clear)
+        with patch.object(supabase_data,'_fetch_table_all',side_effect=[RuntimeError('transient network error'),[{'tipo_vehiculo':'C3S3','mes_codigo':202608,'costo_fijo':23000000}]] ) as fetch:
+            self.assertTrue(supabase_data.get_table_df('costos_fijos').empty)
+            self.assertFalse(supabase_data.get_table_df('costos_fijos').empty)
+            self.assertFalse(supabase_data.get_table_df('costos_fijos').empty)
+        self.assertEqual(fetch.call_count,2)
