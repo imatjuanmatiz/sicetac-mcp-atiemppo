@@ -22,7 +22,7 @@ from sicetac_service import (
 from supabase_data import get_client, get_table_df
 from commercial_api import router as commercial_router
 
-app = FastAPI(title="API SICETAC", version="2.5.2")
+app = FastAPI(title="API SICETAC", version="2.5.3")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.
@@ -240,11 +240,10 @@ def calcular_sicetac_texto(data: ConsultaInput):
             if data.detalle_consumo:
                 for terreno, item in r["detalle_consumo"]["por_terreno"].items():
                     lines.append(f"{terreno}: {item['km']:g} km, {item['gal']:.2f} gal, {_format_cop(item['costo_combustible'])}")
-                lines.append(f"Total: {c['total_galones']:.2f} gal, {_format_cop(c['combustible'])}")
+                lines.append(f"Combustible total: {c['total_galones']:.2f} gal, {_format_cop(c['combustible'])}")
             else:
                 lines.extend([f"Galones: {c['total_galones']:.2f}; recorrido: {c['horas_recorrido']} h; logística: {c['horas_logisticas']} h; rotaciones/mes: {c['rotaciones_calculadas']}",
-                    f"Fijos: {_format_cop(c['costo_fijo'])}; variables: {_format_cop(c['costos_variables'])}; otros: {_format_cop(c['otros_costos'])}",
-                    f"Total modelo: {_format_cop(c['total_viaje'])}"])
+                    f"Fijos: {_format_cop(c['costo_fijo'])}; variables: {_format_cop(c['costos_variables'])}; otros: {_format_cop(c['otros_costos'])}"])
             return _json_response({"texto": "\n".join(lines)})
 
         if data.resumen:

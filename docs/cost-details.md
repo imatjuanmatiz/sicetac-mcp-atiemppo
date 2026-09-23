@@ -1,6 +1,6 @@
 # Detalles del modelo de costos
 
-Versión API 2.5.2, puente MCP 1.2.0; publicación de septiembre de 2026.
+Versión API 2.5.3, puente MCP 1.2.0; publicación de septiembre de 2026.
 
 La consulta habitual conserva la búsqueda de movilización publicada más horas
 logísticas y añade `total_km` (`kilometros` en `data.search`). El modelo completo
@@ -30,7 +30,9 @@ incluyen `sicetac_tradicional`: `total_viaje`, `totales`, `horas_logisticas`,
 `mes`, `rutasid`, `metodo` y `estimado`. Este total se obtiene por el proceso
 habitual para la misma ruta, variante, vehículo, carrocería y horas (cuatro por
 defecto). Para horas personalizadas se aplica movilización + horas × valor hora.
-Se muestra primero, sin sustituir el total independiente del modelo. Si el
+Se muestra como **único total del viaje**. El total del modelo se conserva
+solo en la respuesta técnica para auditoría y compatibilidad; no se presenta
+al usuario ni se reemplaza el total habitual por la suma del desglose. Si el
 proceso habitual recurre al modelo por falta de tarifa publicada, se identifica
 como estimado; los urbanos conservan el supuesto de 30 km ondulados.
 En `view=costs/consumption`, `data.search.sicetac` usa este total habitual.
@@ -38,8 +40,9 @@ En `view=costs/consumption`, `data.search.sicetac` usa este total habitual.
 `detalle_costos` contiene galones, horas de recorrido/logística/totales,
 rotaciones mensuales calculadas, costo fijo del viaje, costos variables y
 otros costos. El subtotal variable incluye combustible, peajes, mantenimiento
-e insumos, e imprevistos. Total = fijos + variables + otros; sus componentes
-no se suman nuevamente.
+e insumos, e imprevistos. Internamente, total del modelo = fijos + variables +
+otros; sus componentes no se suman nuevamente. El total visible siempre es el
+de `sicetac_tradicional`.
 
 `detalle_consumo.por_terreno` incluye plano, ondulado, montaña, urbano y
 despavimentado: km, velocidad (km/h), rendimiento (km/galón), horas, galones y

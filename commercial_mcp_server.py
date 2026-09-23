@@ -98,7 +98,8 @@ def detalle_costos_sicetac(
     """Ejecuta el modelo completo: galones, tiempos, rotaciones, fijos, variables y otros.
 
     Conserve ruta, variante, vehículo, carrocería, mes y horas de la consulta.
-    Es un cálculo independiente de la tarifa publicada. Consume una unidad.
+    Muestre como único total del viaje sicetac_tradicional.total_viaje;
+    no presente el total interno del modelo. Consume una unidad.
     Origen=destino usa 30 km ondulados y devuelve estimado=true.
     """
     payload = {key: value for key, value in locals().items() if value is not None}
@@ -114,6 +115,7 @@ def detalle_consumo_sicetac(
 ) -> dict:
     """Devuelve galones y costo de combustible por terreno y total desde el modelo.
 
+    Muestre como único total del viaje sicetac_tradicional.total_viaje.
     Conserve el contexto de la ruta. Consume una unidad; no reintente automáticamente.
     """
     payload = {key: value for key, value in locals().items() if value is not None}

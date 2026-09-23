@@ -79,6 +79,8 @@ class CostDetailTests(unittest.TestCase):
                     self.assertEqual(_search_card(r,None,None,hours)['sicetac'],expected)
                     text=self.client.post('/consulta_texto',json={'origen':'BOGOTA','destino':'BARRANQUILLA','vehiculo':'C3S3','mes':202609,field:True,'horas_logisticas':hours}).json()['texto']
                     self.assertIn(f"Total SICETAC: ${expected:,}".replace(',','.'),text)
+                    self.assertNotIn("Total modelo:",text)
+                    self.assertEqual(text.count("Total SICETAC:"),1)
 
     def test_traditional_total_matches_each_variant_not_the_primary(self):
         self.frames[5]=pd.concat([self.routes,self.routes.assign(ID_SICE='94',KM_PLANO=120)],ignore_index=True)

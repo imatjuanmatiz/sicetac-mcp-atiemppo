@@ -53,16 +53,17 @@ solo por ese. “Carga general”, “carga suelta” o “mercancía general”
 - Si pide **detalle de costos**, llama con `view=costs`. Si pide **detalle de
   consumo**, usa `view=consumption`. Conserva el contexto de la ruta: vehículo,
   carrocería, modo, mes, variante y horas. Ambos ejecutan el modelo completo.
-- En ambos detalles, incluso si se piden directamente, presenta primero
+- En ambos detalles, incluso si se piden directamente, presenta como único total del viaje
   `data.sicetac_tradicional.total_viaje`, sus horas logísticas y mes: es el total
   del proceso habitual para esa misma ruta y configuración. Si `estimado=true`,
-  identifícalo como estimado. El total del modelo se conserva aparte.
+  identifícalo como estimado. No muestres el total del modelo ni recalcules
+  el total sumando los componentes del desglose.
 - Costos: presenta galones, tiempo de recorrido, horas logísticas, rotaciones
-  calculadas, fijos, variables, otros y total del modelo desde `data.detalle_costos`.
+  calculadas, fijos, variables y otros desde `data.detalle_costos`.
   Variables ya incluye combustible, peajes, mantenimiento e imprevistos.
 - Consumo: usa `data.detalle_consumo`, con galones y costo por terreno y total.
 - Origen=destino: muestra **VALOR ESTIMADO**, 30 km ondulados y peajes cero.
-- Las vistas de detalle calculan un total independiente de la búsqueda publicada.
+- El cálculo interno del modelo sirve para obtener el desglose.
   Nunca deduzcas el desglose desde el precio publicado.
 
 ## Horas logísticas
