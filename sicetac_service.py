@@ -7,7 +7,7 @@ from typing import Any
 import unicodedata
 
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import time
 
 from supabase_data import (
@@ -57,10 +57,10 @@ class ConsultaInput(BaseModel):
     valor_peajes_manual: float = 0.0
 
     # LEGACY: sigue existiendo para no romper nada
-    horas_logisticas: float | None = None
+    horas_logisticas: float | None = Field(default=None, ge=0, le=48, allow_inf_nan=False)
 
     # NUEVO: tiempo logístico que pide el usuario (cargue/descargue total)
-    horas_logisticas_personalizadas: float | None = None
+    horas_logisticas_personalizadas: float | None = Field(default=None, ge=0, le=48, allow_inf_nan=False)
 
     # NUEVO: tarifa de stand by por hora > 8h
     tarifa_standby: float = 150000.0
@@ -78,6 +78,9 @@ class ConsultaInput(BaseModel):
 
     # NUEVO: respuesta resumida (por defecto True)
     resumen: bool = True
+    detalle_costos: bool = False
+    detalle_consumo: bool = False
+    rutasid: str | None = None
 
     # NUEVO: compara los totales oficiales contra diciembre de 2025.
     # Se mantiene apagado por defecto para preservar el contrato existente.
@@ -114,7 +117,7 @@ def horas_objetivo_resumen(data: ConsultaInput) -> list[float]:
     if extra is None:
         return horas
     extra_n = float(extra)
-    if extra_n > 0 and extra_n not in horas:
+    if extra_n >= 0 and extra_n not in horas:
         horas.append(extra_n)
     return horas
 
@@ -983,7 +986,7 @@ def _verificar_parametros_modelo(
     ]
     costos = df_costos_fijos[
         (df_costos_fijos["TIPO_VEHICULO"].astype(str).str.upper() == tipo)
-        & (pd.to_numeric(df_costos_fijos["MES"], errors="coerce") == int(mes))
+        & (pd.to_numeric(df_costos_fijos["MES"], errors="coerce") <= int(mes))
     ]
     if params.empty or costos.empty:
         raise SicetacError(
@@ -1066,6 +1069,9 @@ def _promover_variante_principal(respuesta: dict[str, Any]) -> dict[str, Any]:
     respuesta["nombre_sice"] = principal.get("NOMBRE_SICE")
     respuesta["ruta"] = principal.get("RUTA")
     respuesta["totales"] = principal.get("totales") or {}
+    for key in ("total_km", "detalle_costos", "detalle_consumo"):
+        if key in principal:
+            respuesta[key] = principal[key]
     respuesta["detalle_lookup"] = {
         "rutasid": rutasid,
         "nombre_sice": principal.get("NOMBRE_SICE"),
@@ -1367,8 +1373,15 @@ def _route_metadata_map(ruta: pd.DataFrame) -> dict[str, dict[str, Any]]:
             "nombre_sice": row.get("NOMBRE_SICE"),
             "ruta": row.get("RUTA"),
             "id_sice": row.get("ID_SICE"),
+            "total_km": _kilometros_ruta(row),
         }
     return metadata
+
+
+def _kilometros_ruta(row) -> float:
+    return round(sum(float(row.get(key, 0) or 0) for key in (
+        "KM_PLANO", "KM_ONDULADO", "KM_MONTAÑOSO", "KM_URBANO", "KM_DESPAVIMENTADO"
+    )), 2)
 
 
 def calcular_sicetac(data: ConsultaInput) -> dict:
@@ -1383,7 +1396,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             "viaje_redondo está disponible con resumen=true; el detalle por tramo aún no está habilitado.",
         )
     tipo_contenedor = _validar_contexto_tipo_contenedor(data)
-    if tipo_contenedor is not None:
+    if tipo_contenedor == "VACIO":
         raise SicetacError(
             400,
             "tipo_contenedor está disponible con resumen=true; el detalle del modelo aún no incorpora esta serie oficial.",
@@ -1400,7 +1413,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         df_sicetac_valorhora,
     ) = _get_dataframes()
 
-    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
+    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty:
         raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
 
     helper = SICETACHelper(df_municipios)
@@ -1428,6 +1441,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
     if manual_peaje < 0:
         raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual no puede ser negativo")
 
+    es_urbana = False
     if manual_mode:
         ruta = pd.DataFrame()
         fila_ruta = None
@@ -1447,8 +1461,19 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             ruta_rows = rutas_index.get((destination_key, origin_key), [])
         ruta = pd.DataFrame(ruta_rows) if ruta_rows else pd.DataFrame()
 
+        es_urbana = bool(origin_key and origin_key == destination_key)
+        if es_urbana:
+            manual_distancias = {k: 0.0 for k in manual_distancias}
+            manual_distancias["km_ondulado"] = 30.0
+            manual_peaje = 0.0
+            ruta = pd.DataFrame()
+        elif data.rutasid:
+            ruta = ruta[ruta["ID_SICE"].map(_clean_id) == _clean_id(data.rutasid)] if not ruta.empty else ruta
+            if ruta.empty:
+                raise SicetacError(404, "La variante solicitada no pertenece a esta ruta.")
+
         if ruta.empty:
-            if not _has_manual_distances(data):
+            if not es_urbana and not _has_manual_distances(data):
                 raise SicetacError(
                     404,
                     "Ruta no registrada y no se proporcionaron distancias manuales",
@@ -1495,9 +1520,14 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             fallback=(valores[0] if valores else manual_peaje),
         )
 
+    peajes_por_ruta = {}
+
     def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
         distancias = _distancias_from_ruta(ruta_row)
-        valor_peaje_override = _peaje_for_ruta(ruta_row)
+        clave = _clean_id(ruta_row.get("ID_SICE")) if ruta_row is not None else "manual"
+        if clave not in peajes_por_ruta:
+            peajes_por_ruta[clave] = _peaje_for_ruta(ruta_row)
+        valor_peaje_override = peajes_por_ruta[clave]
         if data.modo_viaje.upper() == "VACIO":
             return calcular_modelo_sicetac_extendido_vacio(
                 origen=origen_display,
@@ -1534,103 +1564,67 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
             valor_peaje_override=valor_peaje_override,
         )
 
-    def _normalizar_total(res: dict | None):
-        if res is None:
-            return None
-        if "total_viaje" not in res and "total_viaje_vacio" in res:
-            res["total_viaje"] = res["total_viaje_vacio"]
-        return res
+    horas_seleccionadas = data.horas_logisticas_personalizadas
+    if horas_seleccionadas is None:
+        horas_seleccionadas = data.horas_logisticas
+    if horas_seleccionadas is None:
+        horas_seleccionadas = 4.0
 
-    horas_objetivo = horas_objetivo_resumen(data)
-
-    def _totales_para_ruta(ruta_row):
-        tot = {}
-        for h in horas_objetivo:
-            res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
-            tot[hora_total_key(h)] = float(res.get("total_viaje", 0)) if res else None
-        return tot
-
-    if ruta.empty:
-        totales = _totales_para_ruta(None)
-        respuesta = {
-            "origen": origen_display,
-            "destino": destino_display,
-            "configuracion": data.vehiculo,
-            "mes": int(mes_usar),
-            "carroceria": data.carroceria,
-            "modo_viaje": data.modo_viaje.upper(),
-            "totales": totales,
+    def _detalle_para_ruta(row):
+        resultados = {}
+        try:
+            for h in horas_objetivo_resumen(data):
+                resultados[hora_total_key(h)] = _ejecutar_modelo(h, row)
+        except (ValueError, IndexError, KeyError) as exc:
+            raise SicetacError(503, f"No se puede calcular el detalle con los parámetros disponibles: {exc}") from exc
+        modelo = resultados[hora_total_key(horas_seleccionadas)]
+        total = modelo.get("total_viaje", modelo.get("total_viaje_vacio"))
+        costos = {key: modelo[key] for key in (
+            "total_galones", "horas_recorrido", "horas_logisticas", "horas_totales",
+            "horas_habiles_mes", "rotaciones_calculadas", "costo_fijo_mensual",
+            "mes_costo_fijo", "costo_fijo", "costos_variables", "combustible",
+            "peajes", "mantenimiento", "imprevistos", "otros_costos",
+        )}
+        costos["total_viaje"] = total
+        return {
+            "totales": {key: value.get("total_viaje", value.get("total_viaje_vacio")) for key, value in resultados.items()},
+            "total_km": modelo["total_km"],
+            "detalle_costos": costos,
+            "detalle_consumo": {
+                "total_galones": modelo["total_galones"],
+                "costo_combustible_total": modelo["combustible"],
+                "precio_combustible_galon": modelo["precio_combustible_galon"],
+                "por_terreno": modelo["detalle_via"],
+            },
         }
-        if manual_mode:
-            respuesta["manual_mode_applied"] = True
-            respuesta["manual_input"] = {
-                "total_km": round(sum(manual_distancias.values()), 2),
-                "km_plano": manual_distancias["km_plano"],
-                "km_ondulado": manual_distancias["km_ondulado"],
-                "km_montanoso": manual_distancias["km_montanoso"],
-                "km_urbano": manual_distancias["km_urbano"],
-                "km_despavimentado": manual_distancias["km_despavimentado"],
-                "valor_peajes_manual": float(manual_peaje),
-            }
-        if resolved_route:
-            _attach_resolved_route(respuesta, resolved_route)
-        return respuesta
-
-    if len(ruta) == 1:
-        totales = _totales_para_ruta(fila_ruta)
-        respuesta = {
-            "origen": origen_display,
-            "destino": destino_display,
-            "configuracion": data.vehiculo,
-            "mes": int(mes_usar),
-            "carroceria": data.carroceria,
-            "modo_viaje": data.modo_viaje.upper(),
-            "totales": totales,
-        }
-        if manual_mode:
-            respuesta["manual_mode_applied"] = True
-            respuesta["manual_input"] = {
-                "total_km": round(sum(manual_distancias.values()), 2),
-                "km_plano": manual_distancias["km_plano"],
-                "km_ondulado": manual_distancias["km_ondulado"],
-                "km_montanoso": manual_distancias["km_montanoso"],
-                "km_urbano": manual_distancias["km_urbano"],
-                "km_despavimentado": manual_distancias["km_despavimentado"],
-                "valor_peajes_manual": float(manual_peaje),
-            }
-        if resolved_route:
-            _attach_resolved_route(respuesta, resolved_route)
-        return respuesta
-
-    variantes = []
-    for _, r in ruta.iterrows():
-        variantes.append({
-            "NOMBRE_SICE": r.get("NOMBRE_SICE"),
-            "ID_SICE": r.get("ID_SICE"),
-            "totales": _totales_para_ruta(r),
-        })
 
     respuesta = {
-        "origen": origen_display,
-        "destino": destino_display,
-        "configuracion": data.vehiculo,
-        "mes": int(mes_usar),
-        "carroceria": data.carroceria,
-        "modo_viaje": data.modo_viaje.upper(),
-        "variantes": variantes,
+        "origen": origen_display, "destino": destino_display,
+        "configuracion": data.vehiculo, "mes": int(mes_usar),
+        "carroceria": data.carroceria, "modo_viaje": data.modo_viaje.upper(),
+        "metodo": "modelo_completo", "estimado": es_urbana,
+        "tipo_contenedor": tipo_contenedor,
     }
-    _promover_variante_principal(respuesta)
+    if ruta.empty:
+        respuesta.update(_detalle_para_ruta(None))
+    elif len(ruta) == 1:
+        row = ruta.iloc[0]
+        respuesta.update(_detalle_para_ruta(row))
+        respuesta.update(rutasid=_clean_id(row.get("ID_SICE")), nombre_sice=row.get("NOMBRE_SICE"), ruta=row.get("RUTA"))
+    else:
+        respuesta["variantes"] = [
+            {"ID_SICE": row.get("ID_SICE"), "NOMBRE_SICE": row.get("NOMBRE_SICE"),
+             "RUTA": row.get("RUTA"), **_detalle_para_ruta(row)}
+            for _, row in ruta.iterrows()
+        ]
+        _promover_variante_principal(respuesta)
+    if es_urbana:
+        respuesta["tipo_estimacion"] = "URBANO_30_KM_ONDULADO"
+        respuesta["supuestos"] = ["Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+                                   "Peajes sin registro: $0."]
     if manual_mode:
         respuesta["manual_mode_applied"] = True
-        respuesta["manual_input"] = {
-            "total_km": round(sum(manual_distancias.values()), 2),
-            "km_plano": manual_distancias["km_plano"],
-            "km_ondulado": manual_distancias["km_ondulado"],
-            "km_montanoso": manual_distancias["km_montanoso"],
-            "km_urbano": manual_distancias["km_urbano"],
-            "km_despavimentado": manual_distancias["km_despavimentado"],
-            "valor_peajes_manual": float(manual_peaje),
-        }
+        respuesta["manual_input"] = {**manual_distancias, "total_km": sum(manual_distancias.values()), "valor_peajes_manual": manual_peaje}
     if resolved_route:
         _attach_resolved_route(respuesta, resolved_route)
     return respuesta
@@ -1655,7 +1649,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         df_sicetac_valorhora,
     ) = _get_dataframes()
 
-    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty or df_peajes.empty or df_rutas.empty:
+    if df_municipios.empty or df_vehiculos.empty or df_parametros.empty or df_costos_fijos.empty:
         raise SicetacError(500, "Tablas de Supabase no disponibles o vacías. Verifica conexión y datos.")
 
     helper = SICETACHelper(df_municipios)
@@ -1695,6 +1689,8 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
         cod_destino_str = format_dane_municipality(destino_info["codigo_dane"]) or _clean_id(destino_info["codigo_dane"])
         origin_key = canonical_municipality_dane(origen_info["codigo_dane"])
         destination_key = canonical_municipality_dane(destino_info["codigo_dane"])
+        if origin_key and origin_key == destination_key:
+            return calcular_sicetac(_copiar_consulta(data, resumen=False, modo_aumento=False))
 
         rutas_index = _get_rutas_index(df_rutas)
         ruta_rows = rutas_index.get((origin_key, destination_key), [])
@@ -1751,6 +1747,8 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             # una vigencia anterior.
             mes_codigo=int(mes_usar) if data.mes is not None else None,
         )
+        if data.rutasid:
+            lookup_rows = [item for item in lookup_rows if _clean_id(item["rutasid"]) == _clean_id(data.rutasid)]
         if lookup_rows:
             if len(lookup_rows) == 1:
                 respuesta = {
@@ -1763,6 +1761,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
                     "carroceria": data.carroceria,
                     "modo_viaje": data.modo_viaje.upper(),
                     "tipo_contenedor": _tipo_contenedor(data.tipo_contenedor),
+                    "total_km": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("total_km"),
                     "totales": lookup_rows[0]["totales"],
                     "metodo": lookup_rows[0]["lookup_method"],
                     "nombre_sice": route_metadata.get(lookup_rows[0]["rutasid"], {}).get("nombre_sice"),
@@ -1796,6 +1795,7 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
                     "RUTASID": item["rutasid"],
                     "RUTA": route_info.get("ruta"),
                     "ID_SICE": route_info.get("id_sice") or item["rutasid"],
+                    "total_km": route_info.get("total_km"),
                     "totales": item["totales"],
                     "detalle_lookup": {
                         "movilizacion": item["movilizacion"],
@@ -1830,186 +1830,12 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
             )
             return respuesta
 
-    vehiculo_modelo = _verificar_parametros_modelo(
-        df_parametros, df_costos_fijos, fila_conf, int(mes_usar)
-    )
-
     if _es_contenedor_vacio(data.carroceria, data.tipo_contenedor):
-        raise SicetacError(
-            503,
-            "No hay consolidado oficial vigente para Contenedor vacío en esta ruta/configuración.",
-        )
-
-    def _peaje_for_ruta(ruta_row) -> float:
-        if ruta_row is None:
-            return float(manual_peaje or 0)
-        id_sice = _clean_id(ruta_row.get("ID_SICE"))
-        valores = peajes_index.get((id_sice, ejes_conf), [])
-        return _peaje_total_deterministico(
-            id_sice,
-            data.vehiculo,
-            fallback=(valores[0] if valores else manual_peaje),
-        )
-
-    def _ejecutar_modelo(horas_logisticas_modelo: float | None, ruta_row=None):
-        distancias = _distancias_from_ruta(ruta_row)
-        valor_peaje_override = _peaje_for_ruta(ruta_row)
-        if data.modo_viaje.upper() == "VACIO":
-            return calcular_modelo_sicetac_extendido_vacio(
-                origen=origen_display,
-                destino=destino_display,
-                configuracion=vehiculo_modelo,
-                serie=int(mes_usar),
-                distancias=distancias,
-                valor_peaje_manual=data.valor_peaje_manual,
-                matriz_parametros=df_parametros,
-                matriz_costos_fijos=df_costos_fijos,
-                matriz_vehicular=df_vehiculos,
-                rutas_df=df_rutas,
-                peajes_df=df_peajes,
-                carroceria_especial=data.carroceria,
-                ruta_oficial=ruta_row,
-                horas_logisticas=horas_logisticas_modelo,
-                valor_peaje_override=valor_peaje_override,
-            )
-        return calcular_modelo_sicetac_extendido(
-            origen=origen_display,
-            destino=destino_display,
-            configuracion=vehiculo_modelo,
-            serie=int(mes_usar),
-            distancias=distancias,
-            valor_peaje_manual=data.valor_peaje_manual,
-            matriz_parametros=df_parametros,
-            matriz_costos_fijos=df_costos_fijos,
-            matriz_vehicular=df_vehiculos,
-            rutas_df=df_rutas,
-            peajes_df=df_peajes,
-            carroceria_especial=data.carroceria,
-            ruta_oficial=ruta_row,
-            horas_logisticas=horas_logisticas_modelo,
-            valor_peaje_override=valor_peaje_override,
-        )
-
-    def _normalizar_total(res: dict | None):
-        if res is None:
-            return None
-        if "total_viaje" not in res and "total_viaje_vacio" in res:
-            res["total_viaje"] = res["total_viaje_vacio"]
-        return res
-
-    horas_objetivo = horas_objetivo_resumen(data)
-
-    def _totales_para_ruta(ruta_row):
-        tot = {}
-        for h in horas_objetivo:
-            res = _normalizar_total(_ejecutar_modelo(h, ruta_row=ruta_row))
-            tot[hora_total_key(h)] = float(res.get("total_viaje", 0)) if res else None
-        return tot
-
-    if ruta.empty:
-        totales = _totales_para_ruta(None)
-        respuesta = {
-            "origen": origen_display,
-            "destino": destino_display,
-            "configuracion": data.vehiculo,
-            "mes": int(mes_usar),
-            "carroceria": data.carroceria,
-            "modo_viaje": data.modo_viaje.upper(),
-            "totales": totales,
-        }
-        if manual_mode:
-            respuesta["manual_mode_applied"] = True
-            respuesta["manual_input"] = {
-                "total_km": round(sum(manual_distancias.values()), 2),
-                "km_plano": manual_distancias["km_plano"],
-                "km_ondulado": manual_distancias["km_ondulado"],
-                "km_montanoso": manual_distancias["km_montanoso"],
-                "km_urbano": manual_distancias["km_urbano"],
-                "km_despavimentado": manual_distancias["km_despavimentado"],
-                "valor_peajes_manual": float(manual_peaje),
-            }
-        if resolved_route:
-            _attach_resolved_route(respuesta, resolved_route)
-        _attach_valor_plaza(
-            respuesta,
-            resolved_route=resolved_route,
-            configuracion_lookup=configuracion_lookup,
-            carroceria=data.carroceria,
-            tipo_contenedor=data.tipo_contenedor,
-        )
-        return respuesta
-
-    if len(ruta) == 1:
-        totales = _totales_para_ruta(fila_ruta)
-        respuesta = {
-            "origen": origen_display,
-            "destino": destino_display,
-            "configuracion": data.vehiculo,
-            "mes": int(mes_usar),
-            "carroceria": data.carroceria,
-            "modo_viaje": data.modo_viaje.upper(),
-            "totales": totales,
-        }
-        if manual_mode:
-            respuesta["manual_mode_applied"] = True
-            respuesta["manual_input"] = {
-                "total_km": round(sum(manual_distancias.values()), 2),
-                "km_plano": manual_distancias["km_plano"],
-                "km_ondulado": manual_distancias["km_ondulado"],
-                "km_montanoso": manual_distancias["km_montanoso"],
-                "km_urbano": manual_distancias["km_urbano"],
-                "km_despavimentado": manual_distancias["km_despavimentado"],
-                "valor_peajes_manual": float(manual_peaje),
-        }
-        if resolved_route:
-            _attach_resolved_route(respuesta, resolved_route)
-        _attach_valor_plaza(
-            respuesta,
-            resolved_route=resolved_route,
-            configuracion_lookup=configuracion_lookup,
-            carroceria=data.carroceria,
-            tipo_contenedor=data.tipo_contenedor,
-        )
-        return respuesta
-
-    variantes = []
-    for _, r in ruta.iterrows():
-        variantes.append({
-            "NOMBRE_SICE": r.get("NOMBRE_SICE"),
-            "ID_SICE": r.get("ID_SICE"),
-            "totales": _totales_para_ruta(r),
-        })
-
-    respuesta = {
-        "origen": origen_display,
-        "destino": destino_display,
-        "configuracion": data.vehiculo,
-        "mes": int(mes_usar),
-        "carroceria": data.carroceria,
-        "modo_viaje": data.modo_viaje.upper(),
-        "variantes": variantes,
-    }
-    _promover_variante_principal(respuesta)
-    if manual_mode:
-        respuesta["manual_mode_applied"] = True
-        respuesta["manual_input"] = {
-            "total_km": round(sum(manual_distancias.values()), 2),
-            "km_plano": manual_distancias["km_plano"],
-            "km_ondulado": manual_distancias["km_ondulado"],
-            "km_montanoso": manual_distancias["km_montanoso"],
-            "km_urbano": manual_distancias["km_urbano"],
-            "km_despavimentado": manual_distancias["km_despavimentado"],
-            "valor_peajes_manual": float(manual_peaje),
-        }
-    if resolved_route:
-        _attach_resolved_route(respuesta, resolved_route)
-    _attach_valor_plaza(
-        respuesta,
-        resolved_route=resolved_route,
-        configuracion_lookup=configuracion_lookup,
-        carroceria=data.carroceria,
-        tipo_contenedor=data.tipo_contenedor,
-    )
+        raise SicetacError(503, "No hay consolidado oficial vigente para Contenedor vacío en esta ruta/configuración.")
+    respuesta = calcular_sicetac(_copiar_consulta(data, resumen=False, modo_aumento=False))
+    _attach_valor_plaza(respuesta, resolved_route=resolved_route,
+                        configuracion_lookup=configuracion_lookup,
+                        carroceria=data.carroceria, tipo_contenedor=data.tipo_contenedor)
     return respuesta
 
 
@@ -2158,6 +1984,8 @@ def _adjuntar_modo_aumento(data: ConsultaInput, respuesta: dict[str, Any]) -> di
 
 def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     """Calcula el resumen y, opcionalmente, la variación frente a diciembre de 2025."""
+    if data.detalle_costos or data.detalle_consumo:
+        return calcular_sicetac(data)
     if bool(getattr(data, "modo_aumento", False)):
         if data.viaje_redondo:
             raise SicetacError(400, "modo_aumento aún no está habilitado para viaje_redondo.")

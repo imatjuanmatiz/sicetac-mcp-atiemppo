@@ -476,7 +476,8 @@ class PrequoteInput(BaseModel):
     tipo_contenedor_regreso: str | None = None
     rutasid_ida: str | None = Field(None, max_length=64)
     rutasid_regreso: str | None = Field(None, max_length=64)
-    view: str = Field("detail", max_length=16)
+    rutasid: str | None = Field(None, max_length=64)
+    view: str = Field("detail", max_length=20)
     horas_logisticas: float | None = Field(None, ge=0, le=48)
 
 
@@ -522,6 +523,9 @@ def _prequote_sicetac_input(
         rutasid_regreso=data.rutasid_regreso,
         horas_logisticas=data.horas_logisticas,
         horas_logisticas_personalizadas=data.horas_logisticas,
+        rutasid=data.rutasid,
+        detalle_costos=data.view.lower() in {"costs", "detalle_costos"},
+        detalle_consumo=data.view.lower() in {"consumption", "detalle_consumo"},
         resumen=True,
     )
 
@@ -759,6 +763,8 @@ def _leg_search(leg: Any, horas: float | None = None) -> dict[str, Any]:
     hours = _hour_selection(totals, horas)
     return {
         "ruta": _route_display_name(row),
+        "kilometros": row.get("total_km"),
+        "estimado": bool(row.get("estimado")),
         "sicetac_corte": row.get("mes"),
         "valor_plaza": plaza["valor"],
         "valor_plaza_corte": plaza["corte"],
@@ -792,6 +798,7 @@ def _search_card(
         regreso = _leg_search(sicetac_reference.get("regreso"), horas_logisticas)
         return {
             "ruta": ida.get("ruta"),
+            "kilometros": ida.get("kilometros"),
             "configuracion": configuration,
             "sicetac_corte": ida.get("sicetac_corte"),
             "valor_plaza": ida.get("valor_plaza"),
@@ -810,7 +817,10 @@ def _search_card(
     totals = ref.get("totales") if isinstance(ref.get("totales"), dict) else {}
     hours = _hour_selection(totals, horas_logisticas)
     return {
-        "ruta": _route_display_name(ref),
+        "ruta": _route_display_name(ref) or (f"{ref['origen']} a {ref['destino']}" if ref.get("origen") and ref.get("destino") else None),
+        "kilometros": ref.get("total_km"),
+        "estimado": bool(ref.get("estimado")),
+        "supuestos": ref.get("supuestos", []),
         "configuracion": configuration,
         "sicetac_corte": ref.get("mes"),
         "valor_plaza": plaza["valor"],
@@ -914,6 +924,9 @@ def market_prequote(
                     },
                 }
             )
+        if data.view.lower() in {"costs", "detalle_costos", "consumption", "detalle_consumo"} and sicetac_reference:
+            for key in ("detalle_costos", "detalle_consumo"):
+                payload["data"][key] = sicetac_reference.get(key)
         return _json_response(payload, request_id)
     except PublishedRuleSetUnavailable as exc:
         status_code = 503

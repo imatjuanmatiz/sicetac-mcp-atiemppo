@@ -34,12 +34,17 @@ La ficha presenta solo esa hora, no el menú H2/H4/H8.
 
 - `ruta` — `NOMBRE_SICE`
 - `configuracion` — la que usó el motor
+- `kilometros` — distancia de la ruta seleccionada
+- `estimado` y `supuestos` — mostrar explícitamente en rutas urbanas
 - `horas_logisticas` + `horas_etiqueta` + `sicetac` (valor de esa hora)
 - `sicetac_corte`
 - `valor_plaza` + `valor_plaza_corte` (null → “sin valor en plaza”)
 
 Fuera de la ficha: tara, PBV, H2/H8, alternativas, regla provisional. Eso es
-`view=detail`, solo si alguien pide el desglose.
+`view=detail`, para revisar la búsqueda. Para **detalle de costos** usar
+`view=costs`; para **detalle de consumo** usar `view=consumption`. Ambos ejecutan
+el modelo completo conservando ruta, vehículo, carrocería, mes, variante y horas.
+Ver [contrato del detalle](../cost-details.md).
 
 ## Qué cambia al crear otro agente
 

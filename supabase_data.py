@@ -29,7 +29,7 @@ TABLES: Dict[str, str] = {
     "municipios": os.getenv("SICETAC_TABLE_MUNICIPIOS", "municipios"),
     "vehiculos": os.getenv("SICETAC_TABLE_VEHICULOS", "configuracion_vehicular"),
     "parametros": os.getenv("SICETAC_TABLE_PARAMETROS", "parametros_vigentes"),
-    "costos_fijos": os.getenv("SICETAC_TABLE_COSTOS_FIJOS", "costos_fijos_vigentes"),
+    "costos_fijos": os.getenv("SICETAC_TABLE_COSTOS_FIJOS", "costos_fijos"),
     "peajes": os.getenv("SICETAC_TABLE_PEAJES", "peajes_vigentes"),
     "rutas": os.getenv("SICETAC_TABLE_RUTAS", "rutas"),
     "sicetac_movilizacion": os.getenv("SICETAC_TABLE_SICETAC_MOVILIZACION", "sicetac_movilizacion_vigentes"),

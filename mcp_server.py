@@ -48,6 +48,9 @@ def calcular_sicetac_tool(
     peajes: bool = False,
     incluir_peajes: bool = False,
     detalle_peajes: bool = False,
+    detalle_costos: bool = False,
+    detalle_consumo: bool = False,
+    rutasid: str | None = None,
 ):
     """
     Calcula el modelo SICETAC usando datos de Supabase.
@@ -84,6 +87,9 @@ def calcular_sicetac_tool(
             peajes=peajes,
             incluir_peajes=incluir_peajes,
             detalle_peajes=detalle_peajes,
+            detalle_costos=detalle_costos,
+            detalle_consumo=detalle_consumo,
+            rutasid=rutasid,
         )
         if resumen:
             respuesta = calcular_sicetac_resumen(payload)

@@ -6,7 +6,7 @@ from commercial_client import CommercialClient
 
 mcp = FastMCP("sicetac-comercial")
 read_only = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True)
-BRIDGE_VERSION = "1.1.0"
+BRIDGE_VERSION = "1.2.0"
 
 
 @mcp.tool(annotations=read_only)
@@ -51,6 +51,7 @@ def cotizar_sicetac(
     rutasid_ida: str | None = None, rutasid_regreso: str | None = None,
     horas_logisticas: float | None = None, peajes: bool = False,
     detalle_peajes: bool = False, modo_aumento: bool = False,
+    detalle_costos: bool = False, detalle_consumo: bool = False, rutasid: str | None = None,
 ) -> dict:
     """Consulta SICETAC por API. Consume una unidad; no reintentar automáticamente.
 
@@ -72,6 +73,7 @@ def precotizar_transporte(
     carroceria: str = "General - Estacas", mes: int | None = None,
     peajes: bool = True, modo_viaje: str = "CARGADO",
     tipo_contenedor: str | None = None,
+    view: str = "detail", horas_logisticas: float | None = None, rutasid: str | None = None,
 ) -> dict:
     """Aplica el Core técnico y luego SICETAC. Consume una unidad y no emite precio comercial.
 
@@ -85,6 +87,38 @@ def precotizar_transporte(
     """
     payload = {key: value for key, value in locals().items() if value is not None}
     return CommercialClient.from_env().prequote(payload)
+
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False))
+def detalle_costos_sicetac(
+    origen: str, destino: str, vehiculo: str, carroceria: str = "GENERAL",
+    mes: int | None = None, rutasid: str | None = None,
+    horas_logisticas: float = 4, modo_viaje: str = "CARGADO",
+) -> dict:
+    """Ejecuta el modelo completo: galones, tiempos, rotaciones, fijos, variables y otros.
+
+    Conserve ruta, variante, vehículo, carrocería, mes y horas de la consulta.
+    Es un cálculo independiente de la tarifa publicada. Consume una unidad.
+    Origen=destino usa 30 km ondulados y devuelve estimado=true.
+    """
+    payload = {key: value for key, value in locals().items() if value is not None}
+    payload.update(resumen=False, detalle_costos=True)
+    return CommercialClient.from_env().quote(payload)
+
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False))
+def detalle_consumo_sicetac(
+    origen: str, destino: str, vehiculo: str, carroceria: str = "GENERAL",
+    mes: int | None = None, rutasid: str | None = None,
+    horas_logisticas: float = 4, modo_viaje: str = "CARGADO",
+) -> dict:
+    """Devuelve galones y costo de combustible por terreno y total desde el modelo.
+
+    Conserve el contexto de la ruta. Consume una unidad; no reintente automáticamente.
+    """
+    payload = {key: value for key, value in locals().items() if value is not None}
+    payload.update(resumen=False, detalle_consumo=True)
+    return CommercialClient.from_env().quote(payload)
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False))

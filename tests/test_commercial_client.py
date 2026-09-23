@@ -96,7 +96,7 @@ class ClientTests(unittest.TestCase):
 
     def test_mcp_schema_exposes_required_selections_and_quota_effect(self):
         tools = {tool.name: tool for tool in asyncio.run(commercial_mcp_server.mcp.list_tools())}
-        self.assertEqual(set(tools), {"listar_vehiculos", "listar_carrocerias", "listar_municipios", "consultar_consumo", "consultar_instrucciones_vigentes", "cotizar_sicetac", "precotizar_transporte", "registrar_termino_para_revision"})
+        self.assertEqual(set(tools), {"listar_vehiculos", "listar_carrocerias", "listar_municipios", "consultar_consumo", "consultar_instrucciones_vigentes", "cotizar_sicetac", "precotizar_transporte", "registrar_termino_para_revision", "detalle_costos_sicetac", "detalle_consumo_sicetac"})
         quote = tools["cotizar_sicetac"]
         self.assertIn("vehiculo", quote.inputSchema["required"])
         self.assertIn("carroceria", quote.inputSchema["required"])

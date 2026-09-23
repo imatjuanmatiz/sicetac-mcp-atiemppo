@@ -140,6 +140,7 @@ class PrequoteApiTests(unittest.TestCase):
         body = response.json()["data"]
         self.assertEqual(set(body), {"search"})
         self.assertEqual(body["search"], {
+            "kilometros": None, "estimado": False, "supuestos": [],
             "ruta": "BOGOTA-BUENAVENTURA",
             "configuracion": "C2S2",
             "sicetac_corte": 202609,

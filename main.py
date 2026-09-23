@@ -22,7 +22,7 @@ from sicetac_service import (
 from supabase_data import get_client, get_table_df
 from commercial_api import router as commercial_router
 
-app = FastAPI(title="API SICETAC", version="2.4.0")
+app = FastAPI(title="API SICETAC", version="2.5.0")
 
 # Orden de presentación para los rangos livianos vigentes desde agosto de 2026.
 # El resto del catálogo conserva un orden alfabético estable.
@@ -228,6 +228,22 @@ def calcular_sicetac_texto(data: ConsultaInput):
             # Formato COP sin decimales, con separadores
             return f"${v:,.0f}".replace(",", ".")
 
+        if data.detalle_costos or data.detalle_consumo or not data.resumen:
+            r = calcular_sicetac_service(data)
+            c = r["detalle_costos"]
+            lines = [f"{r['origen']} a {r['destino']} · {r['total_km']} km"]
+            if r.get("estimado"):
+                lines.append("VALOR ESTIMADO: 30 km en terreno ondulado.")
+            if data.detalle_consumo:
+                for terreno, item in r["detalle_consumo"]["por_terreno"].items():
+                    lines.append(f"{terreno}: {item['km']:g} km, {item['gal']:.2f} gal, {_format_cop(item['costo_combustible'])}")
+                lines.append(f"Total: {c['total_galones']:.2f} gal, {_format_cop(c['combustible'])}")
+            else:
+                lines.extend([f"Galones: {c['total_galones']:.2f}; recorrido: {c['horas_recorrido']} h; logística: {c['horas_logisticas']} h; rotaciones/mes: {c['rotaciones_calculadas']}",
+                    f"Fijos: {_format_cop(c['costo_fijo'])}; variables: {_format_cop(c['costos_variables'])}; otros: {_format_cop(c['otros_costos'])}",
+                    f"Total modelo: {_format_cop(c['total_viaje'])}"])
+            return _json_response({"texto": "\n".join(lines)})
+
         if data.resumen:
             r = calcular_sicetac_resumen(data)
             if consulta_solicita_peajes(data):
@@ -277,6 +293,9 @@ def calcular_sicetac_texto(data: ConsultaInput):
             texto += _valor_plaza_text(r.get("valor_plaza"), _format_cop)
             if (r.get("aumento") or {}).get("activo"):
                 texto += " Modo aumento activo: conserva este modo en las próximas búsquedas hasta decir 'modo aumento off'."
+            texto += f" · {r.get('total_km')} km" if r.get("total_km") is not None else ""
+            if r.get("estimado"):
+                texto = "VALOR ESTIMADO (30 km ondulados). " + texto
             return _json_response({"texto": texto})
         else:
             r = calcular_sicetac_service(data)
