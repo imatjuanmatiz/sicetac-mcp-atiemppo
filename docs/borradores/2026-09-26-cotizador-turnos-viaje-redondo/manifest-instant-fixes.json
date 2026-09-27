@@ -1,0 +1,26 @@
+{
+  "status": "local_only_not_deployed",
+  "backup": "/Users/atiemppoia/codex/_backups/sicetac-instant/20260927T021828Z",
+  "files": [
+    {
+      "file": "app/page.jsx",
+      "before_sha256": "751d4448fcb322e597ebf08b65eb34c40f1e9c142ed6e42eb9ef3efac0090a58",
+      "after_sha256": "e3a9735314a164c64e55a14322d3eab77753961eba30c42f73fcbeb32639e15b"
+    },
+    {
+      "file": "app/api/route/route.js",
+      "before_sha256": "fa7347620f616c4691d4b1d67cceec885159aab9e6e84edb1ab4a1153f743449",
+      "after_sha256": "104a6788bb57defbe5945fd78daa333bd76e9433760bbe1f3fe68b510dc8fb83"
+    },
+    {
+      "file": "app/lib/route-errors.js",
+      "before_sha256": null,
+      "after_sha256": "9d98026c97f2a363f0fb38bf90e43c6821bb608a931ef4e2e01e851327689fb3"
+    },
+    {
+      "file": "test/route-flow.test.mjs",
+      "before_sha256": null,
+      "after_sha256": "e5ef1a6a0adea74e2b7a352abafe389a90e93cbe08c29574a70f13474d9d0cca"
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "project_id": "kpdlneddaqvkpwfbqejk",
+  "read_only": true,
+  "source": "Supabase select",
+  "summary": [
+    {
+      "rows": 1271,
+      "distinct_codes": 1271,
+      "latest_update": "2026-09-02 23:37:51.845034+00"
+    }
+  ],
+  "relevant_rows": [
+    {
+      "codigo_dane": 5837000,
+      "nombre_oficial": "TURBO",
+      "variacion_1": "TURBO",
+      "variacion_2": "TURBO",
+      "variacion_3": null,
+      "departamento": "ANTIOQUIA",
+      "updated_at": "2026-02-08 01:02:26.919674+00"
+    },
+    {
+      "codigo_dane": 5837002,
+      "nombre_oficial": "NUEVA COLONIA",
+      "variacion_1": "NUEVA COLONIA TURBO",
+      "variacion_2": null,
+      "variacion_3": null,
+      "departamento": "ANTIOQUIA",
+      "updated_at": "2026-03-02 17:45:37.958945+00"
+    },
+    {
+      "codigo_dane": 8573000,
+      "nombre_oficial": "PUERTO COLOMBIA",
+      "variacion_1": "PUERTO COLOMBIA",
+      "variacion_2": "PUERTO COLOMBIA",
+      "variacion_3": null,
+      "departamento": "ATLÁNTICO",
+      "updated_at": "2026-02-08 01:02:26.919674+00"
+    }
+  ],
+  "published_ruleset": [
+    {
+      "version": "2026.09.17-market.1",
+      "published_at": "2026-09-18 12:05:09.501403+00",
+      "source_snapshot_id": "sicetac_20260901_validated",
+      "location_aliases": {
+        "ZFO": {
+          "dane_code": "25473000",
+          "department": "Cundinamarca",
+          "municipality": "Mosquera"
+        },
+        "ZFP": {
+          "dane_code": "76520000",
+          "department": "Valle del Cauca",
+          "municipality": "Palmira"
+        },
+        "ZOFRANCA": {
+          "dane_code": "13001000",
+          "department": "Bolívar",
+          "municipality": "Cartagena"
+        },
+        "ZF BOGOTA": {
+          "dane_code": "11001000",
+          "department": "Bogotá D.C.",
+          "municipality": "Bogotá"
+        },
+        "ZF PACIFICO": {
+          "dane_code": "76520000",
+          "department": "Valle del Cauca",
+          "municipality": "Palmira"
+        },
+        "ZF RIONEGRO": {
+          "dane_code": "5615000",
+          "department": "Antioquia",
+          "municipality": "Rionegro"
+        },
+        "ZF CARTAGENA": {
+          "dane_code": "13001000",
+          "department": "Bolívar",
+          "municipality": "Cartagena"
+        },
+        "ZF OCCIDENTE": {
+          "dane_code": "25473000",
+          "department": "Cundinamarca",
+          "municipality": "Mosquera"
+        },
+        "ZF SANTANDER": {
+          "dane_code": "68276000",
+          "department": "Santander",
+          "municipality": "Floridablanca"
+        },
+        "ZF BARRANQUILLA": {
+          "dane_code": "8001000",
+          "department": "Atlántico",
+          "municipality": "Barranquilla"
+        },
+        "ZONA FRANCA BOGOTA": {
+          "dane_code": "11001000",
+          "department": "Bogotá D.C.",
+          "municipality": "Bogotá"
+        },
+        "ZONA FRANCA PACIFICO": {
+          "dane_code": "76520000",
+          "department": "Valle del Cauca",
+          "municipality": "Palmira"
+        },
+        "ZONA FRANCA RIONEGRO": {
+          "dane_code": "5615000",
+          "department": "Antioquia",
+          "municipality": "Rionegro"
+        },
+        "ZONA FRANCA CARTAGENA": {
+          "dane_code": "13001000",
+          "department": "Bolívar",
+          "municipality": "Cartagena"
+        },
+        "ZONA FRANCA DE BOGOTA": {
+          "dane_code": "11001000",
+          "department": "Bogotá D.C.",
+          "municipality": "Bogotá"
+        },
+        "ZONA FRANCA OCCIDENTE": {
+          "dane_code": "25473000",
+          "department": "Cundinamarca",
+          "municipality": "Mosquera"
+        },
+        "ZONA FRANCA SANTANDER": {
+          "dane_code": "68276000",
+          "department": "Santander",
+          "municipality": "Floridablanca"
+        },
+        "ZONA FRANCA DE RIONEGRO": {
+          "dane_code": "5615000",
+          "department": "Antioquia",
+          "municipality": "Rionegro"
+        },
+        "ZONA FRANCA BARRANQUILLA": {
+          "dane_code": "8001000",
+          "department": "Atlántico",
+          "municipality": "Barranquilla"
+        },
+        "ZONA FRANCA DE OCCIDENTE": {
+          "dane_code": "25473000",
+          "department": "Cundinamarca",
+          "municipality": "Mosquera"
+        },
+        "ZONA FRANCA DEL PACIFICO": {
+          "dane_code": "76520000",
+          "department": "Valle del Cauca",
+          "municipality": "Palmira"
+        }
+      }
+    }
+  ],
+  "checked_at_utc": "2026-09-27",
+  "port_location_source": "https://puertoantioquia.com.co/es/contact",
+  "migration_preflight": {
+    "eligible_target_rows": 1,
+    "alias_conflicts": 0
+  }
+}

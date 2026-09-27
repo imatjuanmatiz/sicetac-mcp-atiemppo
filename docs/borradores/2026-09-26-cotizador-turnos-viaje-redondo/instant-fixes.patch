@@ -1,0 +1,282 @@
+--- a/app/page.jsx
++++ b/app/page.jsx
+@@ -1,8 +1,9 @@
+ "use client";
+ 
+ import Image from "next/image";
+-import { useState } from "react";
++import { useRef, useState } from "react";
+ import { BODY_TYPE_OPTIONS, VEHICLE_OPTIONS } from "./lib/sicetac-options";
++import { routeErrorMessage } from "./lib/route-errors";
+ 
+ const VEHICLE_LABELS = {
+   CA: "Camioneta PBV 3.500–5.000 kg",
+@@ -76,9 +77,19 @@
+   const [loading, setLoading] = useState(false);
+   const [error, setError] = useState("");
+   const [result, setResult] = useState(null);
++  const requestSequence = useRef(0);
++
++  function invalidateRoute() {
++    requestSequence.current += 1;
++    setRutasSeleccionadas({ ida: "", regreso: "" });
++    setResult(null);
++    setError("");
++    setLoading(false);
++  }
+ 
+   async function onSubmit(e) {
+     e.preventDefault();
++    const requestId = ++requestSequence.current;
+     setLoading(true);
+     setError("");
+     setResult(null);
+@@ -105,15 +116,16 @@
+         }),
+       });
+       const data = await res.json();
++      if (requestId !== requestSequence.current) return;
+       if (!res.ok) {
+-        setError(data?.error || data?.detail || "No fue posible consultar la ruta.");
++        setError(routeErrorMessage(data));
+         return;
+       }
+       setResult(data || null);
+     } catch {
+-      setError("Error de red consultando el servicio.");
++      if (requestId === requestSequence.current) setError("Error de red consultando el servicio.");
+     } finally {
+-      setLoading(false);
++      if (requestId === requestSequence.current) setLoading(false);
+     }
+   }
+ 
+@@ -227,7 +239,7 @@
+                     placeholder="Ej. Bogotá"
+                     required
+                     value={origen}
+-                    onChange={(e) => setOrigen(e.target.value)}
++                    onChange={(e) => { invalidateRoute(); setOrigen(e.target.value); }}
+                   />
+                 </div>
+                 <div className="field">
+@@ -238,12 +250,12 @@
+                     placeholder="Ej. Medellín"
+                     required
+                     value={destino}
+-                    onChange={(e) => setDestino(e.target.value)}
++                    onChange={(e) => { invalidateRoute(); setDestino(e.target.value); }}
+                   />
+                 </div>
+                 <div className="field field-full">
+                   <label htmlFor="vehiculo">Tipo de vehiculo</label>
+-                  <select id="vehiculo" name="vehiculo" value={vehiculo} onChange={(e) => setVehiculo(e.target.value)}>
++                  <select id="vehiculo" name="vehiculo" value={vehiculo} onChange={(e) => { invalidateRoute(); setVehiculo(e.target.value); }}>
+                     {VEHICLE_OPTIONS.map((v) => (
+                       <option key={v} value={v}>
+                         {v} — {VEHICLE_LABELS[v]}
+@@ -258,6 +270,7 @@
+                     name="modo-viaje"
+                     value={modoViaje}
+                     onChange={(e) => {
++                      invalidateRoute();
+                       const modo = e.target.value;
+                       setModoViaje(modo);
+                       if (modo === "VACIO") setViajeRedondo(false);
+@@ -280,8 +293,12 @@
+                       key={c}
+                       type="button"
+                       onClick={() => {
++                        invalidateRoute();
+                         setCarroceria(c);
+-                        if (c !== "Portacontenedores") setTipoContenedor("CARGADO");
++                        if (c !== "Portacontenedores") {
++                          setTipoContenedor("CARGADO");
++                          setViajeRedondo(false);
++                        }
+                       }}
+                       className={`carroceria-chip ${carroceria === c ? "active" : ""}`}
+                     >
+@@ -297,7 +314,11 @@
+                       id="tipo-contenedor"
+                       name="tipo-contenedor"
+                       value={tipoContenedor}
+-                      onChange={(e) => setTipoContenedor(e.target.value)}
++                      onChange={(e) => {
++                        invalidateRoute();
++                        setTipoContenedor(e.target.value);
++                        if (e.target.value === "VACIO") setViajeRedondo(false);
++                      }}
+                     >
+                       <option value="CARGADO">Contenedor cargado</option>
+                       <option value="VACIO">Contenedor vacío</option>
+@@ -309,11 +330,13 @@
+                     <label className="field" style={{ marginTop: 8 }}>
+                       <span>Tipo de recorrido</span>
+                       <select
++                        id="tipo-recorrido"
+                         value={viajeRedondo ? "REDONDO" : "SENCILLO"}
+                         onChange={(e) => {
++                          invalidateRoute();
+                           const redondo = e.target.value === "REDONDO";
+                           setViajeRedondo(redondo);
+-                          if (!redondo) setRutasSeleccionadas({ ida: "", regreso: "" });
++                          if (redondo) setTipoContenedor("CARGADO");
+                         }}
+                       >
+                         <option value="SENCILLO">Viaje sencillo</option>
+--- a/app/api/route/route.js
++++ b/app/api/route/route.js
+@@ -411,6 +411,12 @@
+       { status: 400 }
+     );
+   }
++  if (input.viaje_redondo && input.tipo_contenedor === "VACIO") {
++    return Response.json(
++      { error: "El viaje redondo requiere contenedor cargado en la ida y contenedor vacío en el regreso." },
++      { status: 400 }
++    );
++  }
+ 
+   const requestPayload = {
+     origen: input.origen,
+--- /dev/null
++++ b/app/lib/route-errors.js
+@@ -0,0 +1,16 @@
++const DEFAULT_ERROR = "No fue posible consultar la ruta.";
++
++export function routeErrorMessage(value, fallback = DEFAULT_ERROR) {
++  if (typeof value === "string") return value.trim() || fallback;
++  if (Array.isArray(value)) {
++    const messages = value.map((item) => routeErrorMessage(item, "")).filter(Boolean);
++    return messages.length ? messages.join(" · ") : fallback;
++  }
++  if (value && typeof value === "object") {
++    for (const key of ["msg", "message", "error", "detail"]) {
++      const message = routeErrorMessage(value[key], "");
++      if (message) return message;
++    }
++  }
++  return fallback;
++}
+--- /dev/null
++++ b/test/route-flow.test.mjs
+@@ -0,0 +1,118 @@
++import assert from "node:assert/strict";
++import { readFileSync } from "node:fs";
++import { createRequire } from "node:module";
++import test from "node:test";
++import vm from "node:vm";
++import { routeErrorMessage } from "../app/lib/route-errors.js";
++import { BODY_TYPE_OPTIONS, VEHICLE_OPTIONS } from "../app/lib/sicetac-options.js";
++
++const require = createRequire(process.env.INSTANT_DEPENDENCIES || new URL("../package.json", import.meta.url));
++const babel = require("next/dist/compiled/babel/core");
++const presetReact = require("next/dist/compiled/babel/preset-react");
++const React = require("react");
++const { renderToStaticMarkup } = require("react-dom/server");
++const pageSource = readFileSync(new URL("../app/page.jsx", import.meta.url), "utf8");
++const { code } = babel.transformSync(
++  pageSource.replace(/^import .*;\r?\n/gm, "").replace("export default function Page", "function Page") + "\nthis.Page = Page;",
++  { presets: [[presetReact, { runtime: "classic" }]], configFile: false, babelrc: false },
++);
++
++// Ejecuta los handlers reales del componente con estado controlado. No monta
++// navegador ni consulta red; React real valida el renderizado de errores.
++function ui() {
++  const slots = []; let cursor = 0; const sent = [];
++  const state = initial => {
++    const slot = cursor++;
++    if (!(slot in slots)) slots[slot] = initial;
++    return [slots[slot], value => { slots[slot] = typeof value === "function" ? value(slots[slot]) : value; }];
++  };
++  const ctx = vm.createContext({ React, Image: () => null, useState: state,
++    useRef: initial => state({ current: initial })[0], routeErrorMessage, BODY_TYPE_OPTIONS, VEHICLE_OPTIONS,
++    fetch: async (_url, options) => {
++      sent.push(JSON.parse(options.body));
++      return { ok: true, json: async () => ({ normalized: { selection_required: true, meta: {}, route_options: { ida: [{ id: "i", nombre: "Ida" }], regreso: [{ id: "r", nombre: "Regreso" }] }, routes: [] } }) };
++    },
++  });
++  vm.runInContext(code, ctx);
++  const render = () => { cursor = 0; return ctx.Page(); };
++  function find(predicate, node = render()) {
++    if (Array.isArray(node)) { for (const child of node) { const found = find(predicate, child); if (found) return found; } return null; }
++    if (!node || typeof node !== "object") return null;
++    return predicate(node) ? node : find(predicate, node.props?.children ?? null);
++  }
++  const byId = id => { const node = find(n => n.props?.id === id); assert(node, `Missing ${id}`); return node; };
++  const change = (id, value) => byId(id).props.onChange({ target: { value } });
++  const body = value => { const node = find(n => n.type === "button" && n.props.children === value); assert(node); node.props.onClick(); };
++  const submit = () => find(n => n.type === "form").props.onSubmit({ preventDefault() {} });
++  return { change, body, submit, sent, ctx, find, byId };
++}
++async function selectedRoundTrip() {
++  const page = ui(); page.change("origen", "Cartagena"); page.change("destino", "Cúcuta");
++  page.body("Portacontenedores"); page.change("tipo-recorrido", "REDONDO");
++  await page.submit(); page.change("ruta-ida", "i"); page.change("ruta-regreso", "r");
++  return page;
++}
++
++for (const [field, value] of [["origen", "Bogotá"], ["destino", "Medellín"], ["vehiculo", "C2S2"], ["modo-viaje", "VACIO"], ["tipo-contenedor", "VACIO"], ["tipo-recorrido", "SENCILLO"]]) {
++  test(`cambiar ${field} invalida rutas y resultado anteriores`, async () => {
++    const page = await selectedRoundTrip(); page.change(field, value);
++    assert.equal(page.find(n => n.props?.id === "ruta-ida"), null);
++    await page.submit(); const sent = page.sent.at(-1);
++    assert.equal(sent.rutasid_ida, null); assert.equal(sent.rutasid_regreso, null);
++  });
++}
++test("cambiar carrocería descarta retorno y selección anterior", async () => {
++  const page = await selectedRoundTrip(); page.body("General - Estacas"); await page.submit();
++  assert.equal(page.sent.at(-1).viaje_redondo, false); assert.equal(page.sent.at(-1).rutasid_ida, null);
++});
++test("conservar el recorrido permite enviar las variantes elegidas", async () => {
++  const page = await selectedRoundTrip(); await page.submit();
++  assert.equal(page.sent.at(-1).rutasid_ida, "i"); assert.equal(page.sent.at(-1).rutasid_regreso, "r");
++});
++test("ida vacía desactiva redondo; elegir redondo exige ida cargada", async () => {
++  const page = await selectedRoundTrip(); page.change("tipo-contenedor", "VACIO"); await page.submit();
++  assert.equal(page.sent.at(-1).viaje_redondo, false); assert.equal(page.sent.at(-1).modo_viaje, "CARGADO");
++  assert.equal(page.sent.at(-1).tipo_contenedor, "VACIO");
++  page.change("tipo-recorrido", "REDONDO"); await page.submit();
++  assert.equal(page.sent.at(-1).tipo_contenedor, "CARGADO");
++  assert.equal(page.sent.at(-1).tipo_contenedor_regreso, "VACIO");
++});
++test("la respuesta tardía de un recorrido invalidado no reaparece", async () => {
++  const page = ui(); let complete;
++  page.ctx.fetch = () => new Promise(resolve => { complete = resolve; });
++  const pending = page.submit(); page.change("origen", "Nuevo origen");
++  complete({ ok: false, json: async () => ({ error: "Error de la ruta anterior" }) });
++  await pending;
++  assert.equal(page.find(n => n.props?.className === "error-box"), null);
++});
++test("errores de validación del backend se muestran como texto renderizable", async () => {
++  const page = ui(); page.ctx.fetch = async () => ({ ok: false, json: async () => ({ detail: [{ msg: "Origen inválido" }, { msg: "Destino inválido" }] }) });
++  await page.submit(); const box = page.find(n => n.props?.className === "error-box");
++  assert.match(renderToStaticMarkup(box), /Origen inválido · Destino inválido/);
++  assert.equal(routeErrorMessage({ detail: {} }), "No fue posible consultar la ruta.");
++  assert.equal(routeErrorMessage({ error: "Sin tarifa" }), "Sin tarifa");
++});
++
++function proxy() {
++  const requests = [];
++  const source = readFileSync(new URL("../app/api/route/route.js", import.meta.url), "utf8").replace(/^import .*;\r?\n/gm, "").replace("export async function POST", "async function POST");
++  const opts = readFileSync(new URL("../app/lib/sicetac-options.js", import.meta.url), "utf8").replace(/\bexport /g, "");
++  const ctx = vm.createContext({ URL, Request, Response, AbortSignal, process: { env: {} }, fetch: async (url, options) => {
++    requests.push({ url, payload: JSON.parse(options.body) });
++    return Response.json({ origen: "Cartagena", destino: "Nueva Colonia", totales: { H4: 10 } });
++  } });
++  vm.runInContext(opts + "\n" + source, ctx);
++  return { requests, post: payload => ctx.POST(new Request("https://example.invalid/api/route", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })) };
++}
++const request = { origen: "Cartagena", destino: "Puerto Antioquia", vehiculo: "C3S3", carroceria: "Portacontenedores", modo_viaje: "CARGADO", tipo_contenedor: "CARGADO", viaje_redondo: true, tipo_contenedor_regreso: "VACIO" };
++test("proxy rechaza ida vacía en redondo antes de consultar el backend", async () => {
++  const p = proxy(); const result = await p.post({ ...request, tipo_contenedor: "VACIO" });
++  assert.equal(result.status, 400); assert.equal(p.requests.length, 0);
++});
++test("proxy conserva Puerto Antioquia para el helper compartido por /consulta", async () => {
++  const p = proxy(); const result = await p.post(request);
++  assert.equal(result.status, 200); assert.equal(p.requests[0].payload.destino, "Puerto Antioquia");
++  assert.equal(p.requests[0].url, "https://sicetac-api-mcp.onrender.com/consulta");
++  assert.equal(p.requests[0].payload.modo_viaje, "CARGADO");
++  assert.equal(p.requests[0].payload.tipo_contenedor_regreso, "VACIO");
++});

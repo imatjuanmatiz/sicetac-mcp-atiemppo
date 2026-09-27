@@ -1,0 +1,57 @@
+--- atica-cotizador-api/AGENTS.md
++++ atica-cotizador-api/AGENTS.md
+@@ -39,2 +39,37 @@
+ 
++## Integridad de solicitud y trayectos
++
++El `request_id` recibido es obligatorio e inmutable: cópialo exactamente a
++`atica_precotizar_api`; no regeneres fechas ni IDs. Cada ID nuevo contiene un
++requerimiento autocontenido, sin heredar datos de otros tenants o pedidos.
++Un ID ya atendido o un eco interno no dispara otra llamada. Si el llamador
++repite el mismo ID y mismos datos y el resultado está disponible en este
++intercambio, devuelve ese mismo JSON; no recalcules. Si cambia parámetros bajo
++el mismo ID, informa la inconsistencia al llamador y no ejecutes un nuevo cálculo.
++
++Para ida cargada y devolución vacía conserva una única llamada con
++`viaje_redondo_con_retorno_vacio=true`, `contenedor_vacio=false`,
++`origen_regreso` y `destino_regreso`. Respeta el puerto de devolución declarado.
++El vehículo es el mismo en ambos sentidos; no solicites otra configuración
++para el regreso. El API evalúa ambos trayectos y su modalidad. No dobles la
++tarifa de ida ni sumes variantes. “Cotizar aparte” pide el desglose de los
++tramos del mismo resultado salvo servicios explícitamente independientes.
++
++Para devolución independiente usa `contenedor_vacio=true` y
++`viaje_redondo_con_retorno_vacio=false`, servicio contenedor. La semántica es
++`modo_viaje=CARGADO`, `carroceria=Portacontenedores`, `tipo_contenedor=VACIO`;
++el adaptador actual aplica el modo CARGADO por defecto de API. No pases campos
++no admitidos por la herramienta, no uses vacío vehicular ni peso cero ficticio.
++Si los flags o extremos se contradicen, o el regreso no está definido, pide
++al llamador el dato mínimo; no fuerces una interpretación ni inventes un total.
++Si solo dice “redondo” sin aclarar la carga del regreso, no asumas devolución
++vacía. Conserva cualquier brecha de tramo del JSON; no presentes un total
++completo si el Core no lo entrega.
++
++Pasa nombres y códigos declarados al helper/ruleset central. No mantengas una
++tabla propia ni sustituyas Puerto Antioquia por Turbo o Puerto Colombia por
++Nueva Colonia. Un centro poblado portuario no se reduce a su cabecera. Si no
++hay resolución, conserva esa brecha; si el DANE sí está resuelto y falta la
++ruta, conserva `OD_PAIR_NOT_IN_SICETAC_CATALOG` sin pedir km ni tantear ciudades.
++
+ ## Herramienta y fuente
+@@ -57,5 +92,5 @@
+ 
+-Cada mensaje directo de un llamador autorizado con un `request_id` es una solicitud independiente:
+-ignora todos los turnos anteriores de esta sesión y usa exclusivamente el
+-requerimiento literal actual. No heredes peso, configuración, ruta, RUTASID,
++Cada ID nuevo de un llamador autorizado es una solicitud independiente.
++Usa exclusivamente el requerimiento literal actual; el historial solo sirve
++para reconocer duplicados del mismo ID, nunca como fuente de datos de otro pedido. No heredes peso, configuración, ruta, RUTASID,
+ carrocería, tarifa, `horas_logisticas` ni condición de una consulta anterior.
+@@ -93,5 +128,4 @@
+ “clave no homologada” o “tarifa no disponible” si el resultado del Core trae
+-ese dato. Si el resultado es incompleto o contradictorio, informa
+-“respuesta del motor incompleta” y conserva los campos recibidos; no fabriques
+-un bloqueo.
++ese dato. Si el resultado es incompleto o contradictorio, devuelve el JSON recibido
++intacto para que el llamador describa la brecha; no fabriques campos ni un bloqueo.
+ 

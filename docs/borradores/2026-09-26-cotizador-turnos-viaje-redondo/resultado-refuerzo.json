@@ -1,0 +1,58 @@
+{
+  "status": "draft_verified_not_applied",
+  "tests": 32,
+  "pass": 32,
+  "fail": 0,
+  "diagnostic": {
+    "status": "draft_diagnostic",
+    "live_requests": 0,
+    "live_writes": 0,
+    "hashes": {
+      "/var/folders/mc/_2z0khcn6ss_vz2q2sznt5pr0000gn/T/cotizador-refuerzo-0cwwnl8w/src/store.js": "8702827320f80d58ec6bfaa4dcff6da1f1d6db17b90483d3954741fe3751baf6",
+      "/Users/atiemppoia/codex/openclaw/plugins/atica-cotizador-readonly/dist/index.js": "763bfa1c0c0b313c077e79d06becd46236dc80b29ce0011cacbaa6cb9b01f8e3"
+    },
+    "summary": {
+      "pass": 8,
+      "gap": 0
+    },
+    "results": [
+      {
+        "name": "Una solicitud conserva ida y devolución en un solo job",
+        "status": "pass"
+      },
+      {
+        "name": "El turno activo se conserva y el otro tenant queda aislado",
+        "status": "pass"
+      },
+      {
+        "name": "El cierre debe rechazar un request_id distinto al asignado",
+        "status": "pass"
+      },
+      {
+        "name": "La cola debe rechazar ida cargada marcada a la vez como contenedor vacío",
+        "status": "pass"
+      },
+      {
+        "name": "La cola debe rechazar dos trayectos con viaje redondo desactivado",
+        "status": "pass"
+      },
+      {
+        "name": "El adaptador envía una llamada con ida CARGADO y regreso VACIO",
+        "status": "pass"
+      },
+      {
+        "name": "La devolución independiente usa tipo_contenedor VACIO sin modo vehicular VACIO",
+        "status": "pass"
+      },
+      {
+        "name": "El adaptador conserva el nombre para la resolución central",
+        "status": "pass"
+      }
+    ]
+  },
+  "test_output": "✔ ingest records the raw group message and skips ATICA echoes (3.82475ms)\n✔ tools resolve tenant from the agent, ignoring a forged tenant_id (6.665625ms)\n✔ an unbound agent cannot open another tenant's bandeja (2.282791ms)\n✔ bandeja_attach publishes through the host-bound current group (3.75825ms)\n✔ rechaza ida vacía dentro de redondo sin insertar parcialmente (5.270334ms)\n✔ rechaza dos trayectos con bandera false sin insertar parcialmente (2.598333ms)\n✔ rechaza regreso incompleto sin insertar parcialmente (2.568916ms)\n✔ rechaza redondo sin extremos sin insertar parcialmente (2.186167ms)\n✔ rechaza bandera textual sin insertar parcialmente (2.134792ms)\n✔ rechaza servicio incompatible sin insertar parcialmente (2.49375ms)\n✔ retorno a otro puerto conserva extremos, configuración y nombre literal (5.588375ms)\n✔ devolución independiente sigue siendo un único trayecto con contenedor vacío (2.799125ms)\n✔ escenarios 15/30 t avanzan serialmente sin cruzar tenants o inbox (4.387958ms)\n✔ IDs del argumento, sobre y canonical deben coincidir; rechazo no libera el turno (3.017625ms)\n✔ cierre repetido es idempotente y no admite cambiar respuesta ni estado (3.402583ms)\n✔ attach duplicado no repite entrega, gatewayOwned=false (3.189583ms)\n✔ attach duplicado no repite entrega, gatewayOwned=true (2.805417ms)\n✔ two discord channels of the same public tenant stay isolated from other tenants (15.358ms)\n✔ resolves tenant by agent and by conversation, never by guess (2.165125ms)\n✔ inbox is idempotent per tenant + message_id (2.19075ms)\n✔ the same message_id can exist in two tenants (2.253625ms)\n✔ noise is classified and does not create a job (2.465416ms)\n✔ nextJob never returns another tenant's work (3.705375ms)\n✔ one in_flight job blocks the next claim in the same tenant (2.953541ms)\n✔ next can drain a selected inbox without mixing another queued request (3.540959ms)\n✔ preserves the combined return and requested logistics hours in each scenario job (3.3325ms)\n✔ rejects isolated return jobs when the request says to include the return (2.53525ms)\n✔ enqueue is idempotent for the same interpreted payload (3.088667ms)\n✔ attach binds the JSON to the claiming tenant only (3.53825ms)\n✔ publishes an attached result only through the exact tenant route and is idempotent (3.172333ms)\n✔ defers to the normal agent reply when Gateway owns channel delivery (2.645333ms)\n✔ blocks delivery when the host route does not match the tenant group (2.712333ms)\nℹ tests 32\nℹ suites 0\nℹ pass 32\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 351.832875\n",
+  "live_plugin_unchanged": true,
+  "live_api_requests": 0,
+  "real_channel_messages": 0,
+  "live_database_writes": 0
+}

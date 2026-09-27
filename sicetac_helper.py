@@ -195,29 +195,38 @@ class SICETACHelper:
         result.update(extra)
         return result
 
+    def _exact_name_match(self, df, name, columnas_nombres):
+        exact_candidates = []
+        for col in columnas_nombres:
+            if col in df.columns:
+                normalized_col = df[col].map(self._normalize_name)
+                match = df[normalized_col == name]
+                if not match.empty:
+                    for _, row in match.iterrows():
+                        exact_candidates.append((self._candidate_priority(row, col, name), row))
+        if exact_candidates:
+            exact_candidates.sort(key=lambda item: item[0], reverse=True)
+            return exact_candidates[0][1]
+        return None
+
     def _buscar_codigo(self, df, nombre_input, columnas_nombres, codigo_col, extra_cols=None):
         nombre_input = str(nombre_input).strip()
         nombre_input_norm = self._normalize_name(nombre_input)
+        # Un nombre completo publicado prevalece sobre interpretar su última
+        # palabra como departamento (p. ej. la variación "Puerto Antioquia").
+        exact = self._exact_name_match(df, nombre_input_norm, columnas_nombres)
+        if exact is not None:
+            return self._row_result(exact, codigo_col, extra_cols)
+
         search_name, search_dept = self._split_name_and_department(df, nombre_input_norm)
         working = df
         if search_dept and "departamento" in df.columns:
             working = df[df["departamento"].map(self._normalize_name) == search_dept]
             if working.empty:
                 working = df
-
-        exact_candidates = []
-        for col in columnas_nombres:
-            if col in working.columns:
-                normalized_col = working[col].map(self._normalize_name)
-                match = working[normalized_col == search_name]
-                if not match.empty:
-                    for _, row in match.iterrows():
-                        exact_candidates.append((self._candidate_priority(row, col, search_name), row))
-
-        if exact_candidates:
-            exact_candidates.sort(key=lambda item: item[0], reverse=True)
-            extra = {"resolution_mode": "name_department"} if search_dept else {}
-            return self._row_result(exact_candidates[0][1], codigo_col, extra_cols, **extra)
+            exact = self._exact_name_match(working, search_name, columnas_nombres)
+            if exact is not None:
+                return self._row_result(exact, codigo_col, extra_cols, resolution_mode="name_department")
 
         if "departamento" in working.columns and "nombre_oficial" in working.columns:
             combinados = (

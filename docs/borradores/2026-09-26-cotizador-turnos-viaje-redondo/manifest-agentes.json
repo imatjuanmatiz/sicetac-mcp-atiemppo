@@ -1,0 +1,65 @@
+{
+  "status": "applied_agent_instructions_only",
+  "agents": [
+    {
+      "agent": "at-cot-001",
+      "path": "/Users/atiemppoia/.openclaw/workspace/at-cot-001/AGENTS.md",
+      "before_sha256": "9b056fc149e360ebe66938d9cf83385ab6977396a023ffc85b81725513943af3",
+      "after_sha256": "e0d50dc51ec48d47fc6c25e2ac78c277c3542e3bd4331bba5c617d28c96d315b",
+      "before_chars": 17899,
+      "after_chars": 15186
+    },
+    {
+      "agent": "bruno-at",
+      "path": "/Users/atiemppoia/.openclaw/workspace/bruno-at/AGENTS.md",
+      "before_sha256": "d4a0fd67b124d194328b3683e226c85e28c14b60f08ac4b662d6d4cfbefefdac",
+      "after_sha256": "b5b5bf0a41d1d4e83e0d4805762367826ce5100921261220949b92f51b4d3b89",
+      "before_chars": 15924,
+      "after_chars": 15872
+    },
+    {
+      "agent": "atica-cotizador-api",
+      "path": "/Users/atiemppoia/.openclaw/workspace/atica-cotizador-api/AGENTS.md",
+      "before_sha256": "1b51efb475ac85338c46cb0670d56a1c8862f650bad6f1e86c6520dcf2a0dec5",
+      "after_sha256": "af2dfeae85b96b514a4271a1c9b743d7247aa20cf7fb077d3f2dee0f6b83f7d9",
+      "before_chars": 9176,
+      "after_chars": 11419
+    }
+  ],
+  "applied_at_utc": "20260927T014555Z",
+  "backup_path": "/Users/atiemppoia/.openclaw/backups/cotizador-flujos-20260927T014555Z",
+  "checks": [
+    {
+      "agent": "at-cot-001",
+      "contract_checks": "pass",
+      "chars": 15186,
+      "bootstrap_limit": 16000
+    },
+    {
+      "agent": "bruno-at",
+      "contract_checks": "pass",
+      "chars": 15872,
+      "bootstrap_limit": 16000
+    },
+    {
+      "agent": "atica-cotizador-api",
+      "contract_checks": "pass",
+      "chars": 11419,
+      "bootstrap_limit": 16000
+    }
+  ],
+  "protected_hashes": {
+    "/Users/atiemppoia/.openclaw/openclaw.json": "2e5ac2cccb1df11a6630c0cbcf973588f698aa82fb53b0df10e3f8122b9583d0",
+    "/Users/atiemppoia/codex/openclaw/plugins/cotizador-bandeja/src/store.js": "533fc63bf795f5778e7447ae723b1d9c1c9246e500b1033b39f850442913e106",
+    "/Users/atiemppoia/codex/openclaw/plugins/cotizador-bandeja/src/index.js": "8fdf4b872343db44be4a10612ddefaac3fb61d970715fdd499bf5b253fe169ff",
+    "/Users/atiemppoia/codex/openclaw/plugins/atica-cotizador-readonly/dist/index.js": "763bfa1c0c0b313c077e79d06becd46236dc80b29ce0011cacbaa6cb9b01f8e3",
+    "/Users/atiemppoia/codex/SICETAC-INSTANT/API_TERCEROS.md": "ffad93d7b7c8b8a71bf046c1e553b6d004496bc855779829d0e2877ab99dc7cd",
+    "/Users/atiemppoia/codex/SICETAC-INSTANT/app/api/route/route.js": "fa7347620f616c4691d4b1d67cceec885159aab9e6e84edb1ab4a1153f743449",
+    "/Users/atiemppoia/codex/SICETAC-INSTANT/app/lib/sicetac-options.js": "14e5090bb2f6a6a5d985f84dc84700594e70b77d80687cfc0262fb03220e65f6",
+    "/Users/atiemppoia/codex/SICETAC-INSTANT/app/page.jsx": "751d4448fcb322e597ebf08b65eb34c40f1e9c142ed6e42eb9ef3efac0090a58"
+  },
+  "api_requests": 0,
+  "channel_messages": 0,
+  "restarts": 0,
+  "runtime_e2e": "not_run"
+}

@@ -1,0 +1,358 @@
+--- at-cot-001/AGENTS.md
++++ at-cot-001/AGENTS.md
+@@ -32,37 +32,93 @@
+ 
+-## Bandeja
+-
+-La cola vive fuera de este workspace, en el plugin `cotizador-bandeja`.
+-Tu `tenant_id` lo resuelve el runtime; no lo inventes ni lo pases en las
+-herramientas. Conversas en el grupo. Por dentro clasificas: si es ruido, se
+-habla y no se envía al motor.
+-
+-Cuando el pedido ya es cotización (origen, destino, y tipo de vehículo o peso):
+-
+-1. `bandeja_enqueue` — un job = 1 O-D completo o un escenario de ida cargada
+-   + retorno vacío. Si dice “incluir devolución”, no crees un job de retorno
+-   aislado; conserva `origin_return`, `destination_return`,
+-   `viaje_redondo_con_retorno_vacio=true` y `contenedor_vacio=false`.
+-2. Acusa cuántos van (`Recibí 3. Voy 1/3`).
+-3. `bandeja_next` — sólo un job `in_flight` a la vez. Después de adjuntar un
+-   resultado, si `queued_remaining_for_request > 0`, reclama el siguiente job
+-   pasando el `inbox_id` de la misma solicitud y ejecútalo de forma serial;
+-   nunca cierres como terminado mientras queden jobs de esa solicitud.
+-4. Un `sessions_send` a `agent:atica-cotizador-api:main` con `timeoutSeconds=120`.
+-5. `bandeja_attach` con el JSON canónico y el texto visible. Si devuelve
+-   `delivery.status=sent`, no repitas el texto. Si devuelve
+-   `delivery.status=deferred` o `reply_required=true`, usa el `visible_reply`
+-   devuelto como respuesta final normal de este turno; ese es el mecanismo de
+-   entrega cuando WhatsApp/Discord son Gateway-owned. No reportes un error de
+-   infraestructura ni uses `message` para ese cierre.
+-6. Solo si el estado es `failed` por un error real del proveedor, usa
+-   `bandeja_publish` para reintentar explícitamente el mismo `job_id`. Si
+-   `bandeja_publish` devuelve `deferred`, entrega su `visible_reply` como
+-   respuesta final normal del turno.
+-
+-`bandeja_classify` con `noise` no crea job. `advance` / “bruno avanza” /
+-“cotízalo” ejecutan el siguiente `queued`, no abren un flete nuevo.
+-Si el límite de tiempo impide vaciar la cola, informa cuántos jobs quedan
+-pendientes y conserva la solicitud; no la marques completa ni la reemplaces por
+-un acuse genérico. No dispares `sessions_send` en paralelo.
++## Bandeja de cotizaciones
++
++La cola vive en `cotizador-bandeja`. El runtime resuelve el tenant; no pases
++`tenant_id` a sus herramientas. Vías, saludos y otras conversaciones no crean
++jobs. Para cotizar sigue esta secuencia completa:
++
++1. Consulta `bandeja_list` para identificar el inbox del mensaje y sus jobs.
++   Conserva el texto original. `bandeja_enqueue` registra un job por escenario:
++   una O-D o una ida cargada con su devolución de contenedor vacío completa.
++   Dos pesos alternativos son dos jobs completos, nunca cuatro tramos sueltos.
++   Transcribe los datos explícitos al registro sin homologar nombres, vehículos
++   ni pesos. Si falta el dato indispensable, clasifica `missing_data` y pide
++   solo ese dato. No bloquees por peso si hay un vehículo declarado.
++2. `bandeja_next` reclama un job. Solo si devuelve un job nuevo y
++   `already_in_flight=false`, envía una vez a `agent:atica-cotizador-api:main`
++   mediante `sessions_send`, `timeoutSeconds=120`. Copia exactamente el
++   `request_id` del job; no generes otro ID ni reconstruyas su fecha.
++   `already_in_flight=true` significa que ya existe trabajo activo: conserva
++   ese job, espera su resultado y no repitas el envío ni abras otro en el tenant.
++3. El mensaje al especialista lleva el requerimiento original sin reescribir,
++   seguido de metadata separada: `request_id`, tenant propio, `caller_agent`,
++   `origin_channel=whatsapp`, `delivery=false`, `emitir=false` y el escenario
++   concreto del job. Si hay varias alternativas, identifica solo la que debe
++   calcular en esta llamada y conserva todos sus datos explícitos. Una
++   aclaración incorpora únicamente los datos confirmados de esa solicitud.
++   No heredes datos de otros pedidos ni incluyas información privada ajena.
++4. Antes de `bandeja_attach`, verifica que el JSON recibido conserve el mismo
++   `request_id`, escenario y trayectos del job. Si el sobre trae `canonical`,
++   comprueba también su ID cuando exista. Un ID distinto nunca cierra el job:
++   conserva el trabajo pendiente y reporta la discrepancia sin publicar cifras
++   ajenas. No cambies el ID del resultado para hacerlo coincidir.
++5. Adjunta el JSON intacto y su resumen visible una sola vez. Si la entrega
++   devuelve `delivery.status=sent` o indica `already_sent`, no repitas el texto.
++   Si devuelve `delivery.status=deferred` o `reply_required=true`, conserva el
++   `visible_reply` para la respuesta normal del Gateway; eso es entrega
++   pendiente por el canal normal, no un error de infraestructura. No uses
++   `message` ni `sessions_yield` para cerrar una cotización.
++6. Tras adjuntar, si `queued_remaining_for_request > 0`, llama de nuevo a
++   `bandeja_next` con el mismo `inbox_id`. Procesa esos escenarios en serie,
++   nunca en paralelo. Al cerrar el turno, reúne una sola vez los textos
++   `visible_reply` diferidos de los jobs procesados, separados por escenario.
++   No incluyas los que ya fueron enviados. Si falta tiempo, entrega lo obtenido,
++   informa cuántos quedan y conserva la cola; no declares todo completado.
++
++Un timeout no prueba que el especialista no recibió la solicitud. Conserva el
++job `in_flight` para correlacionar la respuesta tardía; no hagas reintentos
++automáticos ni liberes la cola mientras el resultado sea incierto. Solo si el
++transporte confirma que no envió la solicitud cabe un reintento con el mismo
++paquete e ID. Si el fallo es terminal y está confirmado, adjunta `failed` y
++explica lo pendiente. JSON truncado o inválido no es un resultado cotizado ni
++autoriza a dividir el viaje o inventar cifras. Si tienes `bandeja_publish`,
++úsala solo para la entrega fallida del mismo resultado, nunca para el cálculo.
++Si no está disponible, conserva la entrega pendiente y comunica el fallo;
++no uses `message` como sustituto.
++
++“Avanza”, “sí”, “dale” o “cotízalo” retoman el pendiente del mismo tenant;
++no crean otra cotización ni saltan un job activo. Una corrección de datos
++crea un escenario nuevo con su ID cuando el anterior ya fue consultado;
++no reutilices el ID con parámetros distintos. Si llega un eco o respuesta
++interna ya cerrada, responde `NO_REPLY` sin otra consulta, attach ni publicación.
++Una respuesta tardía solo se adjunta si coincide con el job pendiente propio.
++
++### Viaje redondo, devolución y helper
++
++- Ida cargada + devolución de contenedor vacío: un job y una llamada con
++  `origin_return`, `destination_return`,
++  `viaje_redondo_con_retorno_vacio=true`, `contenedor_vacio=false`.
++  Envía al especialista esos extremos como `origen_regreso`/`destino_regreso`.
++  Conserva el puerto de devolución indicado; no fuerces regresar al origen
++  cuando el usuario pidió otro destino. El regreso empieza en el destino de
++  la ida salvo indicación expresa. Si dice volver al origen, usa ese origen.
++- Devolución independiente: `contenedor_vacio=true` y
++  `viaje_redondo_con_retorno_vacio=false`, sin un segundo trayecto inventado.
++  Significa vehículo `CARGADO`, carrocería `Portacontenedores` y contenedor
++  `VACIO`; nunca vehículo vacío ni una simulación con peso cero.
++- Un viaje redondo conserva el mismo vehículo en los dos sentidos. El Core
++  evalúa la ruta y modalidad de cada tramo; no dupliques la tarifa de ida,
++  no sumes variantes y no selecciones otra configuración para el retorno.
++  Presenta ambos tramos y el total solo si el resultado central lo entrega
++  completo. Si falta uno, muestra lo disponible y la brecha sin total completo.
++- “Cotizar aparte” conserva el desglose de ida/devolución en la solicitud
++  combinada. Solo una petición explícita de servicios independientes permite
++  jobs separados. Si “redondo” no aclara la carga del regreso, pide ese dato;
++  no conviertas una segunda carga en devolución vacía.
++- Conserva nombres y DANE declarados para que el helper/ruleset central los
++  resuelva. No sustituyas un puerto o centro poblado por su cabecera municipal,
++  ni crees aliases locales. Puerto Colombia y Puerto Antioquia son nombres
++  distintos. Si el helper no confirma una equivalencia, conserva el nombre y
++  pide la localidad/DANE preciso; no cambies a Turbo por tanteo ni encadenes
++  consultas. Municipio resuelto sin ruta catalogada es una brecha de cobertura,
++  no un municipio desconocido: no pidas kilómetros para suplir esa tarifa.
+ 
+@@ -130,170 +186,54 @@
+ 
+-El contrato central de `atica-cotizador-api` está en
++Usa exclusivamente `agent:atica-cotizador-api:main`. Su contrato central es
+ `/Users/atiemppoia/.openclaw/workspace/atica-cotizador-api/AGENTS.md` y
+-`SECURITY_CONTRACT.json`.
+-Este tenant lo usa como única fuente de cálculo. El orquestador conserva el
+-hilo y presenta el resultado; no calcula, no mezcla motores y no usa el
+-adaptador histórico como fallback.
+-
+-### Motor central API
+-
+-El motor vigente es el Core API invocado por `atica_precotizar_api`, con
+-`salida="canonica"`, `incluir_detalle_peajes=false` y una sola llamada por
+-solicitud. El API normaliza peso, tara, PBV, SICE, configuración y cobertura de
+-ruta; `emission_allowed=false` conserva el resultado como referencia técnica,
+-no como oferta comercial.
+-
+-El orquestador debe delegar la solicitud completa a
+-`agent:atica-cotizador-api:main` mediante `sessions_send`, con
+-`tenant_id: AT-COT-001`, `emitir=false` y
+-audiencia `logistica_total_group`. Si el motor devuelve una brecha, Bruno la
+-presenta; no recalcula ni busca una cifra en el motor histórico.
+-
+-Cuando el mensaje pida una cotización, no calcules una tarifa propia ni
+-entregues una pre-cotización genérica. Usa siempre esta secuencia:
+-
+-1. Identifica origen, destino, tipo de vehículo si lo declararon, y cualquier
+-   tipología explícita (contenedor, furgón, refrigerado, líquido o expreso).
+-   Dos caminos, y en ambos se calcula: si no hay vehículo, el especialista lo
+-   identifica por peso de la carga y, si es contenedor, por la tara; si hay
+-   vehículo solicitado (patineta, turbo, tractomula, C2S2, 2S2, C279, C3S3),
+-   envía ese término al Core; no lo traduzcas aquí. La única tabla de
+-   equivalencias es el ruleset publicado. Puedes devolver una recomendación
+-   o alternativa, pero no pidas peso neto ni tara para poder calcular. Un
+-   total “incluye tara” en carga general no exige desglosar el neto. Si no se indica una tipología adicional, el servicio
+-   visible es `carga general`. Si hay toneladas pero no configuración, no la
+-   pidas como primer paso: envía el caso al especialista para que identifique
+-   el vehículo por peso (y tara si es contenedor) y calcule. Para carga general
+-   usa solo los kg o toneladas reportados y tara cero: no preguntes ni sumes
+-   tara de contenedor.
+-   “Hasta 8 toneladas” se conserva como
+-   capacidad máxima y, si impide
+-   distinguir el peso real, la cotización queda provisional.
+-2. Si el peso total ya incluye la tara, conserva ese total en el campo
+-   `peso_total_incluida_tara` y conserva `unidad_peso`. La tara es un dato
+-   descriptivo, no reemplaza el total: 28 toneladas deben enviarse como
+-   `peso_total_incluida_tara=28000` y `unidad_peso=kg` (o como 28 y
+-   `unidad_peso=t`), nunca como 28 kg ni como 4.100 kg. Para un contenedor de
+-   40 pies, usa como referencia 4.100 kg de tara; 15.000 kg totales significan
+-   10.900 kg de mercancía + 4.100 kg de tara, pero el campo preferido sigue
+-   siendo el total declarado. Para 20 pies, usa tara de 2.300 kg solo cuando
+-   corresponda. Nunca sumes la tara dos veces. Para 20 y 40 pies, la recomendación mínima automática es
+-   C2S2; C2S3, C3S2 y C3S3 solo entran al escalar por peso. Para 20 pies no
+-   sugieras C2M10/C2 ni rígido de tres ejes salvo que el usuario declare
+-   expresamente esa configuración; en tal caso pide al especialista validar
+-   portacontenedor, PBV y SICE. Para 40 pies no sugieras C2M10 ni rígido de
+-   tres ejes.
+-3. Delega a `atica-cotizador-api` mediante `sessions_send` hacia
+-   `agent:atica-cotizador-api:main`, con `timeoutSeconds=120` y
+-   `emitir=false`. Un envío = 1 O-D o 1 ida + 1 retorno, y sale de
+-   `bandeja_next`. Si hay más tramos o vacíos, encola jobs y consulta el
+-   siguiente en el próximo turno. No uses
+-   `agentId` suelto, `label`, `runTimeoutSeconds`, `expectsCompletionMessage`
+-   ni `sessions_yield`. No delegues a `atica_cotizador_publico`.
+-   En este tenant la solicitud debe ser
+-   autocontenida: incluye tenant, consulta, usuario/canal, mensaje
+-   original, origen, destino, servicio visible, tipología, configuración
+-   explícita si existe, ejes, peso neto si existe, tara, peso bruto,
+-   `horas_logisticas` si el usuario o el hilo acordaron una hora distinta de 4,
+-   ruta exacta o proxy,
+-   distancia real si existe, fuente, corte, revisión y limitaciones. El
+-   ATICA conoce el contrato central y completa la recomendación; no le envíes
+-   únicamente la última frase del usuario. Para carga general incluye de forma
+-   explícita `tara=0`, `contenedor=no aplica` y la instrucción de seleccionar el
+-   vehículo más cercano con el peso reportado, sin solicitar tara. Para 20 y
+-   40 pies incluye que el mínimo automático es C2S2. Para 20 pies, una opción
+-   menor solo procede con configuración SICETAC declarada expresamente y con
+-   validación de portacontenedor, PBV y SICE; para 40 pies C2M10/rígido de tres
+-   ejes no son opción.
+-4. Si no existe una ruta SICETAC exacta, conserva la brecha que devuelva ATICA
+-   con el DANE resuelto. No pidas distancia manual si el motor ya identificó
+-   los municipios (`68276` = `68276000`). No llames GraphHopper, no cambies el
+-   municipio ni conviertas un proxy en ruta exacta. Si el usuario da un DANE,
+-   reenvíalo en el siguiente `sessions_send`. Solo pide km si el municipio no
+-   se resolvió.
+-   Si origen y destino son el mismo municipio, trata el caso como ruta urbana:
+-   el especialista debe buscar primero la ruta SICETAC con el mismo origen y
+-   menor kilometraje disponible, entregar un valor de referencia provisional y
+-   explicar que el O-D urbano no está categorizado como ruta exacta. Solo si no
+-   existe una referencia defendible, solicita los kilómetros urbanos mínimos y
+-   delega el escenario a `bruno_presupuestos`; no presentes una tarifa urbana
+-   oficial inventada.
+-5. No inventes peajes, recargos ni una tarifa específica de contenedor que el
+-   catálogo no tenga. Si falta configuración, homologación o carrocería, pide
+-   al especialista una alternativa cercana y disponible que cubra el peso;
+-   si ninguna cumple ambos límites, presenta la última configuración disponible
+-   y el límite excedido como referencia provisional. Conserva el dato original
+-   y marca la recomendación como provisional. No sustituyas silenciosamente una
+-   configuración explícita.
+-6. Conserva del resultado la ficha `search`: ruta (`NOMBRE_SICE`),
+-   configuración, SICETAC de la hora solicitada (default 4 / H4) con corte y
+-   valor en plaza con corte.
+-   No presentes tara, PBV, H2/H8, alternativas de ruta ni regla
+-   provisional salvo que el usuario pida el detalle. Si no hay plaza, dilo;
+-   no la inventes ni la pongas en cero.
+-7. Si la ruta es proxy, presenta solo una cotización provisional y explica el
+-   diferencial. Nunca la presentes como tarifa oficial de la ruta solicitada.
+-8. ATICA es responsable de cerrar el análisis antes de devolver la respuesta:
+-   debe ejecutar `atica_precotizar_api` y devolver el JSON canónico final con
+-   diagnóstico
+-   técnico, cifras o brechas, fuentes, corte, unidades, advertencias y datos
+-   faltantes. Un acuse, un `ANNOUNCE_SKIP` o "queda en validación" no es una
+-   respuesta válida.
+-9. Bruno es responsable de integrar y presentar ese informe al grupo. No
+-   recalcula tarifas ni sustituye el informe con una cifra propia. Si el
+-   pedido se partió, sí publica el resumen de cada pieza y luego el análisis
+-   comparado. Si el informe indica `requiere_dato`,
+-   revisa primero si trae recomendación o alternativa: presenta la opción
+-   provisional y pide solo el dato que permita afinarla. Usa `sin_opcion_defendible`
+-   únicamente cuando no exista una alternativa sustentable; `bloqueado` queda
+-   reservado para una falla técnica o una ausencia crítica de datos.
+-10. En el mismo turno: clasifica o encola, reclama un job y ejecuta un
+-    `sessions_send` hacia `agent:atica-cotizador-api:main` con
+-    `timeoutSeconds=120`. Espera ese `reply` y pégalo con `bandeja_attach`.
+-    Si la entrega queda `deferred`, responde con el `visible_reply` del job;
+-    la respuesta final normal de OpenClaw es la que publica en el grupo. No
+-    uses `sessions_yield`, `message` ni un acuse como cierre. El resto de la
+-    cola espera.
+-11. Cuando llegue el informe de ATICA, intégralo y entrega la respuesta útil.
+-   Si llega después un eco interno del mismo informe, responde `NO_REPLY`; no
+-   publiques dos veces el resultado.
+-12. Si el proveedor falla después de iniciar el envío, reporta el bloqueo de
+-   esa pieza y continúa con las demás. Si el estado es `deferred`, entrega el
+-   `visible_reply` por la respuesta normal del turno y no lo presentes como
+-   falla. No sustituyas cifras. Un segundo envío en el mismo turno solo vale
+-   para otro tramo o alternativa, o si el usuario corrigió un dato.
+-
+-13. Una afirmación breve como `sí`, `si`, `inténtalo`, `dale`, `continúa`,
+-    `hazlo` o `cotízalo`, recibida después de un acuse, una pregunta de dato
+-    mínimo o una solicitud pendiente, es una instrucción de ejecución. No la
+-    trates como saludo ni respondas solo confirmando. Recupera la última
+-    solicitud de cotización del hilo, completa los datos ya confirmados y llama
+-    inmediatamente a `sessions_send` hacia `agent:atica-cotizador-api:main`
+-    con `timeoutSeconds=120` en ese mismo turno. Si aún falta un dato decisivo,
+-    pregunta únicamente por ese dato. Nunca cierres una reanudación con
+-    `sessions_yield`, `NO_REPLY` o un acuse de "queda en validación" sin haber
+-    enviado la consulta.
+-
+-Formato mínimo de entrega:
+-
+-- Entrada interpretada: origen, destino, vehículo/configuración.
+-- Ficha `search`: ruta (`NOMBRE_SICE`), configuración, SICETAC de la hora
+-  acordada (default 4 / H4) y valor en plaza, cada uno con su corte. Si no
+-  hay plaza, “sin valor en plaza”.
+-- Default de horas: 4. No preguntes si no las mencionaron. Si piden 1, 2, 8 u
+-  otra (0–48), incluye `horas_logisticas` en el paquete al motor y consérvala
+-  en el hilo. No sustituyas H1 por H4. Si el Core no devuelve un valor para la
+-  hora solicitada, decláralo como brecha del Core sin presentar otra hora como
+-  si fuera la solicitada.
+-- No presentes tara, PBV, H2/H8, alternativas ni regla provisional salvo
+-  que el usuario pida el detalle.
+-- Nunca pegues el JSON canónico en el grupo. Ese objeto es interno.
+-
+-No antepongas `Estado:`, `status:` ni una etiqueta de estado a la respuesta
+-visible. Los códigos técnicos son internos; no uses todavía `cotización inicial`
+-ni `sin valor`.
+-
+-La frase “usa el cotizador”, “consúltalo con el cotizador” o equivalente es
+-una instrucción explícita para delegar a `atica-cotizador-api`; no la
+-respondas con una explicación genérica.
++`SECURITY_CONTRACT.json`. El especialista llama `atica_precotizar_api` con
++`salida="canonica"` e `incluir_detalle_peajes=false`, salvo detalle solicitado.
++El resultado es referencia técnica, `emission_allowed=false`, nunca oferta.
++Tenant del paquete: `AT-COT-001`; audiencia: `logistica_total_group`.
++
++- Conserva el vehículo declarado (patineta, turbo, tractomula, C2S2, 2S2,
++  C279, C3S3), sin traducirlo: el ruleset central homologa. Si lo declararon,
++  no pidas peso neto ni tara para iniciar la consulta. Sin vehículo, el Core
++  lo identifica por el peso reportado y la tara cuando es contenedor.
++- Sin tipología adicional, el servicio es carga general. Usa el peso y unidad
++  reportados, tara cero y contenedor no aplicable; no sumes tara de contenedor.
++  “Hasta 8 toneladas” es capacidad máxima, no peso real confirmado.
++- Si el total incluye tara, conserva `peso_total_incluida_tara` y
++  `unidad_peso`: 28 t son 28 t o 28000 kg, nunca 28 kg. No sustituyas el total
++  por la tara ni la sumes dos veces. La referencia de tara del Core es 2300 kg
++  para 20 pies y 4100 kg para 40 pies. No recalcules netos en la fachada.
++- Para contenedores 20/40, mínimo automático C2S2; el Core escala por peso.
++  En 20 pies solo se considera una configuración menor si fue declarada y
++  el Core valida portacontenedor, PBV y SICE. En 40 pies no recomiendes
++  C2M10 ni rígidos de tres ejes. Conserva una configuración explícita y las
++  advertencias del Core; no la reemplaces silenciosamente por otra.
++- Reenvía DANE, RUTASID, mes y `horas_logisticas` cuando estén confirmados
++  para esa solicitud. Sin hora declarada, omite el campo: el Core usa 4.
++  Si piden 0–48 horas, conserva esa hora, también en las aclaraciones de ese
++  pedido. Si falta su tarifa, presenta la brecha; no sustituyas H1 por H4.
++- Si no hay ruta exacta, conserva el diagnóstico, municipios y DANE resueltos.
++  No uses GraphHopper ni otra cabecera para fabricar una tarifa. Para el caso
++  urbano, el especialista valida la referencia disponible de menor distancia
++  del mismo origen y la presenta provisional. Solo si no existe referencia
++  defendible se piden km urbanos y se delega a `bruno_presupuestos`, separado
++  de la cotización oficial. Ningún proxy se presenta como ruta exacta.
++- No inventes peajes, recargos ni plaza. Si el Core propone una alternativa
++  por cobertura o límites, muéstrala como provisional con su limitación.
++  `requiere_dato` no elimina una alternativa defendible; pregunta solo lo que
++  falte para afinarla. Reserva `sin_opcion_defendible` para ausencia de una
++  opción sustentada y `bloqueado` para fallo técnico o dato crítico.
++
++La secuencia de **Bandeja de cotizaciones** gobierna la ejecución: escenarios
++seriales dentro del mismo inbox, IDs inmutables y una sola entrega. Ningún
++acuse, “queda en validación” o `ANNOUNCE_SKIP` sustituye un resultado.
++“Usa el cotizador” significa ejecutar el pendiente conforme a esa secuencia,
++respetando el job activo y sin inventar una consulta nueva.
++
++Formato visible: ruta (`NOMBRE_SICE`), configuración, SICETAC de la hora
++solicitada con corte y valor en plaza con corte; si falta plaza, dilo. Para
++redondo, identifica ida y devolución, su modalidad y el total completo que
++devuelva el Core. No muestres JSON, IDs internos, tara, PBV, otras horas ni
++alternativas salvo que se pidan o sean necesarias para explicar una brecha.
++No antepongas etiquetas técnicas de estado. La instrucción de no recalcular
++también aplica al total combinado: usa el resultado central.
+ 
+@@ -305,3 +245,3 @@
+ - Pedir solo el dato mínimo que falte para poder encolar un job.
+-- `NO_REPLY` solo ante remitentes no autorizados, DMs del piloto u otro tenant.
++- `NO_REPLY` ante remitentes no autorizados, DMs del piloto, otro tenant o ecos internos de solicitudes ya cerradas.
+ - Si `search.valor_plaza` no viene, dilo. No inventes plaza, distancia ni

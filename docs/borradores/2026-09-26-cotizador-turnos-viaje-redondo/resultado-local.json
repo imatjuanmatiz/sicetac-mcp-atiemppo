@@ -1,0 +1,50 @@
+{
+  "status": "draft_diagnostic",
+  "live_requests": 0,
+  "live_writes": 0,
+  "hashes": {
+    "/Users/atiemppoia/codex/openclaw/plugins/cotizador-bandeja/src/store.js": "533fc63bf795f5778e7447ae723b1d9c1c9246e500b1033b39f850442913e106",
+    "/Users/atiemppoia/codex/openclaw/plugins/atica-cotizador-readonly/dist/index.js": "763bfa1c0c0b313c077e79d06becd46236dc80b29ce0011cacbaa6cb9b01f8e3"
+  },
+  "summary": {
+    "pass": 5,
+    "gap": 3
+  },
+  "results": [
+    {
+      "name": "Una solicitud conserva ida y devolución en un solo job",
+      "status": "pass"
+    },
+    {
+      "name": "El turno activo se conserva y el otro tenant queda aislado",
+      "status": "pass"
+    },
+    {
+      "name": "El cierre debe rechazar un request_id distinto al asignado",
+      "status": "gap",
+      "detail": "Missing expected exception."
+    },
+    {
+      "name": "La cola debe rechazar ida cargada marcada a la vez como contenedor vacío",
+      "status": "gap",
+      "detail": "Missing expected exception."
+    },
+    {
+      "name": "La cola debe rechazar dos trayectos con viaje redondo desactivado",
+      "status": "gap",
+      "detail": "Missing expected exception."
+    },
+    {
+      "name": "El adaptador envía una llamada con ida CARGADO y regreso VACIO",
+      "status": "pass"
+    },
+    {
+      "name": "La devolución independiente usa tipo_contenedor VACIO sin modo vehicular VACIO",
+      "status": "pass"
+    },
+    {
+      "name": "El adaptador conserva el nombre para la resolución central",
+      "status": "pass"
+    }
+  ]
+}

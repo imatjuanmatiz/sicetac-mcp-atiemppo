@@ -1,0 +1,82 @@
+{
+  "status": "review_only",
+  "requests_to_live_services": 0,
+  "writes_to_instant": 0,
+  "local_head": "fc41a6493bebcec49d475aefffdb4503de773df2",
+  "remote_ref": "456306a2789c830011cad02003549ee6452d77f5",
+  "hashes": {
+    "app/page.jsx": "751d4448fcb322e597ebf08b65eb34c40f1e9c142ed6e42eb9ef3efac0090a58",
+    "app/api/route/route.js": "fa7347620f616c4691d4b1d67cceec885159aab9e6e84edb1ab4a1153f743449",
+    "app/lib/sicetac-options.js": "14e5090bb2f6a6a5d985f84dc84700594e70b77d80687cfc0262fb03220e65f6"
+  },
+  "pass": 6,
+  "gap": 6,
+  "results": [
+    {
+      "version": "working_tree",
+      "name": "Cambiar origen debe descartar RUTASID de la consulta anterior",
+      "status": "gap",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ruta-anterior-ida'\n- null\n"
+    },
+    {
+      "version": "working_tree",
+      "name": "El formulario no debe enviar ida vacía dentro del redondo cargado",
+      "status": "gap",
+      "detail": "El formulario envía viaje_redondo=true y tipo_contenedor=VACIO"
+    },
+    {
+      "version": "working_tree",
+      "name": "El error estructurado del backend debe poder renderizarse",
+      "status": "gap",
+      "detail": "Got unwanted exception.\nActual message: \"Objects are not valid as a React child (found: object with keys {msg, type}). If you meant to render a collection of children, use an array instead.\""
+    },
+    {
+      "version": "working_tree",
+      "name": "Viaje combinado válido conserva ida cargada y regreso contenedor vacío",
+      "status": "pass"
+    },
+    {
+      "version": "working_tree",
+      "name": "Devolución independiente conserva vehículo cargado y contenedor vacío",
+      "status": "pass"
+    },
+    {
+      "version": "working_tree",
+      "name": "El proxy rechaza viaje redondo con vehículo vacío",
+      "status": "pass"
+    },
+    {
+      "version": "origin_main",
+      "name": "Cambiar origen debe descartar RUTASID de la consulta anterior",
+      "status": "gap",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ruta-anterior-ida'\n- null\n"
+    },
+    {
+      "version": "origin_main",
+      "name": "El formulario no debe enviar ida vacía dentro del redondo cargado",
+      "status": "gap",
+      "detail": "El formulario envía viaje_redondo=true y tipo_contenedor=VACIO"
+    },
+    {
+      "version": "origin_main",
+      "name": "El error estructurado del backend debe poder renderizarse",
+      "status": "gap",
+      "detail": "Got unwanted exception.\nActual message: \"Objects are not valid as a React child (found: object with keys {msg, type}). If you meant to render a collection of children, use an array instead.\""
+    },
+    {
+      "version": "origin_main",
+      "name": "Viaje combinado válido conserva ida cargada y regreso contenedor vacío",
+      "status": "pass"
+    },
+    {
+      "version": "origin_main",
+      "name": "Devolución independiente conserva vehículo cargado y contenedor vacío",
+      "status": "pass"
+    },
+    {
+      "version": "origin_main",
+      "name": "El proxy rechaza viaje redondo con vehículo vacío",
+      "status": "pass"
+    }
+  ]
+}

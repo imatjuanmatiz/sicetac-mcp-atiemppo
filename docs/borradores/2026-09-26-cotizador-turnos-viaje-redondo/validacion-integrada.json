@@ -1,0 +1,23 @@
+{
+  "status": "integrated_tested_for_authorized_git_push",
+  "instant_commit": "3c99fae4a0da976184e8ac73cbb36459ae8f4f6a",
+  "instant_remote_base": "456306a2789c830011cad02003549ee6452d77f5",
+  "instant_files_sha256": {
+    "API_TERCEROS.md": "ffad93d7b7c8b8a71bf046c1e553b6d004496bc855779829d0e2877ab99dc7cd",
+    "app/api/route/route.js": "32e5b5dfc3ef54d0af29d8398a6acbcb819773a22ca33431a663a2501593fe6c",
+    "app/lib/route-errors.js": "9d98026c97f2a363f0fb38bf90e43c6821bb608a931ef4e2e01e851327689fb3",
+    "app/lib/sicetac-options.js": "14e5090bb2f6a6a5d985f84dc84700594e70b77d80687cfc0262fb03220e65f6",
+    "app/page.jsx": "c73fce1c08cce38ad74b331f5027768f97488ed86a7f80ec882d699164d90dcf",
+    "test/route-flow.test.mjs": "9582f6311d970a62072092df2aad07060b75ef09488be6c327d7ad51f5978200"
+  },
+  "validation": {
+    "python_tests": 123,
+    "instant_tests": 18,
+    "next_build": "passed; Next.js 16.1.6 --webpack; integrated source copy"
+  },
+  "vehicle_catalog_check": "13 codes confirmed against public /opciones/vehiculos",
+  "municipality_migration_applied": false,
+  "queue_plugin_candidate_installed": false,
+  "live_quote_or_channel_e2e": "not_run",
+  "historical_evidence": "Other manifests, patches and test outputs retain their original phase snapshots."
+}

@@ -1,0 +1,21 @@
+✔ cambiar origen invalida rutas y resultado anteriores (3.731333ms)
+✔ cambiar destino invalida rutas y resultado anteriores (1.647125ms)
+✔ cambiar vehiculo invalida rutas y resultado anteriores (1.469666ms)
+✔ cambiar modo-viaje invalida rutas y resultado anteriores (1.3095ms)
+✔ cambiar tipo-contenedor invalida rutas y resultado anteriores (1.2685ms)
+✔ cambiar tipo-recorrido invalida rutas y resultado anteriores (1.292ms)
+✔ cambiar carrocería descarta retorno y selección anterior (1.247875ms)
+✔ conservar el recorrido permite enviar las variantes elegidas (2.459833ms)
+✔ ida vacía desactiva redondo; elegir redondo exige ida cargada (1.442833ms)
+✔ la respuesta tardía de un recorrido invalidado no reaparece (0.669042ms)
+✔ errores de validación del backend se muestran como texto renderizable (1.648834ms)
+✔ proxy rechaza ida vacía en redondo antes de consultar el backend (23.289708ms)
+✔ proxy conserva Puerto Antioquia para el helper compartido por /consulta (9.632666ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 269.410917

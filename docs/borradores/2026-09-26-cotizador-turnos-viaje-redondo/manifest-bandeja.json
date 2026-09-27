@@ -1,0 +1,26 @@
+{
+  "status": "draft_not_applied",
+  "base_path": "/Users/atiemppoia/codex/openclaw/plugins/cotizador-bandeja",
+  "files": {
+    "src/store.js": {
+      "before_sha256": "533fc63bf795f5778e7447ae723b1d9c1c9246e500b1033b39f850442913e106",
+      "after_sha256": "8702827320f80d58ec6bfaa4dcff6da1f1d6db17b90483d3954741fe3751baf6"
+    },
+    "src/index.js": {
+      "before_sha256": "8fdf4b872343db44be4a10612ddefaac3fb61d970715fdd499bf5b253fe169ff",
+      "after_sha256": "dd07959b55a4b97ac8b81e2f107ce0f4311292a0bc25d7c3f2f436fa9d843de4"
+    },
+    "test/store.test.mjs": {
+      "before_sha256": "80a336c2691290a58f95fa66745b9fe0e5571500c8c062d263e0f1dce2cf68a1",
+      "after_sha256": "2506933f00533d6628af88c4988499858f6ac0a328a2dbd84682d1cb16c61df7"
+    },
+    "test/plugin.test.mjs": {
+      "before_sha256": "a746f079151e5ee007962899e6dffa1d98785e2e7becb3e9ced57ad919696ec4",
+      "after_sha256": "d1c0c9ca225b5d8dbe7e8fa65a38c6142732e2920ddf7ea35a03f623fc1fffa6"
+    },
+    "package.json": {
+      "before_sha256": "7df81f688a076fa83fc8c1e92e1124d0a63caef78e736376637ee7164a2c98e3",
+      "after_sha256": "7df81f688a076fa83fc8c1e92e1124d0a63caef78e736376637ee7164a2c98e3"
+    }
+  }
+}

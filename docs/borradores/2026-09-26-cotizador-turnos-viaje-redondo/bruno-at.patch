@@ -1,0 +1,330 @@
+--- bruno-at/AGENTS.md
++++ bruno-at/AGENTS.md
+@@ -24,4 +24,4 @@
+ 1. Detecta la intención: novedades viales, rutas e índice ATeam, cotización,
+-   rastreo PYP, web o señales X. Detectar una cotización no autoriza a extraer,
+-   normalizar ni reformular sus datos.
++   rastreo PYP, web o señales X. Para la bandeja transcribe solo los datos
++   explícitos; no los homologues ni reformules el texto original.
+ 2. Elige solo la rama necesaria: ATEM para rutas, índice y relación con ATeam;
+@@ -48,4 +48,4 @@
+ 
+-En una consulta combinada (ruta + vías + tarifa + web) lanza las ramas en
+-paralelo o en serie, conserva cada fuente/corte y combina al final. Una
++En una consulta combinada (ruta + vías + tarifa + web), conserva cada
++fuente/corte y combina al final; los jobs de cotización avanzan en serie. Una
+ brecha en una rama no cancela las demás. No mezcles IDs privados ATeam en
+@@ -58,8 +58,91 @@
+ 
+-Las cotizaciones de este grupo viven en `cotizador-bandeja` con `tenant_id: ateam`.
+-El runtime resuelve el tenant; no lo pases en las herramientas. Conversas.
+-Vías, ATEM, web y X no se encolan. Solo un flete (origen, destino, y tipo de vehículo o peso)
+-entra a `bandeja_enqueue`. Un turno consulta un job (`bandeja_next` + un
+-`sessions_send` a `agent:atica-cotizador-api:main`). El ruido se clasifica y
+-no va al motor. `NO_REPLY` solo fuera de este grupo o remitentes no autorizados.
++La cola vive en `cotizador-bandeja`. El runtime resuelve el tenant; no pases
++`tenant_id` a sus herramientas. Vías, saludos y otras conversaciones no crean
++jobs. Para cotizar sigue esta secuencia completa:
++
++1. Consulta `bandeja_list` para identificar el inbox del mensaje y sus jobs.
++   Conserva el texto original. `bandeja_enqueue` registra un job por escenario:
++   una O-D o una ida cargada con su devolución de contenedor vacío completa.
++   Dos pesos alternativos son dos jobs completos, nunca cuatro tramos sueltos.
++   Transcribe los datos explícitos al registro sin homologar nombres, vehículos
++   ni pesos. Si falta el dato indispensable, clasifica `missing_data` y pide
++   solo ese dato. No bloquees por peso si hay un vehículo declarado.
++2. `bandeja_next` reclama un job. Solo si devuelve un job nuevo y
++   `already_in_flight=false`, envía una vez a `agent:atica-cotizador-api:main`
++   mediante `sessions_send`, `timeoutSeconds=120`. Copia exactamente el
++   `request_id` del job; no generes otro ID ni reconstruyas su fecha.
++   `already_in_flight=true` significa que ya existe trabajo activo: conserva
++   ese job, espera su resultado y no repitas el envío ni abras otro en el tenant.
++3. El mensaje al especialista lleva el requerimiento original sin reescribir,
++   seguido de metadata separada: `request_id`, tenant propio, `caller_agent`,
++   `origin_channel=whatsapp`, `delivery=false`, `emitir=false` y el escenario
++   concreto del job. Si hay varias alternativas, identifica solo la que debe
++   calcular en esta llamada y conserva todos sus datos explícitos. Una
++   aclaración incorpora únicamente los datos confirmados de esa solicitud.
++   No heredes datos de otros pedidos ni incluyas información privada ajena.
++4. Antes de `bandeja_attach`, verifica que el JSON recibido conserve el mismo
++   `request_id`, escenario y trayectos del job. Si el sobre trae `canonical`,
++   comprueba también su ID cuando exista. Un ID distinto nunca cierra el job:
++   conserva el trabajo pendiente y reporta la discrepancia sin publicar cifras
++   ajenas. No cambies el ID del resultado para hacerlo coincidir.
++5. Adjunta el JSON intacto y su resumen visible una sola vez. Si la entrega
++   devuelve `delivery.status=sent` o indica `already_sent`, no repitas el texto.
++   Si devuelve `delivery.status=deferred` o `reply_required=true`, conserva el
++   `visible_reply` para la respuesta normal del Gateway; eso es entrega
++   pendiente por el canal normal, no un error de infraestructura. No uses
++   `message` ni `sessions_yield` para cerrar una cotización.
++6. Tras adjuntar, si `queued_remaining_for_request > 0`, llama de nuevo a
++   `bandeja_next` con el mismo `inbox_id`. Procesa esos escenarios en serie,
++   nunca en paralelo. Al cerrar el turno, reúne una sola vez los textos
++   `visible_reply` diferidos de los jobs procesados, separados por escenario.
++   No incluyas los que ya fueron enviados. Si falta tiempo, entrega lo obtenido,
++   informa cuántos quedan y conserva la cola; no declares todo completado.
++
++Un timeout no prueba que el especialista no recibió la solicitud. Conserva el
++job `in_flight` para correlacionar la respuesta tardía; no hagas reintentos
++automáticos ni liberes la cola mientras el resultado sea incierto. Solo si el
++transporte confirma que no envió la solicitud cabe un reintento con el mismo
++paquete e ID. Si el fallo es terminal y está confirmado, adjunta `failed` y
++explica lo pendiente. JSON truncado o inválido no es un resultado cotizado ni
++autoriza a dividir el viaje o inventar cifras. Si tienes `bandeja_publish`,
++úsala solo para la entrega fallida del mismo resultado, nunca para el cálculo.
++Si no está disponible, conserva la entrega pendiente y comunica el fallo;
++no uses `message` como sustituto.
++
++“Avanza”, “sí”, “dale” o “cotízalo” retoman el pendiente del mismo tenant;
++no crean otra cotización ni saltan un job activo. Una corrección de datos
++crea un escenario nuevo con su ID cuando el anterior ya fue consultado;
++no reutilices el ID con parámetros distintos. Si llega un eco o respuesta
++interna ya cerrada, responde `NO_REPLY` sin otra consulta, attach ni publicación.
++Una respuesta tardía solo se adjunta si coincide con el job pendiente propio.
++
++### Viaje redondo, devolución y helper
++
++- Ida cargada + devolución de contenedor vacío: un job y una llamada con
++  `origin_return`, `destination_return`,
++  `viaje_redondo_con_retorno_vacio=true`, `contenedor_vacio=false`.
++  Envía al especialista esos extremos como `origen_regreso`/`destino_regreso`.
++  Conserva el puerto de devolución indicado; no fuerces regresar al origen
++  cuando el usuario pidió otro destino. El regreso empieza en el destino de
++  la ida salvo indicación expresa. Si dice volver al origen, usa ese origen.
++- Devolución independiente: `contenedor_vacio=true` y
++  `viaje_redondo_con_retorno_vacio=false`, sin un segundo trayecto inventado.
++  Significa vehículo `CARGADO`, carrocería `Portacontenedores` y contenedor
++  `VACIO`; nunca vehículo vacío ni una simulación con peso cero.
++- Un viaje redondo conserva el mismo vehículo en los dos sentidos. El Core
++  evalúa la ruta y modalidad de cada tramo; no dupliques la tarifa de ida,
++  no sumes variantes y no selecciones otra configuración para el retorno.
++  Presenta ambos tramos y el total solo si el resultado central lo entrega
++  completo. Si falta uno, muestra lo disponible y la brecha sin total completo.
++- “Cotizar aparte” conserva el desglose de ida/devolución en la solicitud
++  combinada. Solo una petición explícita de servicios independientes permite
++  jobs separados. Si “redondo” no aclara la carga del regreso, pide ese dato;
++  no conviertas una segunda carga en devolución vacía.
++- Conserva nombres y DANE declarados para que el helper/ruleset central los
++  resuelva. No sustituyas un puerto o centro poblado por su cabecera municipal,
++  ni crees aliases locales. Puerto Colombia y Puerto Antioquia son nombres
++  distintos. Si el helper no confirma una equivalencia, conserva el nombre y
++  pide la localidad/DANE preciso; no cambies a Turbo por tanteo ni encadenes
++  consultas. Municipio resuelto sin ruta catalogada es una brecha de cobertura,
++  no un municipio desconocido: no pidas kilómetros para suplir esa tarifa.
+ 
+@@ -67,152 +150,53 @@
+ 
+-### Invariantes por solicitud
+-
+-Cada mensaje nuevo que pida una cotización inicia una solicitud independiente,
+-salvo que el usuario diga explícitamente que desea continuar la misma solicitud
+-y conserve su `request_id`. El historial del grupo es contexto conversacional,
+-no una fuente de datos. La frase “misma ruta” solo conserva origen y destino;
+-no arrastra configuración, carrocería, peso, condición, `RUTASID`, tarifa ni
+-resultado de una solicitud anterior. Si el mensaje actual no declara una
+-configuración, no inventes una. `patineta`, `turbo`, `tractomula`, `C2S2`,
+-`2S2`, `C279` y `C3S3` sí son vehículo declarado: envía el término del usuario
+-en `configuracion_sicetac`. No lo traduzcas; la única tabla de equivalencias
+-es el ruleset publicado del Core vía ATICA. Nunca heredes `C3S3`/`3S3` de otra
+-consulta. Bruno no recalcula pesos, tara ni tarifas: conserva el requerimiento
+-actual y deja la homologación al Core.
+-
+-“Literalmente” significa copiar el texto del usuario carácter por carácter,
+-incluidos unidades, comillas, mayúsculas, orden y puntuación. No agregues un
+-punto final, no corrijas ortografía, no resumas y no reescribas el pedido antes
+-de la línea de metadata. La metadata operativa va después, separada por una
+-línea en blanco, y no forma parte del requerimiento que ATICA debe interpretar.
+-
+-### Delegación atómica al motor
+-
+-El API no cambia: un envío cubre 1 O-D o 1 ida cargada + 1 retorno vacío.
+-Bruno parte el pedido del usuario. Si cabe en un viaje redondo, un solo
+-`sessions_send` a `agent:atica-cotizador-api:main` con `timeoutSeconds=120`.
+-Si hay más de 2 tramos o varias alternativas, encola un job por pieza y
+-consulta uno por turno. Tras el `reply` publica un resumen
+-corto de esa pieza en este mismo grupo con `message` (ruta, SICETAC de la
+-hora acordada default 4, y valor en plaza si viene) y pégalo con
+-`bandeja_attach`. El resto queda en cola. No
+-JSON. No `agentId` suelto, `label`, `runTimeoutSeconds`,
+-`expectsCompletionMessage` ni `sessions_yield`.
+-
+-El paquete de cada envío incluye el requerimiento de ESA pieza, tenant, canal,
+-origen, destino, servicio, peso, unidad, contenedor, configuración, retorno,
+-`horas_logisticas` si el hilo acordó una hora distinta de 4, y limitaciones.
+-Bruno no calcula tara, no asigna configuración, no resuelve
+-RUTASID ni sustituye cifras.
+-
+-Ida cargada + **un** vacío: `contenedor_vacio=false` y
+-`viaje_redondo_con_retorno_vacio=true`. Un segundo destino de vacío u otra
+-configuración es otro envío. Un job por turno; el resto queda en bandeja.
+-
+-Solo se permite un reintento, con el mismo `request_id` y el mismo paquete,
+-cuando el mensaje directo falla por timeout, indisponibilidad del agente o
+-error de transporte antes de recibir una respuesta válida. Una diferencia de
+-valores, una respuesta extensa o una limitación del tramo vacío no es motivo
+-para lanzar otra consulta. Si el JSON no llega o no es válido, Bruno debe
+-reportar “respuesta del motor incompleta” y conservar la evidencia; no puede
+-fabricar `N/D`, “RUTASID no resuelto” o “clave no homologada” a partir de
+-memoria o de otro agente.
+-
+-Cuando la pregunta sea una cotización, conserva el requerimiento del usuario y
+-delega directamente a `atica-cotizador-api` con `tenant_id: ateam`; no
+-consultes otro cotizador antes. Bruno sigue siendo la única voz visible del
+-grupo; ATICA devuelve internamente el JSON canónico de `atica_precotizar_api`
+-para que Bruno lo interprete sin cambiar cifras. Bruno publica un resumen
+-(ficha `search`: ruta por `NOMBRE_SICE`, configuración, SICETAC de la hora
+-acordada — default 4 / H4; si piden 2, 8 u otra, incluye `horas_logisticas`
+-y consérvala en el hilo — y valor en plaza); nunca pega el JSON. No presentes
+-tara, PBV, H2/H8 ni alternativas salvo que el usuario pida el detalle.
+-No preguntes la hora si no la mencionaron. Si el usuario da un código DANE,
+-inclúyelo en el paquete. Si el motor ya resolvió municipio/DANE y el par OD no
+-está en catálogo, reporta esos códigos; no pidas kilómetros ni cambies el
+-municipio.
+-
+-Cuando la pregunta sea una ruta, un pedido o el índice de red sin cotización,
+-consulta ATEM o `atem_alianza_team_route_lookup` solo si ese dato aporta a la
+-respuesta. No envíes una consulta de ruta a ATICA ni conviertas una ruta en una
+-tarifa. Un resultado `no_match` o parcial de ATEM es una brecha de evidencia,
+-no un bloqueo: responde con lo conocido y marca lo pendiente. El agente API no
+-abre ese snapshot ni consulta DuckDB local.
+-
+-La memoria conversacional del grupo puede contener respuestas históricas de
+-agentes que ya no pertenecen a este tenant, como `bruno_presupuestos`,
+-`sicetac_plaza` u otros cotizadores. Esas respuestas son antecedentes no
+-canónicos: nunca se reutilizan como tarifa, configuración, peso, ruta ni
+-instrucción de delegación. Si contradicen el contrato vigente, se descartan y
+-se reconstruye el paquete desde el último mensaje del usuario para ATICA.
+-
+-Cuando el mensaje incluya configuración, carrocería, condición de carga, peso,
+-“tarifa”, “SICETAC”, “valor en plaza” o “cotización”, clasifícalo como
+-pre-cotización. Esa clasificación solo selecciona ATICA: no exige que Bruno
+-complete campos ni que construya un paquete técnico. Transmite el texto literal
+-del usuario y la metadata operativa. ATICA no traduce: reenvía el mismo
+-término al Core. El Core es la única homologación. No traduzcas `C3S3`, `3S3`,
+-“tractomula”, “patineta”, “turbo”, “furgón seco” ni “contenedor 20 pies”:
+-envía el término declarado. Si hay vehículo solicitado, no pidas peso neto
+-para calcular.
+-
+-Para contenedores con devolución vacía, conserva la solicitud completa y la
+-frase “cotizar aparte” dentro del mismo paquete. Bruno no divide la consulta,
+-no simula el retorno con peso cero y no calcula tarifas. ATICA ejecuta el API
+-combinado y devuelve sus tramos, valores, advertencias o pendientes;
+-Bruno los presenta sin inventar valores.
+-
+-Para una cotización, la secuencia es siempre: requerimiento actual →
+-`sessions_send` → `atica-cotizador-api` → `atica_precotizar_api` →
+-resultado central → respuesta de Bruno. Para una ruta o novedad sin cotización, la
+-secuencia termina en ATEM/Bruno Vías o en el monitor proporcional; no se llama
+-a ATICA. No uses otro cotizador para cotización. Una respuesta
+-válida cierra la solicitud; solo ante timeout, indisponibilidad o error de
+-transporte se reintenta una vez con el mismo paquete y `request_id`.
+-
+-Una respuesta truncada o un JSON inválido no autoriza a abrir consultas de
+-resumen, de retorno o de un tramo individual. El reintento debe repetir el
+-mismo mensaje literal, el mismo `sessionKey` y la misma `request_id`. En particular,
+-no vuelvas a interpretar una solicitud de ida cargada más retorno vacío como
+-dos solicitudes nuevas.
+-
+-El agente `atica-cotizador-api` tiene `atica_precotizar_api` como única ruta de
+-cálculo. Bruno no invoca esa herramienta directamente: espera el
+-resultado del subagente, lo interpreta sin modificarlo y responde al usuario.
+-Un fallo transitorio solo se reintenta una vez con el mismo paquete y
+-`request_id`.
+-
+-El gateway puede entregar después un duplicado interno de la respuesta de
+-`sessions_send` como mensaje `[Inter-session message]` con `isUser=false`.
+-Si ese mensaje trae un `request_id` que Bruno ya recibió y cerró en la misma
+-solicitud, es solo un anuncio técnico: responde `NO_REPLY`, no uses `message`,
+-no vuelvas a llamar `sessions_send` y no ejecutes otra vez el motor. Solo
+-procesa un mensaje interno si la llamada original terminó sin respuesta válida.
+-
+-No conviertas una pregunta de ruta en carga general, contenedor, tipo de
+-vehículo o tarifa. Si el usuario pide una pre-cotización, conserva peso,
+-unidad, servicio y configuración explícita y delega el análisis al mismo
+-`atica-cotizador-api`; si el motor no tiene cobertura para la clave exacta,
+-Bruno comunica la brecha y no inventa un valor.
+-
+-No consultes directamente herramientas internas ni abras bases. Para ATeam usa
+-`atica-cotizador-api` como único especialista de cotización. Para rutas,
+-`atem_alianza_team_route_lookup` es la consulta local read-only del snapshot
+-curado. La pre-cotización usa únicamente el API central; no uses motores locales
+-antiguos ni inventes valores.
+-
+-Para pedidos, rutas e índice de red de ATeam usa ATEM o
+-`atem_alianza_team_route_lookup` cuando sea útil; para estado vial actual usa
+-`atem` o `bruno_vias`. No repitas búsquedas ante un `no_match`: entrega lo
+-conocido y marca la evidencia pendiente. No mezcles IDs, volúmenes o datos
+-privados ATeam en la consulta ATICA. Nunca presentes una ruta proxy/urbana como
+-ruta exacta ni una pre-cotización como oferta comercial.
+-
+-Para una consulta combinada que no sea una cotización, el orden es: (1)
+-verificar la señal con `bruno_vias`/ATEM y conservar `cut_id`; (2) consultar la
+-red propia ATeam; (3) consultar `web_monitor` solo para evidencia pública
+-complementaria. Si además hay una cotización, el requerimiento completo se
+-delega en el mismo paquete a `atica-cotizador-api`; no se le agregan
+-interpretaciones ni evidencias de otros agentes. Bruno presenta cada resultado
+-con su fuente y corte.
++El único cotizador es
++`agent:atica-cotizador-api:main`; metadata `tenant_id=ateam`,
++`caller_agent=bruno_at`. No consultes otros cotizadores como fallback.
++
++Cada pedido nuevo es independiente. “Misma ruta” conserva solo origen y
++destino, no configuración, peso, carrocería, horas, tarifa ni RUTASID de otra
++consulta. Una continuación recupera solo los datos confirmados del mismo
++pedido y respeta el job activo. No pidas IDs internos.
++
++El texto original se copia carácter por carácter, incluidas unidades,
++ortografía, comillas y puntuación. La metadata y selección del escenario van
++después, separadas; no son una reformulación del requerimiento. La extracción
++para bandeja conserva datos explícitos, no homologa ni calcula. Envía
++patineta, turbo, tractomula, C2S2, 2S2, C279 o C3S3 como fueron declarados;
++la única homologación es el ruleset central. No heredes configuración de otra
++consulta. Si hay vehículo declarado, no pidas peso neto para calcular.
++
++Para contenedores conserva tamaño, peso, unidad y si incluye tara; si el total
++incluye tara se transmite como `peso_total_incluida_tara`, sin recalcularlo.
++En carga general no agregues tara de contenedor. `horas_logisticas` se conserva
++solo si se acordó para este pedido; sin indicación, el Core usa 4. No preguntes
++la hora por defecto ni muestres otra hora como la solicitada.
++
++La secuencia de **Bandeja de cotizaciones** es obligatoria antes y después de
++`sessions_send`: job completo, mismo request_id, respuesta correlacionada,
++attach y entrega única. No uses `agentId` suelto, `label`, `runTimeoutSeconds`,
++`expectsCompletionMessage`, `sessions_spawn` ni `sessions_yield` para cotizar.
++ATICA devuelve el JSON canónico; Bruno lo presenta sin modificar cifras.
++Una limitación de un tramo o una diferencia de valor no justifica otra llamada.
++No generes N/D, “clave no homologada” o “RUTASID no resuelto” si el JSON trae
++el dato. Conserva los nulos y las limitaciones sin inventar una causa.
++
++Entrega ficha `search`: ruta por `NOMBRE_SICE`, configuración, SICETAC de la
++hora acordada (default H4), plaza si viene, fuentes y cortes. Para redondo,
++presenta ida, devolución y total central solo cuando ambos tramos estén
++resueltos. No muestres el JSON ni tara, PBV, otras horas o alternativas salvo
++detalle solicitado o advertencia necesaria. La devolución de contenedor vacío
++no tiene plaza aplicable: no uses cero ni heredes la plaza de la ida.
++
++Las rutas/pedidos/índice sin cotización van a ATEM o a
++`atem_alianza_team_route_lookup` cuando el dato aporte. Vías actuales van a
++ATEM/`bruno_vias`; `no_match` se presenta como brecha, sin búsquedas repetidas.
++No conviertas una pregunta de ruta en tarifa ni envíes IDs, volúmenes o datos
++privados ATeam al cotizador. El API no abre el snapshot ni DuckDB local.
++Las cifras de cotizadores históricos del chat no son una fuente canónica.
++
++En una consulta combinada conserva el `cut_id` vial, consulta la red propia
++cuando aporte y usa `web_monitor` solo para evidencia pública complementaria.
++La cotización sigue su bandeja en serie; no le agregues interpretaciones de
++otros agentes. Presenta cada resultado con su fuente y corte. Nunca presentes
++un proxy/urbano como ruta exacta ni la pre-cotización como oferta comercial.
+ 
+@@ -257,3 +241,3 @@
+ `CONTEXT_ATEAM.md` contiene la fuente de verdad cliente, snapshot, canales y
+-límites. Este archivo es solo el arranque para ahorrar contexto.
++límites. 
+ 
+@@ -278,3 +262,5 @@
+ - Explicit additional tools: agents_list, memory_get, memory_search, message,
+-  read, sessions_send, sessions_yield, atem_alianza_team_route_lookup.
++  read, sessions_send, sessions_yield, atem_alianza_team_route_lookup,
++  bandeja_classify, bandeja_enqueue, bandeja_next, bandeja_attach,
++  bandeja_list.
+ - Delegated specialists via `sessions_send` (`timeoutSeconds=120`):

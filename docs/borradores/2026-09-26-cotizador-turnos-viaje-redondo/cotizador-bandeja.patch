@@ -1,0 +1,241 @@
+--- a/src/store.js
++++ b/src/store.js
+@@ -2,6 +2,7 @@
+ import { mkdirSync } from "node:fs";
+ import { dirname } from "node:path";
+ import { DatabaseSync } from "node:sqlite";
++import { isDeepStrictEqual } from "node:util";
+ 
+ export const INBOX_INTENTS = Object.freeze([
+   "unset",
+@@ -163,10 +164,28 @@
+   if (origin.length < 2 || destination.length < 2) {
+     throw new Error("interpreted.origin and interpreted.destination are required");
+   }
+-  const explicitReturnOrigin = interpreted?.origin_return ? String(interpreted.origin_return).trim() : null;
+-  const explicitReturnDestination = interpreted?.destination_return ? String(interpreted.destination_return).trim() : null;
++  const explicitReturnOrigin = String(interpreted?.origin_return ?? "").trim() || null;
++  const explicitReturnDestination = String(interpreted?.destination_return ?? "").trim() || null;
+   const returnOrigin = explicitReturnOrigin || (explicitReturnDestination ? destination : null);
+   const hasRoundTrip = returnOrigin !== null && explicitReturnDestination !== null;
++  const roundTrip = interpreted?.viaje_redondo_con_retorno_vacio;
++  const emptyContainer = interpreted?.contenedor_vacio;
++  for (const flag of [roundTrip, emptyContainer]) {
++    if (flag != null && typeof flag !== "boolean") throw new Error("trip flags must be boolean or null");
++  }
++  if (explicitReturnOrigin && !explicitReturnDestination) {
++    throw new Error("destination_return is required when origin_return is supplied");
++  }
++  if (roundTrip === true && !hasRoundTrip) throw new Error("round trip requires return endpoints");
++  if (hasRoundTrip && roundTrip === false) throw new Error("return endpoints contradict round trip=false");
++  if (hasRoundTrip && emptyContainer === true) throw new Error("loaded round trip cannot start with an empty container");
++  if (hasRoundTrip && (returnOrigin.length < 2 || explicitReturnDestination.length < 2)) {
++    throw new Error("return endpoints must have at least two characters");
++  }
++  const service = String(interpreted?.service ?? "").trim() || "contenedor";
++  if ((hasRoundTrip || emptyContainer === true) && !/\b(contenedor(?:es)?|portacontenedores|retorno|devolucion)\b/.test(normalizeText(service))) {
++    throw new Error("container trip flags require a container service");
++  }
+   const requestedHours = interpreted?.horas_logisticas == null ? null : Number(interpreted.horas_logisticas);
+   if (requestedHours !== null && (!Number.isFinite(requestedHours) || requestedHours < 0 || requestedHours > 48)) {
+     throw new Error("horas_logisticas must be a number between 0 and 48");
+@@ -176,7 +195,7 @@
+     destination,
+     origin_return: returnOrigin,
+     destination_return: explicitReturnDestination,
+-    service: interpreted?.service ? String(interpreted.service).trim() : "contenedor",
++    service,
+     container_size_ft: interpreted?.container_size_ft ?? null,
+     weight_total: interpreted?.weight_total ?? null,
+     weight_unit: interpreted?.weight_unit ?? null,
+@@ -551,18 +570,18 @@
+     if (flying) {
+       const queuedRemaining = queuedCount();
+       db.exec("COMMIT");
+-      return { ok: true, already_in_flight: true, queued_remaining: Number(queuedRemaining.n), job: rowToJob(flying) };
++      return { ok: true, already_in_flight: true, dispatch_allowed: false, action: "wait", queued_remaining: Number(queuedRemaining.n), job: rowToJob(flying) };
+     }
+     const queued = requestInboxId
+       ? db.prepare(
+-        "SELECT * FROM jobs WHERE tenant_id=? AND inbox_id=? AND status='queued' ORDER BY created_at ASC LIMIT 1",
++        "SELECT * FROM jobs WHERE tenant_id=? AND inbox_id=? AND status='queued' ORDER BY created_at ASC, rowid ASC LIMIT 1",
+       ).get(tenantId, requestInboxId)
+       : db.prepare(
+-        "SELECT * FROM jobs WHERE tenant_id=? AND status='queued' ORDER BY created_at ASC LIMIT 1",
++        "SELECT * FROM jobs WHERE tenant_id=? AND status='queued' ORDER BY created_at ASC, rowid ASC LIMIT 1",
+       ).get(tenantId);
+     if (!queued) {
+       db.exec("COMMIT");
+-      return { ok: true, already_in_flight: false, queued_remaining: 0, job: null };
++      return { ok: true, already_in_flight: false, dispatch_allowed: false, action: "idle", queued_remaining: 0, job: null };
+     }
+     const at = nowIso();
+     db.prepare(
+@@ -581,6 +600,8 @@
+     return {
+       ok: true,
+       already_in_flight: false,
++      dispatch_allowed: true,
++      action: "dispatch",
+       queued_remaining: Number(queuedRemaining.n),
+       job: rowToJob({ ...queued, status: "in_flight", claimed_at: at, updated_at: at }),
+     };
+@@ -597,16 +618,32 @@
+   if (!JOB_STATUSES.includes(status) || status === "queued" || status === "in_flight") {
+     throw new Error(`invalid attach status: ${status}`);
+   }
+-  const row = db.prepare(
+-    "SELECT * FROM jobs WHERE tenant_id=? AND job_id=?",
+-  ).get(tenantId, jobId);
+-  if (!row) throw new Error("job not found for tenant");
+   const at = nowIso();
+   db.exec("BEGIN IMMEDIATE");
+   try {
++    const row = db.prepare("SELECT * FROM jobs WHERE tenant_id=? AND job_id=?").get(tenantId, jobId);
++    if (!row) throw new Error("job not found for tenant");
++    const response = input.json_response;
++    const ids = [input.request_id, response?.request_id, response?.canonical?.request_id];
++    if (!row.request_id || ids.some((id) => id !== undefined && id !== row.request_id)) {
++      throw new Error("request_id must match the assigned job request_id");
++    }
++    if (status === "answered" && response?.request_id !== row.request_id && response?.canonical?.request_id !== row.request_id) {
++      throw new Error("answered result requires a matching canonical request_id");
++    }
++    const nextResponse = response == null ? parseJson(row.json_response) : response;
++    const nextReply = input.visible_reply ?? row.visible_reply;
++    const nextProcessor = input.processed_by ?? row.processed_by;
++    if (row.status !== "queued" && row.status !== "in_flight") {
++      if (row.status !== status || !isDeepStrictEqual(parseJson(row.json_response), nextResponse)
++        || row.visible_reply !== nextReply || row.processed_by !== nextProcessor) {
++        throw new Error("completed job is immutable; create a new job for corrected input");
++      }
++      db.exec("COMMIT");
++      return { ok: true, idempotent: true, job: rowToJob(row) };
++    }
+     db.prepare(
+       `UPDATE jobs SET
+-         request_id=COALESCE(?, request_id),
+          json_response=?,
+          visible_reply=?,
+          processed_by=?,
+@@ -615,10 +652,9 @@
+          updated_at=?
+        WHERE tenant_id=? AND job_id=?`,
+     ).run(
+-      input.request_id ?? null,
+-      input.json_response == null ? row.json_response : JSON.stringify(input.json_response),
+-      input.visible_reply ?? row.visible_reply,
+-      input.processed_by ?? row.processed_by,
++      nextResponse == null ? null : JSON.stringify(nextResponse),
++      nextReply,
++      nextProcessor,
+       status,
+       at,
+       at,
+@@ -631,7 +667,7 @@
+       jobId,
+       actor: input.actor || input.processed_by || "at_cot_001",
+       action: "job_attached",
+-      detail: { status, request_id: input.request_id ?? row.request_id },
++      detail: { status, request_id: row.request_id },
+       at,
+     });
+     db.exec("COMMIT");
+@@ -641,6 +677,7 @@
+   }
+   return {
+     ok: true,
++    idempotent: false,
+     job: rowToJob(db.prepare("SELECT * FROM jobs WHERE job_id=?").get(jobId)),
+   };
+ }
+--- a/src/index.js
++++ b/src/index.js
+@@ -258,7 +258,9 @@
+       actor: agentId,
+     });
+     const delivery = currentDelivery(tenant);
+-    const published = await publishJobResult(db, {
++    const published = attached.idempotent ? {
++      ok: true, status: "already_attached", reply_required: false, job: attached.job,
++    } : await publishJobResult(db, {
+       tenantId: tenant.tenant_id,
+       jobId: params.job_id,
+       send: delivery.send,
+@@ -309,7 +311,7 @@
+       name: "bandeja_next",
+       label: "Bandeja next",
+       description:
+-        "Reclama el siguiente job queued. Puede recibir inbox_id para drenar una solicitud específica; si ya hay uno in_flight en el tenant, lo devuelve y no abre otro. Un turno = un job.",
++        "Reclama el siguiente job queued. Procesa serialmente los jobs del mismo inbox_id. Consulta solo si dispatch_allowed=true; already_in_flight=true/action=wait conserva el job activo sin repetir el envío.",
+       parameters: NextParams,
+       execute: wrap((db, tenant, params) => {
+         const result = nextJob(db, { tenantId: tenant.tenant_id, actor: agentId, inboxId: params.inbox_id });
+@@ -323,7 +325,7 @@
+       name: "bandeja_attach",
+       label: "Bandeja attach",
+       description:
+-        "Pega el JSON canónico. Publica automáticamente si OpenClaw entrega un callback de envío; si el canal es Gateway-owned, devuelve delivery.status=deferred y visible_reply para que el agente lo entregue como respuesta final normal del turno. La ruta nunca la elige el modelo.",
++        "Adjunta JSON canónico con el request_id asignado al job, sin sustituirlo. Un cierre idéntico es idempotente y no repite la entrega. Publica por el callback validado; si Gateway posee el canal, devuelve deferred y visible_reply para la respuesta normal. No elige destino el modelo.",
+       parameters: AttachParams,
+       execute: wrap(attachAndPublish),
+     },
+--- a/test/store.test.mjs
++++ b/test/store.test.mjs
+@@ -258,6 +258,7 @@
+     attachResult(db, {
+       tenantId: "AT-COT-001",
+       jobId: second.job.job_id,
++      json_response: { request_id: second.job.request_id, status: "ok" },
+       status: "answered",
+       visible_reply: "Listo",
+     });
+@@ -427,8 +428,8 @@
+     const attached = attachResult(db, {
+       tenantId: "AT-COT-001",
+       jobId: enqueued.jobs[0].job_id,
+-      request_id: "AT-COT-001-20260916-RECOVERY-NEI-BUN",
+-      json_response: { request_id: "AT-COT-001-20260916-RECOVERY-NEI-BUN", status: "provisional" },
++      request_id: enqueued.jobs[0].request_id,
++      json_response: { request_id: enqueued.jobs[0].request_id, status: "provisional" },
+       visible_reply: "Neiva listo",
+       processed_by: "at_cot_001+atica-cotizador-api",
+       status: "answered",
+@@ -456,9 +457,9 @@
+     attachResult(db, {
+       tenantId: "AT-COT-001",
+       jobId,
++      json_response: { request_id: enqueued.jobs[0].request_id, status: "ok" },
+       status: "answered",
+       visible_reply: "Cartagena → Buenaventura: SICETAC H4 $3.068.322",
+-      json_response: { status: "ok" },
+       actor: "at_cot_001",
+     });
+     const sent = [];
+@@ -502,6 +503,7 @@
+     attachResult(db, {
+       tenantId: "AT-COT-001",
+       jobId,
++      json_response: { request_id: enqueued.jobs[0].request_id, status: "ok" },
+       status: "answered",
+       visible_reply: "Resultado visible por respuesta normal",
+       actor: "at_cot_001",
+@@ -537,6 +539,7 @@
+     attachResult(db, {
+       tenantId: "AT-COT-001",
+       jobId,
++      json_response: { request_id: enqueued.jobs[0].request_id, status: "ok" },
+       status: "answered",
+       visible_reply: "Resultado privado de prueba",
+       actor: "at_cot_001",
+--- a/test/plugin.test.mjs
++++ b/test/plugin.test.mjs
+@@ -162,7 +162,7 @@
+     job_id: claimed.job.job_id,
+     status: "answered",
+     visible_reply: "Cartagena → Buenaventura: SICETAC H4 $3.068.322",
+-    json_response: { status: "ok" },
++    json_response: { request_id: claimed.job.request_id, status: "ok" },
+   })).content[0].text);
+   assert.equal(enqueued.created_count, 1);
+   assert.equal(result.delivery.status, "sent");

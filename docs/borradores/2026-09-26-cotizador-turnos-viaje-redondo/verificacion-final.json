@@ -1,0 +1,13 @@
+{
+  "agent_files_match_applied_hashes": {
+    "at-cot-001": true,
+    "bruno-at": true,
+    "atica-cotizador-api": true
+  },
+  "protected_files_unchanged": true,
+  "tracked_api_files_changed": [],
+  "agents_applied": 3,
+  "candidate_tests_passed": 32,
+  "instant_findings": 3,
+  "runtime_e2e_executed": false
+}
