@@ -1,0 +1,5258 @@
+{
+  "source": "Supabase read-only snapshot from 2026-09-22",
+  "checks": "52 loaded/empty calculations; route 93 and same-municipality estimate; components, fuel and distances reconcile; original fixed source month preserved",
+  "cases": [
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V2",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 4851715.65,
+        "H4": 4973633.29,
+        "H8": 5217484.91
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 83.9923,
+        "horas_recorrido": 22.92,
+        "horas_logisticas": 4.0,
+        "horas_totales": 26.92,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 8.5448,
+        "costo_fijo_mensual": 11447935.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1339754.68,
+        "costos_variables": 2720937.54,
+        "combustible": 975654.55,
+        "peajes": 282900,
+        "mantenimiento": 1360356.27,
+        "imprevistos": 102026.72,
+        "otros_costos": 912941.07,
+        "total_viaje": 4973633.29
+      },
+      "detalle_consumo": {
+        "total_galones": 83.9923,
+        "costo_combustible_total": 975654.55,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 16.599056603773583,
+            "gal": 69.2716535433071,
+            "velocidad_km_h": 53.0,
+            "rendimiento_km_galon": 12.7,
+            "costo_combustible": 804659.53
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.4026666666666667,
+            "gal": 7.200799200799201,
+            "velocidad_km_h": 30.0,
+            "rendimiento_km_galon": 10.01,
+            "costo_combustible": 83644.48
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.515333333333333,
+            "gal": 4.830985915492958,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 56116.73
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 1.4,
+            "gal": 2.6888604353393086,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 31233.8
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 9.55,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V2",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 278705.12,
+        "H4": 400633.08,
+        "H8": 644487.9
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.997,
+        "horas_recorrido": 1.0,
+        "horas_logisticas": 4.0,
+        "horas_totales": 5.0,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.0,
+        "costo_fijo_mensual": 11447935.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 248868.17,
+        "costos_variables": 78226.24,
+        "combustible": 34813.19,
+        "peajes": 0.0,
+        "mantenimiento": 40384.23,
+        "imprevistos": 3028.82,
+        "otros_costos": 73538.67,
+        "total_viaje": 400633.08
+      },
+      "detalle_consumo": {
+        "total_galones": 2.997,
+        "costo_combustible_total": 34813.19,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 53.0,
+            "rendimiento_km_galon": 12.7,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 1.0,
+            "gal": 2.997002997002997,
+            "velocidad_km_h": 30.0,
+            "rendimiento_km_galon": 10.01,
+            "costo_combustible": 34813.19
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 9.55,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V2",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 3748488.58,
+        "H4": 3748488.58,
+        "H8": 3748488.58
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 34.9996,
+        "horas_recorrido": 18.41,
+        "horas_logisticas": 0,
+        "horas_totales": 18.41,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 12.4963,
+        "costo_fijo_mensual": 11447935.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 916106.03,
+        "costos_variables": 2151838.76,
+        "combustible": 406555.74,
+        "peajes": 282900,
+        "mantenimiento": 1360356.3,
+        "imprevistos": 102026.72,
+        "otros_costos": 680543.79,
+        "total_viaje": 3748488.58
+      },
+      "detalle_consumo": {
+        "total_galones": 34.9996,
+        "costo_combustible_total": 406555.74,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.331565388695259,
+            "gal": 28.863188976377952,
+            "velocidad_km_h": 65.99,
+            "rendimiento_km_galon": 30.48,
+            "costo_combustible": 335274.8
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.9298527443105755,
+            "gal": 3.0008326394671108,
+            "velocidad_km_h": 37.35,
+            "rendimiento_km_galon": 24.02,
+            "costo_combustible": 34857.67
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0198072805139184,
+            "gal": 2.014415376401495,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 23399.45
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 1.1241970021413277,
+            "gal": 1.1211959423384943,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 13023.81
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.89,
+            "rendimiento_km_galon": 11.93,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V2",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 119616.3,
+        "H4": 119616.3,
+        "H8": 119616.3
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.249,
+        "horas_recorrido": 0.8,
+        "horas_logisticas": 0,
+        "horas_totales": 0.8,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 286.35,
+        "costo_fijo_mensual": 11447935.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 39978.82,
+        "costos_variables": 57920.96,
+        "combustible": 14507.91,
+        "peajes": 0.0,
+        "mantenimiento": 40384.23,
+        "imprevistos": 3028.82,
+        "otros_costos": 21716.52,
+        "total_viaje": 119616.3
+      },
+      "detalle_consumo": {
+        "total_galones": 1.249,
+        "costo_combustible_total": 14507.91,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 65.99,
+            "rendimiento_km_galon": 30.48,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.8032128514056225,
+            "gal": 1.2489592006661117,
+            "velocidad_km_h": 37.35,
+            "rendimiento_km_galon": 24.02,
+            "costo_combustible": 14507.91
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.89,
+            "rendimiento_km_galon": 11.93,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V3",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 6274166.72,
+        "H4": 6414390.48,
+        "H8": 6694818.99
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 111.7557,
+        "horas_recorrido": 21.0,
+        "horas_logisticas": 4.0,
+        "horas_totales": 25.0,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.1986,
+        "costo_fijo_mensual": 13164934.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1431188.97,
+        "costos_variables": 3805800.57,
+        "combustible": 1298154.16,
+        "peajes": 533100,
+        "mantenimiento": 1836787.36,
+        "imprevistos": 137759.05,
+        "otros_costos": 1177400.94,
+        "total_viaje": 6414390.48
+      },
+      "detalle_consumo": {
+        "total_galones": 111.7557,
+        "costo_combustible_total": 1298154.16,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.3,
+            "gal": 94.90291262135922,
+            "velocidad_km_h": 57.5,
+            "rendimiento_km_galon": 9.27,
+            "costo_combustible": 1102392.23
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.529122807017544,
+            "gal": 8.58095238095238,
+            "velocidad_km_h": 28.5,
+            "rendimiento_km_galon": 8.4,
+            "costo_combustible": 99676.34
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0394594594594593,
+            "gal": 5.314084507042254,
+            "velocidad_km_h": 18.5,
+            "rendimiento_km_galon": 7.1,
+            "costo_combustible": 61728.41
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 1.135135135135135,
+            "gal": 2.9577464788732395,
+            "velocidad_km_h": 18.5,
+            "rendimiento_km_galon": 7.1,
+            "costo_combustible": 34357.18
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.77,
+            "rendimiento_km_galon": 4.52,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V3",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 336621.18,
+        "H4": 476836.39,
+        "H8": 757265.6
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 3.5714,
+        "horas_recorrido": 1.05,
+        "horas_logisticas": 4.0,
+        "horas_totales": 5.05,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 45.5208,
+        "costo_fijo_mensual": 13164934.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 289207.02,
+        "costos_variables": 100103.11,
+        "combustible": 41485.71,
+        "peajes": 0.0,
+        "mantenimiento": 54527.81,
+        "imprevistos": 4089.59,
+        "otros_costos": 87526.26,
+        "total_viaje": 476836.39
+      },
+      "detalle_consumo": {
+        "total_galones": 3.5714,
+        "costo_combustible_total": 41485.71,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 57.5,
+            "rendimiento_km_galon": 9.27,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 1.0526315789473684,
+            "gal": 3.571428571428571,
+            "velocidad_km_h": 28.5,
+            "rendimiento_km_galon": 8.4,
+            "costo_combustible": 41485.71
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.5,
+            "rendimiento_km_galon": 7.1,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.5,
+            "rendimiento_km_galon": 7.1,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.77,
+            "rendimiento_km_galon": 4.52,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V3",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 4904611.36,
+        "H4": 4904611.36,
+        "H8": 4904611.36
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 46.5633,
+        "horas_recorrido": 16.87,
+        "horas_logisticas": 0,
+        "horas_totales": 16.87,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 13.6333,
+        "costo_fijo_mensual": 13164934.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 965645.5,
+        "costos_variables": 3048526.23,
+        "combustible": 540879.79,
+        "peajes": 533100,
+        "mantenimiento": 1836787.39,
+        "imprevistos": 137759.05,
+        "otros_costos": 890439.63,
+        "total_viaje": 4904611.36
+      },
+      "detalle_consumo": {
+        "total_galones": 46.5633,
+        "costo_combustible_total": 540879.79,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.288727475904455,
+            "gal": 39.53932584269663,
+            "velocidad_km_h": 71.59,
+            "rendimiento_km_galon": 22.25,
+            "costo_combustible": 459288.81
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.031567080045096,
+            "gal": 3.575396825396825,
+            "velocidad_km_h": 35.48,
+            "rendimiento_km_galon": 20.16,
+            "costo_combustible": 41531.81
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.6382978723404253,
+            "gal": 2.2155020551967115,
+            "velocidad_km_h": 23.03,
+            "rendimiento_km_galon": 17.03,
+            "costo_combustible": 25735.27
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.911854103343465,
+            "gal": 1.2331180270111568,
+            "velocidad_km_h": 23.03,
+            "rendimiento_km_galon": 17.03,
+            "costo_combustible": 14323.9
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 14.66,
+            "rendimiento_km_galon": 10.84,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V3",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 151874.24,
+        "H4": 151874.24,
+        "H8": 151874.24
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.4881,
+        "horas_recorrido": 0.85,
+        "horas_logisticas": 0,
+        "horas_totales": 0.85,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 272.0133,
+        "costo_fijo_mensual": 13164934.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 48398.13,
+        "costos_variables": 75903.11,
+        "combustible": 17285.71,
+        "peajes": 0.0,
+        "mantenimiento": 54527.81,
+        "imprevistos": 4089.59,
+        "otros_costos": 27573.0,
+        "total_viaje": 151874.24
+      },
+      "detalle_consumo": {
+        "total_galones": 1.4881,
+        "costo_combustible_total": 17285.71,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 71.59,
+            "rendimiento_km_galon": 22.25,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.8455467869222097,
+            "gal": 1.4880952380952381,
+            "velocidad_km_h": 35.48,
+            "rendimiento_km_galon": 20.16,
+            "costo_combustible": 17285.71
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.03,
+            "rendimiento_km_galon": 17.03,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.03,
+            "rendimiento_km_galon": 17.03,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 14.66,
+            "rendimiento_km_galon": 10.84,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V4",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 7587079.5,
+        "H4": 7727349.5,
+        "H8": 8007858.37
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 160.8491,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4.0,
+        "horas_totales": 24.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.4621,
+        "costo_fijo_mensual": 13169149.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1391778.76,
+        "costos_variables": 4917168.08,
+        "combustible": 1868423.17,
+        "peajes": 533100,
+        "mantenimiento": 2340134.8,
+        "imprevistos": 175510.11,
+        "otros_costos": 1418402.66,
+        "total_viaje": 7727349.5
+      },
+      "detalle_consumo": {
+        "total_galones": 160.8491,
+        "costo_combustible_total": 1868423.17,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 129.375,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.8,
+            "costo_combustible": 1502820.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 14.3015873015873,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 5.04,
+            "costo_combustible": 166127.24
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.032163742690058,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 128149.61
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8909630886720408,
+            "gal": 6.140350877192983,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 71326.32
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.18,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V4",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 379922.76,
+        "H4": 520182.91,
+        "H8": 800701.81
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 5.9524,
+        "horas_recorrido": 0.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.8859,
+        "costo_fijo_mensual": 13169149.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 280876.55,
+        "costos_variables": 143823.58,
+        "combustible": 69142.86,
+        "peajes": 0.0,
+        "mantenimiento": 69470.44,
+        "imprevistos": 5210.28,
+        "otros_costos": 95482.78,
+        "total_viaje": 520182.91
+      },
+      "detalle_consumo": {
+        "total_galones": 5.9524,
+        "costo_combustible_total": 69142.86,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.8,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9055236945366736,
+            "gal": 5.9523809523809526,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 5.04,
+            "costo_combustible": 69142.86
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.18,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "V4",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5817432.17,
+        "H4": 5817432.17,
+        "H8": 5817432.17
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 67.0255,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_totales": 16.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 14.1004,
+        "costo_fijo_mensual": 13169149.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 933955.76,
+        "costos_variables": 3827312.78,
+        "combustible": 778567.86,
+        "peajes": 533100,
+        "mantenimiento": 2340134.81,
+        "imprevistos": 175510.11,
+        "otros_costos": 1056163.63,
+        "total_viaje": 5817432.17
+      },
+      "detalle_consumo": {
+        "total_galones": 67.0255,
+        "costo_combustible_total": 778567.86,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 53.90625,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 16.32,
+            "costo_combustible": 626175.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 5.95702479338843,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 12.1,
+            "costo_combustible": 69196.8
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.601219512195122,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 53447.77
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.7157464212678937,
+            "gal": 2.5609756097560976,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 29748.29
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 5.22,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "V4",
+      "mes": 202609,
+      "carroceria": "GRANEL SOLIDO - VOLCO",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 177313.91,
+        "H4": 177313.91,
+        "H8": 177313.91
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.4793,
+        "horas_recorrido": 0.73,
+        "horas_logisticas": 0,
+        "horas_totales": 0.73,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 316.25,
+        "costo_fijo_mensual": 13169149.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 41641.58,
+        "costos_variables": 103480.72,
+        "combustible": 28800.0,
+        "peajes": 0.0,
+        "mantenimiento": 69470.44,
+        "imprevistos": 5210.28,
+        "otros_costos": 32191.61,
+        "total_viaje": 177313.91
+      },
+      "detalle_consumo": {
+        "total_galones": 2.4793,
+        "costo_combustible_total": 28800.0,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 16.32,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7272727272727273,
+            "gal": 2.479338842975207,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 12.1,
+            "costo_combustible": 28800.0
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 5.22,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "CA",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2388616.34,
+        "H4": 2462474.0,
+        "H8": 2610186.55
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 47.1486,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4.0,
+        "horas_totales": 21.98,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.4639,
+        "costo_fijo_mensual": 6934693.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 662725.54,
+        "costos_variables": 1347746.17,
+        "combustible": 547678.27,
+        "peajes": 282900,
+        "mantenimiento": 481086.42,
+        "imprevistos": 36081.48,
+        "otros_costos": 452002.29,
+        "total_viaje": 2462474.0
+      },
+      "detalle_consumo": {
+        "total_galones": 47.1486,
+        "costo_combustible_total": 547678.27,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 38.25,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 23.0,
+            "costo_combustible": 444312.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 4.004444444444444,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 18.0,
+            "costo_combustible": 46515.63
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 3.1441666666666666,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 12.0,
+            "costo_combustible": 36522.64
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.84,
+            "gal": 1.75,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 12.0,
+            "costo_combustible": 20328.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 6.5,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "CA",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 138533.89,
+        "H4": 212392.8,
+        "H8": 360110.53
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.6667,
+        "horas_recorrido": 0.6,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.6,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 50.0,
+        "costo_fijo_mensual": 6934693.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 138693.88,
+        "costos_variables": 34712.91,
+        "combustible": 19360.0,
+        "peajes": 0.0,
+        "mantenimiento": 14281.78,
+        "imprevistos": 1071.13,
+        "otros_costos": 38986.01,
+        "total_viaje": 212392.8
+      },
+      "detalle_consumo": {
+        "total_galones": 1.6667,
+        "costo_combustible_total": 19360.0,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 23.0,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.6,
+            "gal": 1.6666666666666667,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 18.0,
+            "costo_combustible": 19360.0
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 12.0,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 12.0,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 6.5,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "CA",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 1784506.61,
+        "H4": 1784506.61,
+        "H8": 1784506.61
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 19.6489,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_totales": 14.82,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5179,
+        "costo_fijo_mensual": 6934693.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 446883.52,
+        "costos_variables": 1013643.21,
+        "combustible": 228241.05,
+        "peajes": 282900,
+        "mantenimiento": 467443.87,
+        "imprevistos": 35058.29,
+        "otros_costos": 323979.88,
+        "total_viaje": 1784506.61
+      },
+      "detalle_consumo": {
+        "total_galones": 19.6489,
+        "costo_combustible_total": 228241.05,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 15.940387751404241,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 55.19,
+            "costo_combustible": 185163.54
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 1.6685185185185183,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 43.2,
+            "costo_combustible": 19381.51
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.3105244876693296,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 28.79,
+            "costo_combustible": 15223.05
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.6745904272406039,
+            "gal": 0.7294199374782911,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 28.79,
+            "costo_combustible": 8472.94
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 15.61,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "CA",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 45836.41,
+        "H4": 45836.41,
+        "H8": 45836.41
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 0.6944,
+        "horas_recorrido": 0.48,
+        "horas_logisticas": 0,
+        "horas_totales": 0.48,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 477.25,
+        "costo_fijo_mensual": 6934693.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 14530.53,
+        "costos_variables": 22984.21,
+        "combustible": 8066.67,
+        "peajes": 0.0,
+        "mantenimiento": 13876.78,
+        "imprevistos": 1040.76,
+        "otros_costos": 8321.67,
+        "total_viaje": 45836.41
+      },
+      "detalle_consumo": {
+        "total_galones": 0.6944,
+        "costo_combustible_total": 8066.67,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 55.19,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.4819277108433735,
+            "gal": 0.6944444444444444,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 43.2,
+            "costo_combustible": 8066.67
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 28.79,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 28.79,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 15.61,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C257",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2550792.91,
+        "H4": 2625911.47,
+        "H8": 2776145.73
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 54.3615,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4.0,
+        "horas_totales": 21.98,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.4639,
+        "costo_fijo_mensual": 7053081.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 674039.49,
+        "costos_variables": 1469869.73,
+        "combustible": 631462.99,
+        "peajes": 282900,
+        "mantenimiento": 516750.46,
+        "imprevistos": 38756.28,
+        "otros_costos": 482002.25,
+        "total_viaje": 2625911.47
+      },
+      "detalle_consumo": {
+        "total_galones": 54.3615,
+        "costo_combustible_total": 631462.99,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 43.573551263001484,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 20.19,
+            "costo_combustible": 506150.37
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 4.776673293571902,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 15.09,
+            "costo_combustible": 55485.84
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 3.8618219037871033,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 9.77,
+            "costo_combustible": 44858.92
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.84,
+            "gal": 2.1494370522006143,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 9.77,
+            "costo_combustible": 24967.86
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.89,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C257",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 146139.9,
+        "H4": 221259.73,
+        "H8": 371499.27
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.9881,
+        "horas_recorrido": 0.6,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.6,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 50.0,
+        "costo_fijo_mensual": 7053081.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 141061.64,
+        "costos_variables": 39584.5,
+        "combustible": 23093.44,
+        "peajes": 0.0,
+        "mantenimiento": 15340.52,
+        "imprevistos": 1150.54,
+        "otros_costos": 40613.59,
+        "total_viaje": 221259.73
+      },
+      "detalle_consumo": {
+        "total_galones": 1.9881,
+        "costo_combustible_total": 23093.44,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 20.19,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.6,
+            "gal": 1.9880715705765408,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 15.09,
+            "costo_combustible": 23093.44
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 9.77,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 9.77,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.89,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C257",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 1883315.47,
+        "H4": 1883315.47,
+        "H8": 1883315.47
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 22.6535,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_totales": 14.82,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5179,
+        "costo_fijo_mensual": 7053081.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 454512.65,
+        "costos_variables": 1086884.04,
+        "combustible": 263143.07,
+        "peajes": 282900,
+        "mantenimiento": 503107.88,
+        "imprevistos": 37733.09,
+        "otros_costos": 341918.78,
+        "total_viaje": 1883315.47
+      },
+      "detalle_consumo": {
+        "total_galones": 22.6535,
+        "costo_combustible_total": 263143.07,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 18.157894736842103,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 48.45,
+            "costo_combustible": 210922.11
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 1.9900607399226946,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 36.22,
+            "costo_combustible": 23116.55
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.6096416382252559,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 23.44,
+            "costo_combustible": 18697.6
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.6745904272406039,
+            "gal": 0.8959044368600683,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 23.44,
+            "costo_combustible": 10406.83
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 11.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C257",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 49429.46,
+        "H4": 49429.46,
+        "H8": 49429.46
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 0.8283,
+        "horas_recorrido": 0.48,
+        "horas_logisticas": 0,
+        "horas_totales": 0.48,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 477.25,
+        "costo_fijo_mensual": 7053081.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 14778.59,
+        "costos_variables": 25676.88,
+        "combustible": 9621.2,
+        "peajes": 0.0,
+        "mantenimiento": 14935.52,
+        "imprevistos": 1120.16,
+        "otros_costos": 8973.99,
+        "total_viaje": 49429.46
+      },
+      "detalle_consumo": {
+        "total_galones": 0.8283,
+        "costo_combustible_total": 9621.2,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 48.45,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.4819277108433735,
+            "gal": 0.8282716731087797,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 36.22,
+            "costo_combustible": 9621.2
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 23.44,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 23.44,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 11.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C279",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2807121.75,
+        "H4": 2887607.41,
+        "H8": 3048575.69
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 60.8869,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4.0,
+        "horas_totales": 21.98,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.4639,
+        "costo_fijo_mensual": 7557013.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 722198.59,
+        "costos_variables": 1635370.67,
+        "combustible": 707262.1,
+        "peajes": 282900,
+        "mantenimiento": 600194.02,
+        "imprevistos": 45014.55,
+        "otros_costos": 530038.15,
+        "total_viaje": 2887607.41
+      },
+      "detalle_consumo": {
+        "total_galones": 60.8869,
+        "costo_combustible_total": 707262.1,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 48.875,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 18.0,
+            "costo_combustible": 567732.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 5.261313868613139,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 13.7,
+            "costo_combustible": 61115.42
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 4.336781609195402,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.7,
+            "costo_combustible": 50376.06
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.84,
+            "gal": 2.4137931034482762,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.7,
+            "costo_combustible": 28038.62
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.3,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C279",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 159248.74,
+        "H4": 239735.76,
+        "H8": 400709.7
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.1898,
+        "horas_recorrido": 0.6,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.6,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 50.0,
+        "costo_fijo_mensual": 7557013.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 151140.28,
+        "costos_variables": 44590.5,
+        "combustible": 25436.5,
+        "peajes": 0.0,
+        "mantenimiento": 17817.67,
+        "imprevistos": 1336.33,
+        "otros_costos": 44004.98,
+        "total_viaje": 239735.76
+      },
+      "detalle_consumo": {
+        "total_galones": 2.1898,
+        "costo_combustible_total": 25436.5,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 18.0,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.6,
+            "gal": 2.18978102189781,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 13.7,
+            "costo_combustible": 25436.5
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.7,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.7,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.3,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C279",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2089146.12,
+        "H4": 2089146.12,
+        "H8": 2089146.12
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 25.3756,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_totales": 14.82,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5179,
+        "costo_fijo_mensual": 7557013.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 486986.89,
+        "costos_variables": 1222871.58,
+        "combustible": 294762.97,
+        "peajes": 282900,
+        "mantenimiento": 600194.06,
+        "imprevistos": 45014.55,
+        "otros_costos": 379287.65,
+        "total_viaje": 2089146.12
+      },
+      "detalle_consumo": {
+        "total_galones": 25.3756,
+        "costo_combustible_total": 294762.97,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 20.369298448714982,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 43.19,
+            "costo_combustible": 236609.77
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 2.1922141119221408,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 32.88,
+            "costo_combustible": 25464.76
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.807858169621466,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 20.87,
+            "costo_combustible": 21000.08
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.6745904272406039,
+            "gal": 1.0062290368950646,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 20.87,
+            "costo_combustible": 11688.36
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 10.31,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C279",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 55699.34,
+        "H4": 55699.34,
+        "H8": 55699.34
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 0.9124,
+        "horas_recorrido": 0.48,
+        "horas_logisticas": 0,
+        "horas_totales": 0.48,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 477.25,
+        "costo_fijo_mensual": 7557013.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 15834.5,
+        "costos_variables": 29752.54,
+        "combustible": 10598.54,
+        "peajes": 0.0,
+        "mantenimiento": 17817.67,
+        "imprevistos": 1336.33,
+        "otros_costos": 10112.3,
+        "total_viaje": 55699.34
+      },
+      "detalle_consumo": {
+        "total_galones": 0.9124,
+        "costo_combustible_total": 10598.54,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 43.19,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.4819277108433735,
+            "gal": 0.9124087591240875,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 32.88,
+            "costo_combustible": 10598.54
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 20.87,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 20.87,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 10.31,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2910",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 3070987.19,
+        "H4": 3162490.77,
+        "H8": 3345494.45
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 64.6359,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4.0,
+        "horas_totales": 21.98,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.4639,
+        "costo_fijo_mensual": 8591514.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 821062.4,
+        "costos_variables": 1760933.68,
+        "combustible": 750810.21,
+        "peajes": 282900,
+        "mantenimiento": 676486.95,
+        "imprevistos": 50736.52,
+        "otros_costos": 580494.69,
+        "total_viaje": 3162490.77
+      },
+      "detalle_consumo": {
+        "total_galones": 64.6359,
+        "costo_combustible_total": 750810.21,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 51.75,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 17.0,
+            "costo_combustible": 601128.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 5.544615384615384,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 13.0,
+            "costo_combustible": 64406.25
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 4.71625,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.0,
+            "costo_combustible": 54783.96
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.84,
+            "gal": 2.625,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.0,
+            "costo_combustible": 30492.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.0,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2910",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 178231.97,
+        "H4": 269737.09,
+        "H8": 452747.2
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.3077,
+        "horas_recorrido": 0.6,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.6,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 50.0,
+        "costo_fijo_mensual": 8591514.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 171830.3,
+        "costos_variables": 48394.88,
+        "combustible": 26806.15,
+        "peajes": 0.0,
+        "mantenimiento": 20082.54,
+        "imprevistos": 1506.19,
+        "otros_costos": 49511.91,
+        "total_viaje": 269737.09
+      },
+      "detalle_consumo": {
+        "total_galones": 2.3077,
+        "costo_combustible_total": 26806.15,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 62.0,
+            "rendimiento_km_galon": 17.0,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.6,
+            "gal": 2.3076923076923075,
+            "velocidad_km_h": 50.0,
+            "rendimiento_km_galon": 13.0,
+            "costo_combustible": 26806.15
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.0,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.0,
+            "rendimiento_km_galon": 8.0,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 10.0,
+            "rendimiento_km_galon": 4.0,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2910",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2292988.32,
+        "H4": 2292988.32,
+        "H8": 2292988.32
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 26.9385,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_totales": 14.82,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5179,
+        "costo_fijo_mensual": 8591514.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 553651.9,
+        "costos_variables": 1323040.91,
+        "combustible": 312917.51,
+        "peajes": 282900,
+        "mantenimiento": 676486.88,
+        "imprevistos": 50736.52,
+        "otros_costos": 416295.51,
+        "total_viaje": 2292988.32
+      },
+      "detalle_consumo": {
+        "total_galones": 26.9385,
+        "costo_combustible_total": 312917.51,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 21.567786222113263,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 40.79,
+            "costo_combustible": 250531.4
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 2.31025641025641,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 31.2,
+            "costo_combustible": 26835.94
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.9661281917665447,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 19.19,
+            "costo_combustible": 22838.55
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.6745904272406039,
+            "gal": 1.0943199583116205,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 19.19,
+            "costo_combustible": 12711.62
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 9.6,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2910",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 62019.88,
+        "H4": 62019.88,
+        "H8": 62019.88
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 0.9615,
+        "horas_recorrido": 0.48,
+        "horas_logisticas": 0,
+        "horas_totales": 0.48,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 477.25,
+        "costo_fijo_mensual": 8591514.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 18002.13,
+        "costos_variables": 32757.95,
+        "combustible": 11169.23,
+        "peajes": 0.0,
+        "mantenimiento": 20082.53,
+        "imprevistos": 1506.19,
+        "otros_costos": 11259.8,
+        "total_viaje": 62019.88
+      },
+      "detalle_consumo": {
+        "total_galones": 0.9615,
+        "costo_combustible_total": 11169.23,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 40.79,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.4819277108433735,
+            "gal": 0.9615384615384616,
+            "velocidad_km_h": 62.25,
+            "rendimiento_km_galon": 31.2,
+            "costo_combustible": 11169.23
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 19.19,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 31.13,
+            "rendimiento_km_galon": 19.19,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 12.45,
+            "rendimiento_km_galon": 9.6,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2M10",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 3816462.86,
+        "H4": 3931956.93,
+        "H8": 4162958.49
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 83.9923,
+        "horas_recorrido": 19.66,
+        "horas_logisticas": 4.0,
+        "horas_totales": 23.66,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.7217,
+        "costo_fijo_mensual": 10844185.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1115461.89,
+        "costos_variables": 2094760.09,
+        "combustible": 975654.55,
+        "peajes": 282900,
+        "mantenimiento": 777865.62,
+        "imprevistos": 58339.92,
+        "otros_costos": 721734.95,
+        "total_viaje": 3931956.93
+      },
+      "detalle_consumo": {
+        "total_galones": 83.9923,
+        "costo_combustible_total": 975654.55,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.6625,
+            "gal": 69.2716535433071,
+            "velocidad_km_h": 60.0,
+            "rendimiento_km_galon": 12.7,
+            "costo_combustible": 804659.53
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.059428571428571,
+            "gal": 7.200799200799201,
+            "velocidad_km_h": 35.0,
+            "rendimiento_km_galon": 10.01,
+            "costo_combustible": 83644.48
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.8864999999999998,
+            "gal": 4.830985915492958,
+            "velocidad_km_h": 20.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 56116.73
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 1.05,
+            "gal": 2.6888604353393086,
+            "velocidad_km_h": 20.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 31233.8
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 9.55,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2M10",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 238041.6,
+        "H4": 353539.41,
+        "H8": 584535.1
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.997,
+        "horas_recorrido": 0.86,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.86,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 47.3529,
+        "costo_fijo_mensual": 10844185.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 229007.85,
+        "costos_variables": 59637.22,
+        "combustible": 34813.19,
+        "peajes": 0.0,
+        "mantenimiento": 23092.12,
+        "imprevistos": 1731.91,
+        "otros_costos": 64894.34,
+        "total_viaje": 353539.41
+      },
+      "detalle_consumo": {
+        "total_galones": 2.997,
+        "costo_combustible_total": 34813.19,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 60.0,
+            "rendimiento_km_galon": 12.7,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.8571428571428571,
+            "gal": 2.997002997002997,
+            "velocidad_km_h": 35.0,
+            "rendimiento_km_galon": 10.01,
+            "costo_combustible": 34813.19
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.0,
+            "rendimiento_km_galon": 7.81,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 9.55,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2M10",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 2773695.72,
+        "H4": 2773695.72,
+        "H8": 2773695.72
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 34.9996,
+        "horas_recorrido": 15.79,
+        "horas_logisticas": 0,
+        "horas_totales": 15.79,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 14.5664,
+        "costo_fijo_mensual": 10844185.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 744465.74,
+        "costos_variables": 1525661.32,
+        "combustible": 406555.74,
+        "peajes": 282900,
+        "mantenimiento": 777865.66,
+        "imprevistos": 58339.92,
+        "otros_costos": 503568.66,
+        "total_viaje": 2773695.72
+      },
+      "detalle_consumo": {
+        "total_galones": 34.9996,
+        "costo_combustible_total": 406555.74,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 28.863188976377952,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 30.48,
+            "costo_combustible": 335274.8
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.653969710876549,
+            "gal": 3.0008326394671108,
+            "velocidad_km_h": 43.58,
+            "rendimiento_km_galon": 24.02,
+            "costo_combustible": 34857.67
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5152610441767067,
+            "gal": 2.014415376401495,
+            "velocidad_km_h": 24.9,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 23399.45
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8433734939759037,
+            "gal": 1.1211959423384943,
+            "velocidad_km_h": 24.9,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 13023.81
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.89,
+            "rendimiento_km_galon": 11.93,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2M10",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 87712.97,
+        "H4": 87712.97,
+        "H8": 87712.97
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.249,
+        "horas_recorrido": 0.69,
+        "horas_logisticas": 0,
+        "horas_totales": 0.69,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 334.1133,
+        "costo_fijo_mensual": 10844185.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 32456.61,
+        "costos_variables": 39331.94,
+        "combustible": 14507.91,
+        "peajes": 0.0,
+        "mantenimiento": 23092.12,
+        "imprevistos": 1731.91,
+        "otros_costos": 15924.42,
+        "total_viaje": 87712.97
+      },
+      "detalle_consumo": {
+        "total_galones": 1.249,
+        "costo_combustible_total": 14507.91,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 74.7,
+            "rendimiento_km_galon": 30.48,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.6883891693437357,
+            "gal": 1.2489592006661117,
+            "velocidad_km_h": 43.58,
+            "rendimiento_km_galon": 24.02,
+            "costo_combustible": 14507.91
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 24.9,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 24.9,
+            "rendimiento_km_galon": 18.73,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.89,
+            "rendimiento_km_galon": 11.93,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5347244.83,
+        "H4": 5470929.79,
+        "H8": 5718309.14
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 133.3416,
+        "horas_recorrido": 20.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 24.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.2332,
+        "costo_fijo_mensual": 11613402.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1257787.42,
+        "costos_variables": 3208919.46,
+        "combustible": 1548895.48,
+        "peajes": 533100,
+        "mantenimiento": 1048301.38,
+        "imprevistos": 78622.6,
+        "otros_costos": 1004222.91,
+        "total_viaje": 5470929.79
+      },
+      "detalle_consumo": {
+        "total_galones": 133.3416,
+        "costo_combustible_total": 1548895.48,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.546032867997878,
+            "gal": 109.1501240694789,
+            "velocidad_km_h": 56.59,
+            "rendimiento_km_galon": 8.06,
+            "costo_combustible": 1267887.84
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.215119852489244,
+            "gal": 11.588424437299036,
+            "velocidad_km_h": 32.54,
+            "rendimiento_km_galon": 6.22,
+            "costo_combustible": 134611.14
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0230563002680966,
+            "gal": 8.09656652360515,
+            "velocidad_km_h": 18.65,
+            "rendimiento_km_galon": 4.66,
+            "costo_combustible": 94049.72
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 1.126005361930295,
+            "gal": 4.506437768240343,
+            "velocidad_km_h": 18.65,
+            "rendimiento_km_galon": 4.66,
+            "costo_combustible": 52346.78
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.87,
+            "rendimiento_km_galon": 2.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 290305.2,
+        "H4": 413995.62,
+        "H8": 661376.78
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 4.8232,
+        "horas_recorrido": 0.92,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.92,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.7295,
+        "costo_fijo_mensual": 11613402.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 248524.01,
+        "costos_variables": 89480.16,
+        "combustible": 56025.72,
+        "peajes": 0.0,
+        "mantenimiento": 31120.41,
+        "imprevistos": 2334.03,
+        "otros_costos": 75991.45,
+        "total_viaje": 413995.62
+      },
+      "detalle_consumo": {
+        "total_galones": 4.8232,
+        "costo_combustible_total": 56025.72,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 56.59,
+            "rendimiento_km_galon": 8.06,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9219422249539029,
+            "gal": 4.823151125401929,
+            "velocidad_km_h": 32.54,
+            "rendimiento_km_galon": 6.22,
+            "costo_combustible": 56025.72
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.65,
+            "rendimiento_km_galon": 4.66,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.65,
+            "rendimiento_km_galon": 4.66,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 11.87,
+            "rendimiento_km_galon": 2.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 3853157.0,
+        "H4": 3853157.0,
+        "H8": 3853157.0
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 55.5696,
+        "horas_recorrido": 16.8,
+        "horas_logisticas": 0,
+        "horas_totales": 16.8,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 13.6936,
+        "costo_fijo_mensual": 11613402.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 848089.82,
+        "costos_variables": 2305520.68,
+        "combustible": 645496.69,
+        "peajes": 533100,
+        "mantenimiento": 1048301.39,
+        "imprevistos": 78622.6,
+        "otros_costos": 699546.5,
+        "total_viaje": 3853157.0
+      },
+      "detalle_consumo": {
+        "total_galones": 55.5696,
+        "costo_combustible_total": 645496.69,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.487579843860894,
+            "gal": 45.48862461220269,
+            "velocidad_km_h": 70.45,
+            "rendimiento_km_galon": 19.34,
+            "costo_combustible": 528395.86
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7793137496914342,
+            "gal": 4.827863362357669,
+            "velocidad_km_h": 40.51,
+            "rendimiento_km_galon": 14.93,
+            "costo_combustible": 56080.46
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.6248923341946597,
+            "gal": 3.3747763864042932,
+            "velocidad_km_h": 23.22,
+            "rendimiento_km_galon": 11.18,
+            "costo_combustible": 39201.4
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.9043927648578812,
+            "gal": 1.8783542039355994,
+            "velocidad_km_h": 23.22,
+            "rendimiento_km_galon": 11.18,
+            "costo_combustible": 21818.96
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 14.78,
+            "rendimiento_km_galon": 7.11,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 115081.64,
+        "H4": 115081.64,
+        "H8": 115081.64
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.0094,
+        "horas_recorrido": 0.74,
+        "horas_logisticas": 0,
+        "horas_totales": 0.74,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 310.5767,
+        "costo_fijo_mensual": 11613402.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 37393.03,
+        "costos_variables": 56795.36,
+        "combustible": 23340.92,
+        "peajes": 0.0,
+        "mantenimiento": 31120.41,
+        "imprevistos": 2334.03,
+        "otros_costos": 20893.25,
+        "total_viaje": 115081.64
+      },
+      "detalle_consumo": {
+        "total_galones": 2.0094,
+        "costo_combustible_total": 23340.92,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 70.45,
+            "rendimiento_km_galon": 19.34,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7405578869414959,
+            "gal": 2.0093770931011385,
+            "velocidad_km_h": 40.51,
+            "rendimiento_km_galon": 14.93,
+            "costo_combustible": 23340.92
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.22,
+            "rendimiento_km_galon": 11.18,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.22,
+            "rendimiento_km_galon": 11.18,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 14.78,
+            "rendimiento_km_galon": 7.11,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5206768.55,
+        "H4": 5339861.24,
+        "H8": 5606056.43
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 122.6746,
+        "horas_recorrido": 18.42,
+        "horas_logisticas": 4.0,
+        "horas_totales": 22.42,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.2594,
+        "costo_fijo_mensual": 12496368.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1218040.9,
+        "costos_variables": 3141655.87,
+        "combustible": 1424988.51,
+        "peajes": 533100,
+        "mantenimiento": 1100992.89,
+        "imprevistos": 82574.47,
+        "otros_costos": 980164.47,
+        "total_viaje": 5339861.24
+      },
+      "detalle_consumo": {
+        "total_galones": 122.6746,
+        "costo_combustible_total": 1424988.51,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.955425126903554,
+            "gal": 100.42808219178083,
+            "velocidad_km_h": 63.04,
+            "rendimiento_km_galon": 8.76,
+            "costo_combustible": 1166572.6
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1875569044006067,
+            "gal": 10.662721893491124,
+            "velocidad_km_h": 32.95,
+            "rendimiento_km_galon": 6.76,
+            "costo_combustible": 123858.18
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.4618364974815963,
+            "gal": 7.441814595660748,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 86444.12
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8136381247578458,
+            "gal": 4.1420118343195265,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 48113.61
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 16.43,
+            "rendimiento_km_galon": 3.23,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 299859.12,
+        "H4": 432953.36,
+        "H8": 699142.85
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 4.4379,
+        "horas_recorrido": 0.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.8387,
+        "costo_fijo_mensual": 12496368.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 266795.81,
+        "costos_variables": 86686.29,
+        "combustible": 51550.3,
+        "peajes": 0.0,
+        "mantenimiento": 32684.64,
+        "imprevistos": 2451.35,
+        "otros_costos": 79471.26,
+        "total_viaje": 432953.36
+      },
+      "detalle_consumo": {
+        "total_galones": 4.4379,
+        "costo_combustible_total": 51550.3,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 63.04,
+            "rendimiento_km_galon": 8.76,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9104704097116842,
+            "gal": 4.437869822485207,
+            "velocidad_km_h": 32.95,
+            "rendimiento_km_galon": 6.76,
+            "costo_combustible": 51550.3
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 16.43,
+            "rendimiento_km_galon": 3.23,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 3805238.44,
+        "H4": 3805238.44,
+        "H8": 3805238.44
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 51.1267,
+        "horas_recorrido": 14.79,
+        "horas_logisticas": 0,
+        "horas_totales": 14.79,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5459,
+        "costo_fijo_mensual": 12496368.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 803836.95,
+        "costos_variables": 2310554.68,
+        "combustible": 593887.32,
+        "peajes": 533100,
+        "mantenimiento": 1100992.89,
+        "imprevistos": 82574.47,
+        "otros_costos": 690846.81,
+        "total_viaje": 3805238.44
+      },
+      "detalle_consumo": {
+        "total_galones": 51.1267,
+        "costo_combustible_total": 593887.32,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.2098623853211,
+            "gal": 41.85299714557564,
+            "velocidad_km_h": 78.48,
+            "rendimiento_km_galon": 21.02,
+            "costo_combustible": 486164.41
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7571916138469037,
+            "gal": 4.443896424167694,
+            "velocidad_km_h": 41.02,
+            "rendimiento_km_galon": 16.22,
+            "costo_combustible": 51620.3
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.1742919389978212,
+            "gal": 3.1027960526315788,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 36042.08
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.65359477124183,
+            "gal": 1.7269736842105263,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 20060.53
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.46,
+            "rendimiento_km_galon": 7.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 117730.49,
+        "H4": 117730.49,
+        "H8": 117730.49
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.8496,
+        "horas_recorrido": 0.73,
+        "horas_logisticas": 0,
+        "horas_totales": 0.73,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 314.4867,
+        "costo_fijo_mensual": 12496368.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 39735.76,
+        "costos_variables": 56620.58,
+        "combustible": 21484.59,
+        "peajes": 0.0,
+        "mantenimiento": 32684.64,
+        "imprevistos": 2451.35,
+        "otros_costos": 21374.15,
+        "total_viaje": 117730.49
+      },
+      "detalle_consumo": {
+        "total_galones": 1.8496,
+        "costo_combustible_total": 21484.59,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 78.48,
+            "rendimiento_km_galon": 21.02,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7313505607020965,
+            "gal": 1.8495684340320593,
+            "velocidad_km_h": 41.02,
+            "rendimiento_km_galon": 16.22,
+            "costo_combustible": 21484.59
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.46,
+            "rendimiento_km_galon": 7.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5558729.68,
+        "H4": 5693920.79,
+        "H8": 5964286.35
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 122.6746,
+        "horas_recorrido": 18.42,
+        "horas_logisticas": 4.0,
+        "horas_totales": 22.42,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 10.2597,
+        "costo_fijo_mensual": 12692952.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1237166.08,
+        "costos_variables": 3411600.43,
+        "combustible": 1424988.51,
+        "peajes": 704000,
+        "mantenimiento": 1193127.37,
+        "imprevistos": 89484.55,
+        "otros_costos": 1045154.28,
+        "total_viaje": 5693920.79
+      },
+      "detalle_consumo": {
+        "total_galones": 122.6746,
+        "costo_combustible_total": 1424988.51,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.955425126903554,
+            "gal": 100.42808219178083,
+            "velocidad_km_h": 63.04,
+            "rendimiento_km_galon": 8.76,
+            "costo_combustible": 1166572.6
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.186893203883495,
+            "gal": 10.662721893491124,
+            "velocidad_km_h": 32.96,
+            "rendimiento_km_galon": 6.76,
+            "costo_combustible": 123858.18
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.4618364974815963,
+            "gal": 7.441814595660748,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 86444.12
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8136381247578458,
+            "gal": 4.1420118343195265,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 48113.61
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 16.43,
+            "rendimiento_km_galon": 3.23,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 306488.68,
+        "H4": 441676.9,
+        "H8": 712053.65
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 4.4379,
+        "horas_recorrido": 0.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.8413,
+        "costo_fijo_mensual": 12692952.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 270977.81,
+        "costos_variables": 89626.57,
+        "combustible": 51550.3,
+        "peajes": 0.0,
+        "mantenimiento": 35419.79,
+        "imprevistos": 2656.48,
+        "otros_costos": 81072.52,
+        "total_viaje": 441676.9
+      },
+      "detalle_consumo": {
+        "total_galones": 4.4379,
+        "costo_combustible_total": 51550.3,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 63.04,
+            "rendimiento_km_galon": 8.76,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9101941747572815,
+            "gal": 4.437869822485207,
+            "velocidad_km_h": 32.96,
+            "rendimiento_km_galon": 6.76,
+            "costo_combustible": 51550.3
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 25.81,
+            "rendimiento_km_galon": 5.07,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 16.43,
+            "rendimiento_km_galon": 3.23,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C2S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 4150455.89,
+        "H4": 4150455.89,
+        "H8": 4150455.89
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 51.1267,
+        "horas_recorrido": 14.79,
+        "horas_logisticas": 0,
+        "horas_totales": 14.79,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 15.5468,
+        "costo_fijo_mensual": 12692952.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 816435.07,
+        "costos_variables": 2580499.26,
+        "combustible": 593887.32,
+        "peajes": 704000,
+        "mantenimiento": 1193127.39,
+        "imprevistos": 89484.55,
+        "otros_costos": 753521.56,
+        "total_viaje": 4150455.89
+      },
+      "detalle_consumo": {
+        "total_galones": 51.1267,
+        "costo_combustible_total": 593887.32,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.2098623853211,
+            "gal": 41.85299714557564,
+            "velocidad_km_h": 78.48,
+            "rendimiento_km_galon": 21.02,
+            "costo_combustible": 486164.41
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.756335282651072,
+            "gal": 4.443896424167694,
+            "velocidad_km_h": 41.04,
+            "rendimiento_km_galon": 16.22,
+            "costo_combustible": 51620.3
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.1742919389978212,
+            "gal": 3.1027960526315788,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 36042.08
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.65359477124183,
+            "gal": 1.7269736842105263,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 20060.53
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.46,
+            "rendimiento_km_galon": 7.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C2S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 122062.72,
+        "H4": 122062.72,
+        "H8": 122062.72
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 1.8496,
+        "horas_recorrido": 0.73,
+        "horas_logisticas": 0,
+        "horas_totales": 0.73,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 314.64,
+        "costo_fijo_mensual": 12692952.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 40341.19,
+        "costos_variables": 59560.86,
+        "combustible": 21484.59,
+        "peajes": 0.0,
+        "mantenimiento": 35419.79,
+        "imprevistos": 2656.48,
+        "otros_costos": 22160.67,
+        "total_viaje": 122062.72
+      },
+      "detalle_consumo": {
+        "total_galones": 1.8496,
+        "costo_combustible_total": 21484.59,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 78.48,
+            "rendimiento_km_galon": 21.02,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7309941520467836,
+            "gal": 1.8495684340320593,
+            "velocidad_km_h": 41.04,
+            "rendimiento_km_galon": 16.22,
+            "costo_combustible": 21484.59
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 32.13,
+            "rendimiento_km_galon": 12.16,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 20.46,
+            "rendimiento_km_galon": 7.74,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 6959418.7,
+        "H4": 7140812.59,
+        "H8": 7503560.06
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 160.8491,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4.0,
+        "horas_totales": 24.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.4621,
+        "costo_fijo_mensual": 17030035.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1799815.67,
+        "costos_variables": 4030256.72,
+        "combustible": 1868423.17,
+        "peajes": 704000,
+        "mantenimiento": 1356124.23,
+        "imprevistos": 101709.32,
+        "otros_costos": 1310740.2,
+        "total_viaje": 7140812.59
+      },
+      "detalle_consumo": {
+        "total_galones": 160.8491,
+        "costo_combustible_total": 1868423.17,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 129.375,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.8,
+            "costo_combustible": 1502820.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 14.3015873015873,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 5.04,
+            "costo_combustible": 166127.24
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.032163742690058,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 128149.61
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8909630886720408,
+            "gal": 6.140350877192983,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 71326.32
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.18,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 401198.83,
+        "H4": 582579.98,
+        "H8": 945340.44
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 5.9524,
+        "horas_recorrido": 0.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.8859,
+        "costo_fijo_mensual": 17030035.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 363222.97,
+        "costos_variables": 112420.86,
+        "combustible": 69142.86,
+        "peajes": 0.0,
+        "mantenimiento": 40258.6,
+        "imprevistos": 3019.4,
+        "otros_costos": 106936.15,
+        "total_viaje": 582579.98
+      },
+      "detalle_consumo": {
+        "total_galones": 5.9524,
+        "costo_combustible_total": 69142.86,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.8,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9055236945366736,
+            "gal": 5.9523809523809526,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 5.04,
+            "costo_combustible": 69142.86
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.42,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.18,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5068335.03,
+        "H4": 5068335.03,
+        "H8": 5068335.03
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 67.0255,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_totales": 16.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 14.1004,
+        "costo_fijo_mensual": 17030035.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1207769.7,
+        "costos_variables": 2940401.42,
+        "combustible": 778567.86,
+        "peajes": 704000,
+        "mantenimiento": 1356124.24,
+        "imprevistos": 101709.32,
+        "otros_costos": 920163.91,
+        "total_viaje": 5068335.03
+      },
+      "detalle_consumo": {
+        "total_galones": 67.0255,
+        "costo_combustible_total": 778567.86,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 53.90625,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 16.32,
+            "costo_combustible": 626175.0
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 5.95702479338843,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 12.1,
+            "costo_combustible": 69196.8
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.601219512195122,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 53447.77
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.7157464212678937,
+            "gal": 2.5609756097560976,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 29748.29
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 5.22,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3S2",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 153861.75,
+        "H4": 153861.75,
+        "H8": 153861.75
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.4793,
+        "horas_recorrido": 0.73,
+        "horas_logisticas": 0,
+        "horas_totales": 0.73,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 316.25,
+        "costo_fijo_mensual": 17030035.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 53849.92,
+        "costos_variables": 72078.0,
+        "combustible": 28800.0,
+        "peajes": 0.0,
+        "mantenimiento": 40258.6,
+        "imprevistos": 3019.4,
+        "otros_costos": 27933.83,
+        "total_viaje": 153861.75
+      },
+      "detalle_consumo": {
+        "total_galones": 2.4793,
+        "costo_combustible_total": 28800.0,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 16.32,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7272727272727273,
+            "gal": 2.479338842975207,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 12.1,
+            "costo_combustible": 28800.0
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 8.2,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 5.22,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 7637995.53,
+        "H4": 7821532.97,
+        "H8": 8188567.09
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 168.7959,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4.0,
+        "horas_totales": 24.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 9.4621,
+        "costo_fijo_mensual": 17231281.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1821084.31,
+        "costos_variables": 4564758.04,
+        "combustible": 1960733.09,
+        "peajes": 869600,
+        "mantenimiento": 1613418.56,
+        "imprevistos": 121006.39,
+        "otros_costos": 1435690.62,
+        "total_viaje": 7821532.97
+      },
+      "detalle_consumo": {
+        "total_galones": 168.7959,
+        "costo_combustible_total": 1960733.09,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 135.76388888888889,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.48,
+            "costo_combustible": 1577033.33
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 15.016666666666667,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 4.8,
+            "costo_combustible": 174433.6
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.57361963190184,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.26,
+            "costo_combustible": 134439.17
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.8909630886720408,
+            "gal": 6.441717791411043,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.26,
+            "costo_combustible": 74826.99
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.07,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "CARGADO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 418604.13,
+        "H4": 602128.68,
+        "H8": 969175.93
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 6.25,
+        "horas_recorrido": 0.91,
+        "horas_logisticas": 4.0,
+        "horas_totales": 4.91,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 46.8859,
+        "costo_fijo_mensual": 17231281.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 367515.22,
+        "costos_variables": 124089.03,
+        "combustible": 72600.0,
+        "peajes": 0.0,
+        "mantenimiento": 47896.77,
+        "imprevistos": 3592.26,
+        "otros_costos": 110524.43,
+        "total_viaje": 602128.68
+      },
+      "detalle_consumo": {
+        "total_galones": 6.25,
+        "costo_combustible_total": 72600.0,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 56.25,
+            "rendimiento_km_galon": 6.48,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.9055236945366736,
+            "gal": 6.25,
+            "velocidad_km_h": 33.13,
+            "rendimiento_km_galon": 4.8,
+            "costo_combustible": 72600.0
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.26,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 23.57,
+            "rendimiento_km_galon": 3.26,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 15.0,
+            "rendimiento_km_galon": 2.07,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BARRANQUILLA",
+      "configuracion": "C3S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": false,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 5673134.37,
+        "H4": 5673134.37,
+        "H8": 5673134.37
+      },
+      "total_km": 1010.56,
+      "detalle_costos": {
+        "total_galones": 70.3427,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_totales": 16.31,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 14.1004,
+        "costo_fijo_mensual": 17231281.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 1222042.06,
+        "costos_variables": 3421126.16,
+        "combustible": 817101.24,
+        "peajes": 869600,
+        "mantenimiento": 1613418.53,
+        "imprevistos": 121006.39,
+        "otros_costos": 1029966.15,
+        "total_viaje": 5673134.37
+      },
+      "detalle_consumo": {
+        "total_galones": 70.3427,
+        "costo_combustible_total": 817101.24,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 56.575562700964625,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 15.55,
+            "costo_combustible": 657181.74
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 6.256944444444445,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 11.52,
+            "costo_combustible": 72680.67
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.8248081841432215,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 7.82,
+            "costo_combustible": 56044.97
+          },
+          "urbano": {
+            "km": 21.0,
+            "horas": 0.7157464212678937,
+            "gal": 2.6854219948849103,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 7.82,
+            "costo_combustible": 31193.86
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "rutasid": "93",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "ruta": "11001000-8001000",
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BARRANQUILLA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BARRANQUILLA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-08001000"
+      }
+    },
+    {
+      "origen": "BOGOTA",
+      "destino": "BOGOTA",
+      "configuracion": "C3S3",
+      "mes": 202609,
+      "carroceria": "GENERAL",
+      "modo_viaje": "VACIO",
+      "metodo": "modelo_completo",
+      "estimado": true,
+      "tipo_contenedor": null,
+      "totales": {
+        "H2": 166443.34,
+        "H4": 166443.34,
+        "H8": 166443.34
+      },
+      "total_km": 30.0,
+      "detalle_costos": {
+        "total_galones": 2.6042,
+        "horas_recorrido": 0.73,
+        "horas_logisticas": 0,
+        "horas_totales": 0.73,
+        "horas_habiles_mes": 230.0,
+        "rotaciones_calculadas": 316.25,
+        "costo_fijo_mensual": 17231281.82,
+        "mes_costo_fijo": 202608,
+        "costo_fijo": 54486.27,
+        "costos_variables": 81739.03,
+        "combustible": 30250.0,
+        "peajes": 0.0,
+        "mantenimiento": 47896.77,
+        "imprevistos": 3592.26,
+        "otros_costos": 30218.04,
+        "total_viaje": 166443.34
+      },
+      "detalle_consumo": {
+        "total_galones": 2.6042,
+        "costo_combustible_total": 30250.0,
+        "precio_combustible_galon": 11616.0,
+        "por_terreno": {
+          "plano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 70.03,
+            "rendimiento_km_galon": 15.55,
+            "costo_combustible": 0.0
+          },
+          "ondulado": {
+            "km": 30.0,
+            "horas": 0.7272727272727273,
+            "gal": 2.604166666666667,
+            "velocidad_km_h": 41.25,
+            "rendimiento_km_galon": 11.52,
+            "costo_combustible": 30250.0
+          },
+          "montaña": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 7.82,
+            "costo_combustible": 0.0
+          },
+          "urbano": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 29.34,
+            "rendimiento_km_galon": 7.82,
+            "costo_combustible": 0.0
+          },
+          "despavimentado": {
+            "km": 0.0,
+            "horas": 0.0,
+            "gal": 0.0,
+            "velocidad_km_h": 18.68,
+            "rendimiento_km_galon": 4.97,
+            "costo_combustible": 0.0
+          }
+        }
+      },
+      "tipo_estimacion": "URBANO_30_KM_ONDULADO",
+      "supuestos": [
+        "Origen y destino en el mismo municipio: recorrido estimado de 30 km en terreno ondulado.",
+        "Peajes sin registro: $0."
+      ],
+      "resolved_route": {
+        "input_origen": "BOGOTA",
+        "input_destino": "BOGOTA",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "11001000",
+        "origen_nombre": "BOGOTA",
+        "destino_nombre": "BOGOTA",
+        "origen_departamento": null,
+        "destino_departamento": null,
+        "origen_resolution_mode": "name",
+        "destino_resolution_mode": "name",
+        "origen_dane_mismatch": false,
+        "destino_dane_mismatch": false,
+        "route_code": "11001000-11001000"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2337 @@
+{
+  "checked_at": "2026-09-23T00:14:49.830Z",
+  "supabase": {
+    "rutas": {
+      "ids": 9945,
+      "filas": 9945,
+      "km_cero": 0,
+      "distancias_nulas": 0,
+      "actualizacion_max": "2026-09-02T23:38:04.54424+00:00",
+      "actualizacion_min": "2026-03-04T03:41:04.104288+00:00",
+      "distancias_negativas": 0,
+      "diferencia_suma_mayor_001": 0
+    },
+    "ruta_93": {
+      "via": "El Rosal,La Vega,Villeta,Guaduas,San Alberto,San Martin,Aguachica,Pelaya,Pailitas,Curumani,Bosconia,El Copey,Cienaga,Puebloviejo",
+      "ruta": "11001000-8001000",
+      "id_sice": 93,
+      "km_plano": 879.75,
+      "total_km": 1010.56,
+      "km_urbano": 21,
+      "created_at": "2026-02-08T01:02:31.92133+00:00",
+      "dep_origen": "BOGOTÁ, D. C.",
+      "mun_origen": "BOGOTÁ, D.C.",
+      "updated_at": "2026-03-04T03:41:04.104288+00:00",
+      "dep_destino": "ATLÁNTICO",
+      "km_ondulado": 72.08,
+      "mun_destino": "BARRANQUILLA",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "km_montanoso": 37.73,
+      "km_despavimentado": 0,
+      "codigo_dane_origen": 11001000,
+      "codigo_dane_destino": 8001000
+    },
+    "fijos_por_mes": [
+      {
+        "filas": 99,
+        "vehiculos": 9,
+        "mes_codigo": 202601
+      },
+      {
+        "filas": 99,
+        "vehiculos": 9,
+        "mes_codigo": 202602
+      },
+      {
+        "filas": 99,
+        "vehiculos": 9,
+        "mes_codigo": 202604
+      },
+      {
+        "filas": 100,
+        "vehiculos": 10,
+        "mes_codigo": 202605
+      },
+      {
+        "filas": 100,
+        "vehiculos": 10,
+        "mes_codigo": 202606
+      },
+      {
+        "filas": 206,
+        "vehiculos": 10,
+        "mes_codigo": 202607
+      },
+      {
+        "filas": 138,
+        "vehiculos": 15,
+        "mes_codigo": 202608
+      }
+    ],
+    "peajes_resumen": [
+      {
+        "filas": 54504,
+        "rutas": 9084,
+        "estado": "ok",
+        "sin_total": 0,
+        "mes_codigo": 202609
+      }
+    ],
+    "cobertura_actual": [
+      {
+        "tipo_vehiculo": "C257",
+        "fijos_actuales": 9,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2_5_7",
+        "configuracion_sicetac_lookup": "2_5_7"
+      },
+      {
+        "tipo_vehiculo": "C279",
+        "fijos_actuales": 9,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2_7_9",
+        "configuracion_sicetac_lookup": "2_7_9"
+      },
+      {
+        "tipo_vehiculo": "C2910",
+        "fijos_actuales": 9,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2",
+        "configuracion_sicetac_lookup": "2L1 Liviano entre 9 y 10.5 Tonel."
+      },
+      {
+        "tipo_vehiculo": "C2M10",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2",
+        "configuracion_sicetac_lookup": "2"
+      },
+      {
+        "tipo_vehiculo": "C2S2",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2S2",
+        "configuracion_sicetac_lookup": "2S2"
+      },
+      {
+        "tipo_vehiculo": "C2S3",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "2S3",
+        "configuracion_sicetac_lookup": "2S3"
+      },
+      {
+        "tipo_vehiculo": "C3",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "3",
+        "configuracion_sicetac_lookup": "3"
+      },
+      {
+        "tipo_vehiculo": "C3S2",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "3S2",
+        "configuracion_sicetac_lookup": "3S2"
+      },
+      {
+        "tipo_vehiculo": "C3S3",
+        "fijos_actuales": 12,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "3S3",
+        "configuracion_sicetac_lookup": "3S3"
+      },
+      {
+        "tipo_vehiculo": "CA",
+        "fijos_actuales": 9,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "CA_35_5",
+        "configuracion_sicetac_lookup": "CA_35_5"
+      },
+      {
+        "tipo_vehiculo": "V2",
+        "fijos_actuales": 4,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "V2",
+        "configuracion_sicetac_lookup": "V2"
+      },
+      {
+        "tipo_vehiculo": "V3",
+        "fijos_actuales": 4,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "V3",
+        "configuracion_sicetac_lookup": "V3"
+      },
+      {
+        "tipo_vehiculo": "V4",
+        "fijos_actuales": 4,
+        "fijos_septiembre": 0,
+        "parametros_actuales": true,
+        "configuracion_analisis": "V4",
+        "configuracion_sicetac_lookup": "V4"
+      }
+    ],
+    "parametros_por_mes": [
+      {
+        "filas": 9,
+        "vehiculos": 9,
+        "mes_codigo": 202601
+      },
+      {
+        "filas": 10,
+        "vehiculos": 10,
+        "mes_codigo": 202602
+      },
+      {
+        "filas": 10,
+        "vehiculos": 10,
+        "mes_codigo": 202604
+      },
+      {
+        "filas": 10,
+        "vehiculos": 10,
+        "mes_codigo": 202605
+      },
+      {
+        "filas": 10,
+        "vehiculos": 10,
+        "mes_codigo": 202606
+      },
+      {
+        "filas": 20,
+        "vehiculos": 10,
+        "mes_codigo": 202607
+      },
+      {
+        "filas": 15,
+        "vehiculos": 15,
+        "mes_codigo": 202608
+      },
+      {
+        "filas": 13,
+        "vehiculos": 13,
+        "mes_codigo": 202609
+      }
+    ],
+    "parametros_actuales": [
+      {
+        "id": 96,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "V2",
+        "imprevistos_km": 1346.14102400805,
+        "vel_plano_vacio": 65.99,
+        "costos_variables": 1346.14102400805,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609V2",
+        "vel_urbano_vacio": 18.68,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 18.68,
+        "vel_plano_cargado": 53,
+        "ejes_configuracion": "V2",
+        "vel_afirmado_vacio": 11.89,
+        "vel_ondulado_vacio": 37.35,
+        "vel_urbano_cargado": 15,
+        "consumo_plano_vacio": 30.48,
+        "vel_montana_cargado": 15,
+        "consumo_urbano_vacio": 18.73,
+        "costo_hora_adicional": 60964,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 9.55,
+        "vel_ondulado_cargado": 30,
+        "consumo_montana_vacio": 18.73,
+        "consumo_plano_cargado": 12.7,
+        "consumo_afirmado_vacio": 11.93,
+        "consumo_ondulado_vacio": 24.02,
+        "consumo_urbano_cargado": 7.81,
+        "costos_variables_vacio": 1346.14105173264,
+        "consumo_montana_cargado": 7.81,
+        "toneladas_configuracion": 8,
+        "consumo_afirmado_cargado": 4.97,
+        "consumo_ondulado_cargado": 10.01,
+        "imprevistos_costo_km_vacio": 100.960578879948,
+        "imprevistos_costo_km_cargado": 100.960576800604,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 97,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "V3",
+        "imprevistos_km": 1817.59357501137,
+        "vel_plano_vacio": 71.59,
+        "costos_variables": 1817.59357501137,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609V3",
+        "vel_urbano_vacio": 23.03,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 23.03,
+        "vel_plano_cargado": 57.5,
+        "ejes_configuracion": "V3",
+        "vel_afirmado_vacio": 14.66,
+        "vel_ondulado_vacio": 35.48,
+        "vel_urbano_cargado": 18.5,
+        "consumo_plano_vacio": 22.25,
+        "vel_montana_cargado": 18.5,
+        "consumo_urbano_vacio": 17.03,
+        "costo_hora_adicional": 70108,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 11.77,
+        "vel_ondulado_cargado": 28.5,
+        "consumo_montana_vacio": 17.03,
+        "consumo_plano_cargado": 9.27,
+        "consumo_afirmado_vacio": 10.84,
+        "consumo_ondulado_vacio": 20.16,
+        "consumo_urbano_cargado": 7.1,
+        "costos_variables_vacio": 1817.59359821909,
+        "consumo_montana_cargado": 7.1,
+        "toneladas_configuracion": 16,
+        "consumo_afirmado_cargado": 4.52,
+        "consumo_ondulado_cargado": 8.4,
+        "imprevistos_costo_km_vacio": 136.319519866431,
+        "imprevistos_costo_km_cargado": 136.319518125853,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 98,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "V4",
+        "imprevistos_km": 2315.68120837463,
+        "vel_plano_vacio": 70.03,
+        "costos_variables": 2315.68120837463,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609V4",
+        "vel_urbano_vacio": 29.34,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 29.34,
+        "vel_plano_cargado": 56.25,
+        "ejes_configuracion": "V4",
+        "vel_afirmado_vacio": 18.68,
+        "vel_ondulado_vacio": 41.25,
+        "vel_urbano_cargado": 23.57,
+        "consumo_plano_vacio": 16.32,
+        "vel_montana_cargado": 23.57,
+        "consumo_urbano_vacio": 8.2,
+        "costo_hora_adicional": 70130,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 15,
+        "vel_ondulado_cargado": 33.13,
+        "consumo_montana_vacio": 8.2,
+        "consumo_plano_cargado": 6.8,
+        "consumo_afirmado_vacio": 5.22,
+        "consumo_ondulado_vacio": 12.1,
+        "consumo_urbano_cargado": 3.42,
+        "costos_variables_vacio": 2315.68121701199,
+        "consumo_montana_cargado": 3.42,
+        "toneladas_configuracion": 20,
+        "consumo_afirmado_cargado": 2.18,
+        "consumo_ondulado_cargado": 5.04,
+        "imprevistos_costo_km_vacio": 173.6760912759,
+        "imprevistos_costo_km_cargado": 173.676090628098,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 95,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "CA",
+        "imprevistos_km": 476.059236171456,
+        "vel_plano_vacio": 74.7,
+        "costos_variables": 476.059236171456,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609CA",
+        "vel_urbano_vacio": 31.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 31.13,
+        "vel_plano_cargado": 62,
+        "ejes_configuracion": "2",
+        "vel_afirmado_vacio": 12.45,
+        "vel_ondulado_vacio": 62.25,
+        "vel_urbano_cargado": 25,
+        "consumo_plano_vacio": 55.19,
+        "vel_montana_cargado": 25,
+        "consumo_urbano_vacio": 28.79,
+        "costo_hora_adicional": 36930,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 10,
+        "vel_ondulado_cargado": 50,
+        "consumo_montana_vacio": 28.79,
+        "consumo_plano_cargado": 23,
+        "consumo_afirmado_vacio": 15.61,
+        "consumo_ondulado_vacio": 43.2,
+        "consumo_urbano_cargado": 12,
+        "costos_variables_vacio": 462.559244449371,
+        "consumo_montana_cargado": 12,
+        "toneladas_configuracion": 1.9,
+        "consumo_afirmado_cargado": 6.5,
+        "consumo_ondulado_cargado": 18,
+        "imprevistos_costo_km_vacio": 34.691943333703,
+        "imprevistos_costo_km_cargado": 35.704442712859,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 87,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C257",
+        "imprevistos_km": 511.35059768841,
+        "vel_plano_vacio": 74.7,
+        "costos_variables": 511.35059768841,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C257",
+        "vel_urbano_vacio": 31.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 31.13,
+        "vel_plano_cargado": 62,
+        "ejes_configuracion": "2",
+        "vel_afirmado_vacio": 12.45,
+        "vel_ondulado_vacio": 62.25,
+        "vel_urbano_cargado": 25,
+        "consumo_plano_vacio": 48.45,
+        "vel_montana_cargado": 25,
+        "consumo_urbano_vacio": 23.44,
+        "costo_hora_adicional": 37560,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 10,
+        "vel_ondulado_cargado": 50,
+        "consumo_montana_vacio": 23.44,
+        "consumo_plano_cargado": 20.19,
+        "consumo_afirmado_vacio": 11.74,
+        "consumo_ondulado_vacio": 36.22,
+        "consumo_urbano_cargado": 9.77,
+        "costos_variables_vacio": 497.850582475762,
+        "consumo_montana_cargado": 9.77,
+        "toneladas_configuracion": 2.4,
+        "consumo_afirmado_cargado": 4.89,
+        "consumo_ondulado_cargado": 15.09,
+        "imprevistos_costo_km_vacio": 37.338793685682,
+        "imprevistos_costo_km_cargado": 38.351294826631,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 88,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C279",
+        "imprevistos_km": 593.922201551615,
+        "vel_plano_vacio": 74.7,
+        "costos_variables": 593.922201551615,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C279",
+        "vel_urbano_vacio": 31.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 31.13,
+        "vel_plano_cargado": 62,
+        "ejes_configuracion": "2",
+        "vel_afirmado_vacio": 12.45,
+        "vel_ondulado_vacio": 62.25,
+        "vel_urbano_cargado": 25,
+        "consumo_plano_vacio": 43.19,
+        "vel_montana_cargado": 25,
+        "consumo_urbano_vacio": 20.87,
+        "costo_hora_adicional": 40244,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 10,
+        "vel_ondulado_cargado": 50,
+        "consumo_montana_vacio": 20.87,
+        "consumo_plano_cargado": 18,
+        "consumo_afirmado_vacio": 10.31,
+        "consumo_ondulado_vacio": 32.88,
+        "consumo_urbano_cargado": 8.7,
+        "costos_variables_vacio": 593.922239849278,
+        "consumo_montana_cargado": 8.7,
+        "toneladas_configuracion": 4,
+        "consumo_afirmado_cargado": 4.3,
+        "consumo_ondulado_cargado": 13.7,
+        "imprevistos_costo_km_vacio": 44.544167988696,
+        "imprevistos_costo_km_cargado": 44.544165116371,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 89,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C2910",
+        "imprevistos_km": 669.4178970076,
+        "vel_plano_vacio": 74.7,
+        "costos_variables": 669.4178970076,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C2910",
+        "vel_urbano_vacio": 31.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 31.13,
+        "vel_plano_cargado": 62,
+        "ejes_configuracion": "2",
+        "vel_afirmado_vacio": 12.45,
+        "vel_ondulado_vacio": 62.25,
+        "vel_urbano_cargado": 25,
+        "consumo_plano_vacio": 40.79,
+        "vel_montana_cargado": 25,
+        "consumo_urbano_vacio": 19.19,
+        "costo_hora_adicional": 45753,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 10,
+        "vel_ondulado_cargado": 50,
+        "consumo_montana_vacio": 19.19,
+        "consumo_plano_cargado": 17,
+        "consumo_afirmado_vacio": 9.6,
+        "consumo_ondulado_vacio": 31.2,
+        "consumo_urbano_cargado": 8,
+        "costos_variables_vacio": 669.41783240707,
+        "consumo_montana_cargado": 8,
+        "toneladas_configuracion": 6,
+        "consumo_afirmado_cargado": 4,
+        "consumo_ondulado_cargado": 13,
+        "imprevistos_costo_km_vacio": 50.20633743053,
+        "imprevistos_costo_km_cargado": 50.20634227557,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 86,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C2M10",
+        "imprevistos_km": 769.737195218493,
+        "vel_plano_vacio": 74.7,
+        "costos_variables": 769.737195218493,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C2M10",
+        "vel_urbano_vacio": 24.9,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 24.9,
+        "vel_plano_cargado": 60,
+        "ejes_configuracion": "2",
+        "vel_afirmado_vacio": 11.89,
+        "vel_ondulado_vacio": 43.58,
+        "vel_urbano_cargado": 20,
+        "consumo_plano_vacio": 30.48,
+        "vel_montana_cargado": 20,
+        "consumo_urbano_vacio": 18.73,
+        "costo_hora_adicional": 57749,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 9.55,
+        "vel_ondulado_cargado": 35,
+        "consumo_montana_vacio": 18.73,
+        "consumo_plano_cargado": 12.7,
+        "consumo_afirmado_vacio": 11.93,
+        "consumo_ondulado_vacio": 24.02,
+        "consumo_urbano_cargado": 7.81,
+        "costos_variables_vacio": 769.737234185476,
+        "consumo_montana_cargado": 7.81,
+        "toneladas_configuracion": 9,
+        "consumo_afirmado_cargado": 4.97,
+        "consumo_ondulado_cargado": 10.01,
+        "imprevistos_costo_km_vacio": 57.730292563911,
+        "imprevistos_costo_km_cargado": 57.730289641387,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 92,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C3",
+        "imprevistos_km": 1037.34699572514,
+        "vel_plano_vacio": 70.45,
+        "costos_variables": 1037.34699572514,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C3",
+        "vel_urbano_vacio": 23.22,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 23.22,
+        "vel_plano_cargado": 56.59,
+        "ejes_configuracion": "3",
+        "vel_afirmado_vacio": 14.78,
+        "vel_ondulado_vacio": 40.51,
+        "vel_urbano_cargado": 18.65,
+        "consumo_plano_vacio": 19.34,
+        "vel_montana_cargado": 18.65,
+        "consumo_urbano_vacio": 11.18,
+        "costo_hora_adicional": 61846,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 11.87,
+        "vel_ondulado_cargado": 32.54,
+        "consumo_montana_vacio": 11.18,
+        "consumo_plano_cargado": 8.06,
+        "consumo_afirmado_vacio": 7.11,
+        "consumo_ondulado_vacio": 14.93,
+        "consumo_urbano_cargado": 4.66,
+        "costos_variables_vacio": 1037.34700239896,
+        "consumo_montana_cargado": 4.66,
+        "toneladas_configuracion": 16,
+        "consumo_afirmado_cargado": 2.97,
+        "consumo_ondulado_cargado": 6.22,
+        "imprevistos_costo_km_vacio": 77.801025179922,
+        "imprevistos_costo_km_cargado": 77.801024679386,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 90,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C2S2",
+        "imprevistos_km": 1089.48789779924,
+        "vel_plano_vacio": 78.48,
+        "costos_variables": 1089.48789779924,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C2S2",
+        "vel_urbano_vacio": 32.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 32.13,
+        "vel_plano_cargado": 63.04,
+        "ejes_configuracion": "2S2",
+        "vel_afirmado_vacio": 20.46,
+        "vel_ondulado_vacio": 41.02,
+        "vel_urbano_cargado": 25.81,
+        "consumo_plano_vacio": 21.02,
+        "vel_montana_cargado": 25.81,
+        "consumo_urbano_vacio": 12.16,
+        "costo_hora_adicional": 66548,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 16.43,
+        "vel_ondulado_cargado": 32.95,
+        "consumo_montana_vacio": 12.16,
+        "consumo_plano_cargado": 8.76,
+        "consumo_afirmado_vacio": 7.74,
+        "consumo_ondulado_vacio": 16.22,
+        "consumo_urbano_cargado": 5.07,
+        "costos_variables_vacio": 1089.48789989866,
+        "consumo_montana_cargado": 5.07,
+        "toneladas_configuracion": 22,
+        "consumo_afirmado_cargado": 3.23,
+        "consumo_ondulado_cargado": 6.76,
+        "imprevistos_costo_km_vacio": 81.711592492399,
+        "imprevistos_costo_km_cargado": 81.711592334943,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 91,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C2S3",
+        "imprevistos_km": 1180.65960457568,
+        "vel_plano_vacio": 78.48,
+        "costos_variables": 1180.65960457568,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C2S3",
+        "vel_urbano_vacio": 32.13,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 32.13,
+        "vel_plano_cargado": 63.04,
+        "ejes_configuracion": "2S3",
+        "vel_afirmado_vacio": 20.46,
+        "vel_ondulado_vacio": 41.04,
+        "vel_urbano_cargado": 25.81,
+        "consumo_plano_vacio": 21.02,
+        "vel_montana_cargado": 25.81,
+        "consumo_urbano_vacio": 12.16,
+        "costo_hora_adicional": 67595,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 16.43,
+        "vel_ondulado_cargado": 32.96,
+        "consumo_montana_vacio": 12.16,
+        "consumo_plano_cargado": 8.76,
+        "consumo_afirmado_vacio": 7.74,
+        "consumo_ondulado_vacio": 16.22,
+        "consumo_urbano_cargado": 5.07,
+        "costos_variables_vacio": 1180.65961956226,
+        "consumo_montana_cargado": 5.07,
+        "toneladas_configuracion": 27,
+        "consumo_afirmado_cargado": 3.23,
+        "consumo_ondulado_cargado": 6.76,
+        "imprevistos_costo_km_vacio": 88.54947146717,
+        "imprevistos_costo_km_cargado": 88.549470343176,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 93,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C3S2",
+        "imprevistos_km": 1341.95320416403,
+        "vel_plano_vacio": 70.03,
+        "costos_variables": 1341.95320416403,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C3S2",
+        "vel_urbano_vacio": 29.34,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 29.34,
+        "vel_plano_cargado": 56.25,
+        "ejes_configuracion": "3S2",
+        "vel_afirmado_vacio": 18.68,
+        "vel_ondulado_vacio": 41.25,
+        "vel_urbano_cargado": 23.57,
+        "consumo_plano_vacio": 16.32,
+        "vel_montana_cargado": 23.57,
+        "consumo_urbano_vacio": 8.2,
+        "costo_hora_adicional": 90691,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 15,
+        "vel_ondulado_cargado": 33.13,
+        "consumo_montana_vacio": 8.2,
+        "consumo_plano_cargado": 6.8,
+        "consumo_afirmado_vacio": 5.22,
+        "consumo_ondulado_vacio": 12.1,
+        "consumo_urbano_cargado": 3.42,
+        "costos_variables_vacio": 1341.95321724765,
+        "consumo_montana_cargado": 3.42,
+        "toneladas_configuracion": 31,
+        "consumo_afirmado_cargado": 2.18,
+        "consumo_ondulado_cargado": 5.04,
+        "imprevistos_costo_km_vacio": 100.646491293573,
+        "imprevistos_costo_km_cargado": 100.646490312302,
+        "valor_combustible_galon_acpm": 11616
+      },
+      {
+        "id": 94,
+        "created_at": "2026-09-01T14:21:54.587223+00:00",
+        "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+        "mes_codigo": 202609,
+        "updated_at": "2026-09-02T11:18:52.977387+00:00",
+        "mes_vigencia": "2026-09-01",
+        "tipo_vehiculo": "C3S3",
+        "imprevistos_km": 1596.55889803673,
+        "vel_plano_vacio": 70.03,
+        "costos_variables": 1596.55889803673,
+        "imprevistos_tasa": 0.075,
+        "tipo_consolidado": "202609C3S3",
+        "vel_urbano_vacio": 29.34,
+        "horas_habiles_mes": 230,
+        "vel_montana_vacio": 29.34,
+        "vel_plano_cargado": 56.25,
+        "ejes_configuracion": "3S3",
+        "vel_afirmado_vacio": 18.68,
+        "vel_ondulado_vacio": 41.25,
+        "vel_urbano_cargado": 23.57,
+        "consumo_plano_vacio": 15.55,
+        "vel_montana_cargado": 23.57,
+        "consumo_urbano_vacio": 7.82,
+        "costo_hora_adicional": 91763,
+        "fecha_captura_fuente": "2026-09-01",
+        "vel_afirmado_cargado": 15,
+        "vel_ondulado_cargado": 33.13,
+        "consumo_montana_vacio": 7.82,
+        "consumo_plano_cargado": 6.48,
+        "consumo_afirmado_vacio": 4.97,
+        "consumo_ondulado_vacio": 11.52,
+        "consumo_urbano_cargado": 3.26,
+        "costos_variables_vacio": 1596.5588715622,
+        "consumo_montana_cargado": 3.26,
+        "toneladas_configuracion": 34,
+        "consumo_afirmado_cargado": 2.07,
+        "consumo_ondulado_cargado": 4.8,
+        "imprevistos_costo_km_vacio": 119.741915367165,
+        "imprevistos_costo_km_cargado": 119.741917352755,
+        "valor_combustible_galon_acpm": 11616
+      }
+    ],
+    "costos_fijos_actuales": [
+      {
+        "id": 810,
+        "costo_fijo": 7806384.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 811,
+        "costo_fijo": 8423320.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 812,
+        "costo_fijo": 12607253.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 813,
+        "costo_fijo": 7806384.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 814,
+        "costo_fijo": 8030831.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 815,
+        "costo_fijo": 8030831.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 816,
+        "costo_fijo": 8647767.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 817,
+        "costo_fijo": 8030831.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 818,
+        "costo_fijo": 7806384.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C278",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 819,
+        "costo_fijo": 7983889.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 820,
+        "costo_fijo": 8411167.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 821,
+        "costo_fijo": 12700103.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 822,
+        "costo_fijo": 7983889.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 823,
+        "costo_fijo": 8208336.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 824,
+        "costo_fijo": 8208336.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 825,
+        "costo_fijo": 8635614.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 826,
+        "costo_fijo": 8208336.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 827,
+        "costo_fijo": 7983889.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C289",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 828,
+        "costo_fijo": 8591514.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 829,
+        "costo_fijo": 9166004.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 830,
+        "costo_fijo": 13461100.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 831,
+        "costo_fijo": 8591514.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 832,
+        "costo_fijo": 8815961.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 833,
+        "costo_fijo": 8815961.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 834,
+        "costo_fijo": 9390451.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 835,
+        "costo_fijo": 8815961.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 836,
+        "costo_fijo": 8591514.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2910",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 837,
+        "costo_fijo": 10844185.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 838,
+        "costo_fijo": 12010805.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 839,
+        "costo_fijo": 15567647.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 840,
+        "costo_fijo": 10844185.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 841,
+        "costo_fijo": 12140371.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 842,
+        "costo_fijo": 11068632.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 843,
+        "costo_fijo": 11068632.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 844,
+        "costo_fijo": 12235252.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 845,
+        "costo_fijo": 11068632.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 846,
+        "costo_fijo": 11447935.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 847,
+        "costo_fijo": 10844185.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 848,
+        "costo_fijo": 10844185.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2M10",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 849,
+        "costo_fijo": 12496368.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 850,
+        "costo_fijo": 15284619.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 851,
+        "costo_fijo": 20993267.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 852,
+        "costo_fijo": 12496368.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 853,
+        "costo_fijo": 15032202.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 854,
+        "costo_fijo": 12720815.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 855,
+        "costo_fijo": 12720815.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 856,
+        "costo_fijo": 15509066.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 857,
+        "costo_fijo": 12720815.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 858,
+        "costo_fijo": 13182570.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 859,
+        "costo_fijo": 12496368.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 860,
+        "costo_fijo": 12300067.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S2",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 861,
+        "costo_fijo": 12692952.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 862,
+        "costo_fijo": 15500481.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 863,
+        "costo_fijo": 21159190.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 864,
+        "costo_fijo": 12692952.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 865,
+        "costo_fijo": 14965966.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 866,
+        "costo_fijo": 12917399.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 867,
+        "costo_fijo": 12917399.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 868,
+        "costo_fijo": 15724928.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 869,
+        "costo_fijo": 12917399.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 870,
+        "costo_fijo": 13259137.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 871,
+        "costo_fijo": 12692952.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 872,
+        "costo_fijo": 12475264.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C2S3",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 873,
+        "costo_fijo": 11613402.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 874,
+        "costo_fijo": 12260376.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 875,
+        "costo_fijo": 16351993.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 876,
+        "costo_fijo": 11613402.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 877,
+        "costo_fijo": 12909588.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 878,
+        "costo_fijo": 11837849.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 879,
+        "costo_fijo": 11837849.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 880,
+        "costo_fijo": 12484823.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 881,
+        "costo_fijo": 11837849.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 882,
+        "costo_fijo": 13164934.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 883,
+        "costo_fijo": 11613402.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 884,
+        "costo_fijo": 11613402.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 885,
+        "costo_fijo": 17030035.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 886,
+        "costo_fijo": 19932964.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 887,
+        "costo_fijo": 26035485.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 888,
+        "costo_fijo": 17030035.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 889,
+        "costo_fijo": 19646913.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 890,
+        "costo_fijo": 17254482.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 891,
+        "costo_fijo": 17254482.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 892,
+        "costo_fijo": 20157411.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 893,
+        "costo_fijo": 17254482.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 894,
+        "costo_fijo": 17722948.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 895,
+        "costo_fijo": 17030035.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 896,
+        "costo_fijo": 16859010.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S2",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 897,
+        "costo_fijo": 17231281.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 898,
+        "costo_fijo": 20192073.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 899,
+        "costo_fijo": 26294595.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 900,
+        "costo_fijo": 17231281.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 901,
+        "costo_fijo": 19530932.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "id": 902,
+        "costo_fijo": 17455728.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 903,
+        "costo_fijo": 17455728.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 904,
+        "costo_fijo": 20416520.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 905,
+        "costo_fijo": 17455728.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 906,
+        "costo_fijo": 17815237.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 907,
+        "costo_fijo": 17231281.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 908,
+        "costo_fijo": 17032529.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C3S3",
+        "tipo_carroceria": "PORTACONTENEDORES"
+      },
+      {
+        "id": 909,
+        "costo_fijo": 13164934.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V3",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 910,
+        "costo_fijo": 13164934.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V3",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 911,
+        "costo_fijo": 13164934.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V3",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 912,
+        "costo_fijo": 13164934.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V3",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 913,
+        "costo_fijo": 6934693.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 914,
+        "costo_fijo": 6934693.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 915,
+        "costo_fijo": 6934693.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 916,
+        "costo_fijo": 7378001.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 917,
+        "costo_fijo": 12174287.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 918,
+        "costo_fijo": 7159140.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 919,
+        "costo_fijo": 7159140.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 920,
+        "costo_fijo": 7159140.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 921,
+        "costo_fijo": 7602448.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "CA",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 922,
+        "costo_fijo": 7053081.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 923,
+        "costo_fijo": 7053081.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 924,
+        "costo_fijo": 7053081.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 925,
+        "costo_fijo": 7504128.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 926,
+        "costo_fijo": 12659140.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 927,
+        "costo_fijo": 7277528.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 928,
+        "costo_fijo": 7277528.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 929,
+        "costo_fijo": 7277528.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 930,
+        "costo_fijo": 7728575.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C257",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 931,
+        "costo_fijo": 7557013.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 932,
+        "costo_fijo": 7557013.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 933,
+        "costo_fijo": 7557013.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 934,
+        "costo_fijo": 8120685.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "id": 935,
+        "costo_fijo": 13103996.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "id": 936,
+        "costo_fijo": 7781460.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "id": 937,
+        "costo_fijo": 7781460.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "id": 938,
+        "costo_fijo": 7781460.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "id": 939,
+        "costo_fijo": 8345132.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "C279",
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "id": 940,
+        "costo_fijo": 11447935.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V2",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 941,
+        "costo_fijo": 11447935.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V2",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 942,
+        "costo_fijo": 11447935.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V2",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 943,
+        "costo_fijo": 11447935.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V2",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "id": 944,
+        "costo_fijo": 13169149.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V4",
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "id": 945,
+        "costo_fijo": 13169149.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V4",
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "id": 946,
+        "costo_fijo": 13169149.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V4",
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "id": 947,
+        "costo_fijo": 13169149.82,
+        "created_at": "2026-08-11T12:18:47.36081+00:00",
+        "mes_codigo": 202608,
+        "mes_vigencia": "2026-08-01",
+        "tipo_vehiculo": "V4",
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      }
+    ]
+  },
+  "quality": {
+    "parameter_issues": [],
+    "fixed_duplicates": [],
+    "fixed_nonpositive": [],
+    "date_mismatch_for_all_vehicles": true
+  },
+  "tolls": {
+    "peajes_ruta93": [
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 282900,
+        "configuracion": "2",
+        "cantidad_peajes": 14
+      },
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 533100,
+        "configuracion": "3",
+        "cantidad_peajes": 14
+      },
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 533100,
+        "configuracion": "C2S2",
+        "cantidad_peajes": 14
+      },
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 704000,
+        "configuracion": "C2S3",
+        "cantidad_peajes": 14
+      },
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 704000,
+        "configuracion": "C3S2",
+        "cantidad_peajes": 14
+      },
+      {
+        "estado": "ok",
+        "rule_id": "sicetac-toll-relative-category-v2",
+        "mes_codigo": 202609,
+        "total_peajes": 869600,
+        "configuracion": "C3S3",
+        "cantidad_peajes": 14
+      }
+    ],
+    "muestra_sin_enlace": [
+      {
+        "id_sice": 9,
+        "total_km": 59.14,
+        "nombre_sice": "ARMENIA _ CARTAGO"
+      },
+      {
+        "id_sice": 271,
+        "total_km": 56.48,
+        "nombre_sice": "CARTAGO _ ARMENIA"
+      },
+      {
+        "id_sice": 356,
+        "total_km": 23.66,
+        "nombre_sice": "DUITAMA _ SOGAMOSO"
+      },
+      {
+        "id_sice": 377,
+        "total_km": 274.88,
+        "nombre_sice": "FLORENCIA _ MOCOA"
+      },
+      {
+        "id_sice": 380,
+        "total_km": 422.53,
+        "nombre_sice": "FLORENCIA _ PASTO"
+      },
+      {
+        "id_sice": 382,
+        "total_km": 298.95,
+        "nombre_sice": "FLORENCIA _ POPAYÁN"
+      },
+      {
+        "id_sice": 447,
+        "total_km": 236.21,
+        "nombre_sice": "IPIALES _ TUMACO"
+      },
+      {
+        "id_sice": 523,
+        "total_km": 273.91,
+        "nombre_sice": "MOCOA _ FLORENCIA"
+      }
+    ],
+    "rutas_sin_enlace_peajes": 861,
+    "fijos_disponibles_por_carroceria": [
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "C257"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "C278"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "C279"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "C289"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "C2910"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C2M10"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C2S2"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C2S3"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C3"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C3S2"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL LIQUIDO - TANQUE",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA",
+          "PORTACONTENEDORES"
+        ],
+        "tipo_vehiculo": "C3S3"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "FURGON",
+          "FURGON REFRIGERADO",
+          "GENERAL",
+          "GRANEL SOLIDO - ESTACAS",
+          "GRANEL SOLIDO - ESTIBAS",
+          "GRANEL SOLIDO - FURGON",
+          "GRANEL SOLIDO - PLATAFORMA",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "CA"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "GENERAL",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "V2"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "GENERAL",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "V3"
+      },
+      {
+        "carrocerias": [
+          "ESTIBA",
+          "GENERAL",
+          "GRANEL SOLIDO - VOLCO",
+          "PLATAFORMA"
+        ],
+        "tipo_vehiculo": "V4"
+      }
+    ]
+  }
+}

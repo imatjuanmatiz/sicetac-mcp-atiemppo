@@ -1,0 +1,59 @@
+{
+  "versions": {
+    "api": "2.5.3",
+    "whatsapp": "3.8.2"
+  },
+  "verified_at_utc": "2026-09-23T14:16:34.806304+00:00",
+  "commits": {
+    "api": "4b3181d",
+    "whatsapp": "c991518",
+    "web": "456306a"
+  },
+  "tests": {
+    "api": 117,
+    "whatsapp": 18,
+    "web_build": "webpack passed"
+  },
+  "whatsapp_messages_sent": false,
+  "results": [
+    {
+      "channel": "api_text",
+      "kind": "costos",
+      "urban": false,
+      "text": "BOGOTÁ, D.C. a BARRANQUILLA · 1010.56 km\nTotal SICETAC: $7.821.531 (4 horas logísticas; período 202609)\nGalones: 168.80; recorrido: 20.31 h; logística: 4.0 h; rotaciones/mes: 9.4621\nFijos: $1.821.084; variables: $4.564.758; otros: $1.435.691"
+    },
+    {
+      "channel": "api_text",
+      "kind": "costos",
+      "urban": true,
+      "text": "BOGOTÁ, D.C. a BOGOTÁ, D.C. · 30.0 km\nVALOR ESTIMADO: 30 km en terreno ondulado.\nTotal SICETAC estimado: $602.129 (4 horas logísticas; período 202609)\nGalones: 6.25; recorrido: 0.91 h; logística: 4.0 h; rotaciones/mes: 46.8859\nFijos: $367.515; variables: $124.089; otros: $110.524"
+    },
+    {
+      "channel": "api_text",
+      "kind": "consumo",
+      "urban": false,
+      "text": "BOGOTÁ, D.C. a BARRANQUILLA · 1010.56 km\nTotal SICETAC: $7.821.531 (4 horas logísticas; período 202609)\nplano: 879.75 km, 135.76 gal, $1.577.033\nondulado: 72.08 km, 15.02 gal, $174.434\nmontaña: 37.73 km, 11.57 gal, $134.439\nurbano: 21 km, 6.44 gal, $74.827\ndespavimentado: 0 km, 0.00 gal, $0\nCombustible total: 168.80 gal, $1.960.733"
+    },
+    {
+      "channel": "api_text",
+      "kind": "consumo",
+      "urban": true,
+      "text": "BOGOTÁ, D.C. a BOGOTÁ, D.C. · 30.0 km\nVALOR ESTIMADO: 30 km en terreno ondulado.\nTotal SICETAC estimado: $602.129 (4 horas logísticas; período 202609)\nplano: 0 km, 0.00 gal, $0\nondulado: 30 km, 6.25 gal, $72.600\nmontaña: 0 km, 0.00 gal, $0\nurbano: 0 km, 0.00 gal, $0\ndespavimentado: 0 km, 0.00 gal, $0\nCombustible total: 6.25 gal, $72.600"
+    },
+    {
+      "channel": "whatsapp_adapter_live_api",
+      "kind": "costos",
+      "text": "Detalle de costos: BOGOTA, D.C. a BARRANQUILLA\nC3S3 | General - Estacas | CARGADO\nDistancia: 1010.56 km | Periodo: 202609\nTotal SICETAC: $7.821.531 (4 horas logisticas; periodo 202609)\nTotal galones: 168.80\nTiempo de recorrido: 20.31 h\nTiempo logistico: 4 h | Total: 24.31 h\nRotaciones calculadas al mes: 9.4621\nCostos fijos del viaje: $1.821.084\nCostos variables: $4.564.758\n  Combustible: $1.960.733\n  Peajes: $869.600\n  Mantenimiento e insumos: $1.613.419\n  Imprevistos: $121.006\nOtros costos: $1.435.691\nCosto fijo mensual vigente desde 202608: $17.231.282\nDesglose calculado con el modelo completo para esta ruta y configuracion."
+    },
+    {
+      "channel": "whatsapp_adapter_live_api",
+      "kind": "consumo",
+      "text": "Detalle de consumo: BOGOTA, D.C. a BARRANQUILLA\nC3S3 | General - Estacas | CARGADO\nDistancia: 1010.56 km | Periodo: 202609\nTotal SICETAC: $7.821.531 (4 horas logisticas; periodo 202609)\nPlano: 879.75 km | 135.76 gal | $1.577.033\nOndulado: 72.08 km | 15.02 gal | $174.434\nMontana: 37.73 km | 11.57 gal | $134.439\nUrbano: 21 km | 6.44 gal | $74.827\nDespavimentado: 0 km | 0.00 gal | $0\nTotal galones: 168.80\nCombustible total: $1.960.733\nDesglose calculado con el modelo completo para esta ruta y configuracion."
+    }
+  ],
+  "vercel": {
+    "deployment": "dpl_8DFNVSyng6eFS9fM5XrXtz3YXRmk",
+    "state": "READY",
+    "commit": "456306a2789c830011cad02003549ee6452d77f5"
+  }
+}

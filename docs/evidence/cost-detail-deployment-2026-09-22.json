@@ -1,0 +1,39 @@
+{
+  "checked_at": "2026-09-23T01:34:30.091428+00:00",
+  "backend": {
+    "version": "2.5.1",
+    "commit": "6118322",
+    "url": "https://sicetac-api-mcp.onrender.com",
+    "health": "ok",
+    "functional_verification": "Pass on 2.5.1: published summary, full costs, terrain fuel and urban estimate"
+  },
+  "whatsapp": {
+    "version": "3.8.0",
+    "commit": "aa41d76",
+    "url": "https://atica-whatsapp-bridge.onrender.com",
+    "health": "running",
+    "live_message_sent": false,
+    "adapter_against_live_api": "Pass: route 93, six logistic hours, costs and consumption; published result preserved; no message sent"
+  },
+  "web": {
+    "commit": "21f6712",
+    "deployment": "dpl_EnbaazdGLcZ7dyFgzAJHxSmipfaX",
+    "url": "https://sicealinstante.vercel.app",
+    "state": "READY",
+    "ui_cost_detail_verified": true,
+    "ui_consumption_verified": true,
+    "visual_review": "Pass: kilometers, urban estimate and terrain consumption rendered"
+  },
+  "validation": {
+    "backend_tests": 114,
+    "whatsapp_tests": 17,
+    "snapshot_calculations": 52,
+    "production_route_without_tolls": {
+      "route": "Armenia-Cartago",
+      "rutasid": "9",
+      "kilometers": 59.14,
+      "tolls": 0
+    },
+    "initial_read_failure": "Recovered after instance change; cache now excludes exceptions so transient read failures can recover on the next request."
+  }
+}

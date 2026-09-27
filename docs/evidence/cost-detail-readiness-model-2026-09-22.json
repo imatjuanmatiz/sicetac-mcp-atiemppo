@@ -1,0 +1,1632 @@
+{
+  "checked_at": "2026-09-23T00:19:01.409226+00:00",
+  "scope": "Controlled local execution of unchanged model with current Supabase parameters and toll totals plus September fixed costs read directly from dated local capture. Not deployed or promoted; no published quote total used as an input or acceptance target.",
+  "source_hashes": {
+    "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json": "3eb2ca5aa80aaaf7bacf81a5feed06c1186576afef1c3f19f4f8557ae1dab762",
+    "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/scripts/build_snapshot_20260901.py": "bac6f78ca873504f7edea4c007338fe02c73bc4a6bee87b8d096f5452dc8c762",
+    "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb": "74447c8ffad05d738b4cc773eef87e03b0fa011d77b323fec25fc5e5ec2b0c1e"
+  },
+  "source_capture_cut": "2026-09-01",
+  "cases_count": 26,
+  "passed": 26,
+  "different_fixed_values": [
+    {
+      "vehicle": "C279",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "captured": 7557011.82,
+      "database": 7557013.82
+    },
+    {
+      "vehicle": "CA",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "captured": 6934700.82,
+      "database": 6934693.82
+    },
+    {
+      "vehicle": "V4",
+      "mode": "CARGADO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "captured": 13169140.82,
+      "database": 13169149.82
+    },
+    {
+      "vehicle": "C279",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "captured": 7557011.82,
+      "database": 7557013.82
+    },
+    {
+      "vehicle": "CA",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "captured": 6934700.82,
+      "database": 6934693.82
+    },
+    {
+      "vehicle": "V2",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "captured": 11076436.82,
+      "database": 11447935.82
+    },
+    {
+      "vehicle": "V3",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "captured": 12793435.82,
+      "database": 13164934.82
+    },
+    {
+      "vehicle": "V4",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "captured": 12797641.82,
+      "database": 13169149.82
+    }
+  ],
+  "cases": [
+    {
+      "vehicle": "C2M10",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 10844185.82,
+      "fixed_monthly_database": 10844185.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 3931956.93,
+      "gallons": 83.99229909493856,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2M10",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 19.66,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.7217,
+        "costo_fijo": 1115461.89,
+        "combustible": 975654.55,
+        "peajes": 282900,
+        "mantenimiento": 777865.62,
+        "imprevistos": 58339.92,
+        "otros_costos": 721734.95,
+        "total_viaje": 3931956.93,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.6625,
+            "gal": 69.2716535433071
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.059428571428571,
+            "gal": 7.200799200799201
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.8864999999999998,
+            "gal": 4.830985915492958
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 1.05,
+            "gal": 2.6888604353393086
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C257",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 7053081.82,
+      "fixed_monthly_database": 7053081.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 2625911.47,
+      "gallons": 54.36148351256111,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C257",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.4639,
+        "costo_fijo": 674039.49,
+        "combustible": 631462.99,
+        "peajes": 282900,
+        "mantenimiento": 516750.46,
+        "imprevistos": 38756.28,
+        "otros_costos": 482002.25,
+        "total_viaje": 2625911.47,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 43.573551263001484
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 4.776673293571902
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 3.8618219037871033
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.84,
+            "gal": 2.1494370522006143
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C279",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 7557011.82,
+      "fixed_monthly_database": 7557013.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 2887607.18,
+      "gallons": 60.88688858125682,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C279",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.4639,
+        "costo_fijo": 722198.4,
+        "combustible": 707262.1,
+        "peajes": 282900,
+        "mantenimiento": 600194.02,
+        "imprevistos": 45014.55,
+        "otros_costos": 530038.11,
+        "total_viaje": 2887607.18,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 48.875
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 5.261313868613139
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 4.336781609195402
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.84,
+            "gal": 2.4137931034482762
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2910",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 8591514.82,
+      "fixed_monthly_database": 8591514.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 3162490.77,
+      "gallons": 64.63586538461539,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2910",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.4639,
+        "costo_fijo": 821062.4,
+        "combustible": 750810.21,
+        "peajes": 282900,
+        "mantenimiento": 676486.95,
+        "imprevistos": 50736.52,
+        "otros_costos": 580494.69,
+        "total_viaje": 3162490.77,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 51.75
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 5.544615384615384
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 4.71625
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.84,
+            "gal": 2.625
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2S2",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12496368.82,
+      "fixed_monthly_database": 12496368.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 5339861.24,
+      "gallons": 122.67463051525223,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2S2",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 18.42,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.2594,
+        "costo_fijo": 1218040.9,
+        "combustible": 1424988.51,
+        "peajes": 533100,
+        "mantenimiento": 1100992.89,
+        "imprevistos": 82574.47,
+        "otros_costos": 980164.47,
+        "total_viaje": 5339861.24,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.955425126903554,
+            "gal": 100.42808219178083
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1875569044006067,
+            "gal": 10.662721893491124
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.4618364974815963,
+            "gal": 7.441814595660748
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8136381247578458,
+            "gal": 4.1420118343195265
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2S3",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12692952.82,
+      "fixed_monthly_database": 12692952.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 5693920.79,
+      "gallons": 122.67463051525223,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 18.42,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.2597,
+        "costo_fijo": 1237166.08,
+        "combustible": 1424988.51,
+        "peajes": 704000,
+        "mantenimiento": 1193127.37,
+        "imprevistos": 89484.55,
+        "otros_costos": 1045154.28,
+        "total_viaje": 5693920.79,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.955425126903554,
+            "gal": 100.42808219178083
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.186893203883495,
+            "gal": 10.662721893491124
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.4618364974815963,
+            "gal": 7.441814595660748
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8136381247578458,
+            "gal": 4.1420118343195265
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 11613402.82,
+      "fixed_monthly_database": 11613402.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 5470929.79,
+      "gallons": 133.34155279862344,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 20.91,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.2332,
+        "costo_fijo": 1257787.42,
+        "combustible": 1548895.48,
+        "peajes": 533100,
+        "mantenimiento": 1048301.38,
+        "imprevistos": 78622.6,
+        "otros_costos": 1004222.91,
+        "total_viaje": 5470929.79,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.546032867997878,
+            "gal": 109.1501240694789
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.215119852489244,
+            "gal": 11.588424437299036
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0230563002680966,
+            "gal": 8.09656652360515
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 1.126005361930295,
+            "gal": 4.506437768240343
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3S2",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 17030035.82,
+      "fixed_monthly_database": 17030035.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 7140812.59,
+      "gallons": 160.84910192147032,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3S2",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.4621,
+        "costo_fijo": 1799815.67,
+        "combustible": 1868423.17,
+        "peajes": 704000,
+        "mantenimiento": 1356124.23,
+        "imprevistos": 101709.32,
+        "otros_costos": 1310740.2,
+        "total_viaje": 7140812.59,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 129.375
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 14.3015873015873
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.032163742690058
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8909630886720408,
+            "gal": 6.140350877192983
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3S3",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 17231281.82,
+      "fixed_monthly_database": 17231281.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 7821532.97,
+      "gallons": 168.79589297886844,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.4621,
+        "costo_fijo": 1821084.31,
+        "combustible": 1960733.09,
+        "peajes": 869600,
+        "mantenimiento": 1613418.56,
+        "imprevistos": 121006.39,
+        "otros_costos": 1435690.62,
+        "total_viaje": 7821532.97,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 135.76388888888889
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 15.016666666666667
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.57361963190184
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8909630886720408,
+            "gal": 6.441717791411043
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "CA",
+      "mode": "CARGADO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 6934700.82,
+      "fixed_monthly_database": 6934693.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 2462474.82,
+      "gallons": 47.14861111111111,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "CA",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 17.98,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 10.4639,
+        "costo_fijo": 662726.21,
+        "combustible": 547678.27,
+        "peajes": 282900,
+        "mantenimiento": 481086.42,
+        "imprevistos": 36081.48,
+        "otros_costos": 452002.44,
+        "total_viaje": 2462474.82,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 14.189516129032258,
+            "gal": 38.25
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.4416,
+            "gal": 4.004444444444444
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5091999999999999,
+            "gal": 3.1441666666666666
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.84,
+            "gal": 1.75
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V2",
+      "mode": "CARGADO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 11447935.82,
+      "fixed_monthly_database": 11447935.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 4973633.29,
+      "gallons": 83.99229909493856,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V2",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 22.92,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 8.5448,
+        "costo_fijo": 1339754.68,
+        "combustible": 975654.55,
+        "peajes": 282900,
+        "mantenimiento": 1360356.27,
+        "imprevistos": 102026.72,
+        "otros_costos": 912941.07,
+        "total_viaje": 4973633.29,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 16.599056603773583,
+            "gal": 69.2716535433071
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.4026666666666667,
+            "gal": 7.200799200799201
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.515333333333333,
+            "gal": 4.830985915492958
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 1.4,
+            "gal": 2.6888604353393086
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V3",
+      "mode": "CARGADO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 13164934.82,
+      "fixed_monthly_database": 13164934.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 6414390.48,
+      "gallons": 111.75569598822709,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V3",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 21.0,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.1986,
+        "costo_fijo": 1431188.97,
+        "combustible": 1298154.16,
+        "peajes": 533100,
+        "mantenimiento": 1836787.36,
+        "imprevistos": 137759.05,
+        "otros_costos": 1177400.94,
+        "total_viaje": 6414390.48,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.3,
+            "gal": 94.90291262135922
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.529122807017544,
+            "gal": 8.58095238095238
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0394594594594593,
+            "gal": 5.314084507042254
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 1.135135135135135,
+            "gal": 2.9577464788732395
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V4",
+      "mode": "CARGADO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 13169140.82,
+      "fixed_monthly_database": 13169149.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 7727348.34,
+      "gallons": 160.84910192147032,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V4",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 20.31,
+        "horas_logisticas": 4,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 9.4621,
+        "costo_fijo": 1391777.81,
+        "combustible": 1868423.17,
+        "peajes": 533100,
+        "mantenimiento": 2340134.8,
+        "imprevistos": 175510.11,
+        "otros_costos": 1418402.45,
+        "total_viaje": 7727348.34,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 15.64,
+            "gal": 129.375
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.1756715967401146,
+            "gal": 14.3015873015873
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.600763682647433,
+            "gal": 11.032163742690058
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8909630886720408,
+            "gal": 6.140350877192983
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2M10",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 10844185.82,
+      "fixed_monthly_database": 10844185.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 2773695.72,
+      "gallons": 34.99963293458505,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2M10",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 15.79,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 14.5664,
+        "costo_fijo": 744465.74,
+        "combustible": 406555.74,
+        "peajes": 282900,
+        "mantenimiento": 777865.66,
+        "imprevistos": 58339.92,
+        "otros_costos": 503568.66,
+        "total_viaje_vacio": 2773695.72,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 28.863188976377952
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.653969710876549,
+            "gal": 3.0008326394671108
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.5152610441767067,
+            "gal": 2.014415376401495
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.8433734939759037,
+            "gal": 1.1211959423384943
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C257",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 7053081.82,
+      "fixed_monthly_database": 7053081.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 1883315.47,
+      "gallons": 22.65350155185012,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C257",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5179,
+        "costo_fijo": 454512.65,
+        "combustible": 263143.07,
+        "peajes": 282900,
+        "mantenimiento": 503107.88,
+        "imprevistos": 37733.09,
+        "otros_costos": 341918.78,
+        "total_viaje_vacio": 1883315.47,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 18.157894736842103
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 1.9900607399226946
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.6096416382252559
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.6745904272406039,
+            "gal": 0.8959044368600683
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C279",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 7557011.82,
+      "fixed_monthly_database": 7557013.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 2089145.96,
+      "gallons": 25.375599767153652,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C279",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5179,
+        "costo_fijo": 486986.76,
+        "combustible": 294762.97,
+        "peajes": 282900,
+        "mantenimiento": 600194.06,
+        "imprevistos": 45014.55,
+        "otros_costos": 379287.62,
+        "total_viaje_vacio": 2089145.96,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 20.369298448714982
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 2.1922141119221408
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.807858169621466
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.6745904272406039,
+            "gal": 1.0062290368950646
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2910",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 8591514.82,
+      "fixed_monthly_database": 8591514.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 2292988.32,
+      "gallons": 26.938490782447836,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2910",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5179,
+        "costo_fijo": 553651.9,
+        "combustible": 312917.51,
+        "peajes": 282900,
+        "mantenimiento": 676486.88,
+        "imprevistos": 50736.52,
+        "otros_costos": 416295.51,
+        "total_viaje_vacio": 2292988.32,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 21.567786222113263
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 2.31025641025641
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.9661281917665447
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.6745904272406039,
+            "gal": 1.0943199583116205
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2S2",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12496368.82,
+      "fixed_monthly_database": 12496368.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 3805238.44,
+      "gallons": 51.12666330658545,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2S2",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.79,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5459,
+        "costo_fijo": 803836.95,
+        "combustible": 593887.32,
+        "peajes": 533100,
+        "mantenimiento": 1100992.89,
+        "imprevistos": 82574.47,
+        "otros_costos": 690846.81,
+        "total_viaje_vacio": 3805238.44,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.2098623853211,
+            "gal": 41.85299714557564
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7571916138469037,
+            "gal": 4.443896424167694
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.1742919389978212,
+            "gal": 3.1027960526315788
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.65359477124183,
+            "gal": 1.7269736842105263
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C2S3",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12692952.82,
+      "fixed_monthly_database": 12692952.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 4150455.89,
+      "gallons": 51.12666330658545,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C2S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.79,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5468,
+        "costo_fijo": 816435.07,
+        "combustible": 593887.32,
+        "peajes": 704000,
+        "mantenimiento": 1193127.39,
+        "imprevistos": 89484.55,
+        "otros_costos": 753521.56,
+        "total_viaje_vacio": 4150455.89,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.2098623853211,
+            "gal": 41.85299714557564
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.756335282651072,
+            "gal": 4.443896424167694
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.1742919389978212,
+            "gal": 3.1027960526315788
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.65359477124183,
+            "gal": 1.7269736842105263
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 11613402.82,
+      "fixed_monthly_database": 11613402.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 3853157.0,
+      "gallons": 55.56961856490025,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 16.8,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 13.6936,
+        "costo_fijo": 848089.82,
+        "combustible": 645496.69,
+        "peajes": 533100,
+        "mantenimiento": 1048301.39,
+        "imprevistos": 78622.6,
+        "otros_costos": 699546.5,
+        "total_viaje_vacio": 3853157.0,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.487579843860894,
+            "gal": 45.48862461220269
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7793137496914342,
+            "gal": 4.827863362357669
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.6248923341946597,
+            "gal": 3.3747763864042932
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.9043927648578812,
+            "gal": 1.8783542039355994
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3S2",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 17030035.82,
+      "fixed_monthly_database": 17030035.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 5068335.03,
+      "gallons": 67.02546991533964,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3S2",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 14.1004,
+        "costo_fijo": 1207769.7,
+        "combustible": 778567.86,
+        "peajes": 704000,
+        "mantenimiento": 1356124.24,
+        "imprevistos": 101709.32,
+        "otros_costos": 920163.91,
+        "total_viaje_vacio": 5068335.03,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 53.90625
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 5.95702479338843
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.601219512195122
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.7157464212678937,
+            "gal": 2.5609756097560976
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "C3S3",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 17231281.82,
+      "fixed_monthly_database": 17231281.82,
+      "fixed_month_database": 202608,
+      "same_as_database": true,
+      "total_model": 5673134.37,
+      "gallons": 70.3427373244372,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 14.1004,
+        "costo_fijo": 1222042.06,
+        "combustible": 817101.24,
+        "peajes": 869600,
+        "mantenimiento": 1613418.53,
+        "imprevistos": 121006.39,
+        "otros_costos": 1029966.15,
+        "total_viaje_vacio": 5673134.37,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 56.575562700964625
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 6.256944444444445
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.8248081841432215
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.7157464212678937,
+            "gal": 2.6854219948849103
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "CA",
+      "mode": "VACIO",
+      "body": "GENERAL",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 6934700.82,
+      "fixed_monthly_database": 6934693.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 1784507.16,
+      "gallons": 19.64885069507038,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "CA",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_recorrido": 14.82,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 15.5179,
+        "costo_fijo": 446883.97,
+        "combustible": 228241.05,
+        "peajes": 282900,
+        "mantenimiento": 467443.87,
+        "imprevistos": 35058.29,
+        "otros_costos": 323979.98,
+        "total_viaje_vacio": 1784507.16,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 11.77710843373494,
+            "gal": 15.940387751404241
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.1579116465863453,
+            "gal": 1.6685185185185183
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2120141342756183,
+            "gal": 1.3105244876693296
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.6745904272406039,
+            "gal": 0.7294199374782911
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V2",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 11076436.82,
+      "fixed_monthly_database": 11447935.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 3712165.31,
+      "gallons": 34.99963293458505,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V2",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 18.41,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 12.4963,
+        "costo_fijo": 886377.31,
+        "combustible": 406555.74,
+        "peajes": 282900,
+        "mantenimiento": 1360356.3,
+        "imprevistos": 102026.72,
+        "otros_costos": 673949.24,
+        "total_viaje_vacio": 3712165.31,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 13.331565388695259,
+            "gal": 28.863188976377952
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.9298527443105755,
+            "gal": 3.0008326394671108
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 2.0198072805139184,
+            "gal": 2.014415376401495
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 1.1241970021413277,
+            "gal": 1.1211959423384943
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V3",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12793435.82,
+      "fixed_monthly_database": 13164934.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 4871317.41,
+      "gallons": 46.56334275030132,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V3",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 16.87,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 13.6333,
+        "costo_fijo": 938396.12,
+        "combustible": 540879.79,
+        "peajes": 533100,
+        "mantenimiento": 1836787.39,
+        "imprevistos": 137759.05,
+        "otros_costos": 884395.06,
+        "total_viaje_vacio": 4871317.41,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.288727475904455,
+            "gal": 39.53932584269663
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 2.031567080045096,
+            "gal": 3.575396825396825
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.6382978723404253,
+            "gal": 2.2155020551967115
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.911854103343465,
+            "gal": 1.2331180270111568
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    },
+    {
+      "vehicle": "V4",
+      "mode": "VACIO",
+      "body": "GRANEL SOLIDO - VOLCO",
+      "fixed_source_month": 202609,
+      "fixed_source_capture": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_captura_simulaciones_20260901.json",
+      "fixed_monthly_captured": 12797641.82,
+      "fixed_monthly_database": 13169149.82,
+      "fixed_month_database": 202608,
+      "same_as_database": false,
+      "total_model": 5785240.36,
+      "gallons": 67.02546991533964,
+      "components_reconcile": true,
+      "fuel_reconciles": true,
+      "result": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "configuracion": "V4",
+        "carroceria": "GRANEL SOLIDO - VOLCO",
+        "mes": 202609,
+        "horas_recorrido": 16.31,
+        "horas_logisticas": 0,
+        "horas_habiles_mes": 230.0,
+        "recorridos_mes": 14.1004,
+        "costo_fijo": 907608.42,
+        "combustible": 778567.86,
+        "peajes": 533100,
+        "mantenimiento": 2340134.81,
+        "imprevistos": 175510.11,
+        "otros_costos": 1050319.16,
+        "total_viaje_vacio": 5785240.36,
+        "detalle_via": {
+          "plano": {
+            "km": 879.75,
+            "horas": 12.562473225760389,
+            "gal": 53.90625
+          },
+          "ondulado": {
+            "km": 72.08,
+            "horas": 1.7473939393939393,
+            "gal": 5.95702479338843
+          },
+          "montaña": {
+            "km": 37.73,
+            "horas": 1.2859577368779822,
+            "gal": 4.601219512195122
+          },
+          "urbano": {
+            "km": 21,
+            "horas": 0.7157464212678937,
+            "gal": 2.5609756097560976
+          },
+          "despavimentado": {
+            "km": 0,
+            "horas": 0.0,
+            "gal": 0.0
+          }
+        }
+      }
+    }
+  ]
+}

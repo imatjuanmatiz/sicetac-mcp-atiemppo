@@ -1,0 +1,69 @@
+{
+  "checked_at": "2026-09-23T00:14:56.111255+00:00",
+  "cases": [
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "vehiculo": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "resumen": false,
+        "modo_viaje": "CARGADO"
+      },
+      "status": 503,
+      "response": {
+        "detail": "No hay parámetros normativos publicados para este vehículo en el modo detallado. Use resumen=true, que entrega el consolidado oficial SICETAC vigente."
+      }
+    },
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "vehiculo": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "resumen": false,
+        "modo_viaje": "VACIO"
+      },
+      "status": 503,
+      "response": {
+        "detail": "No hay parámetros normativos publicados para este vehículo en el modo detallado. Use resumen=true, que entrega el consolidado oficial SICETAC vigente."
+      }
+    },
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "vehiculo": "CA",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "resumen": false,
+        "modo_viaje": "CARGADO"
+      },
+      "status": 503,
+      "response": {
+        "detail": "No hay parámetros normativos publicados para este vehículo en el modo detallado. Use resumen=true, que entrega el consolidado oficial SICETAC vigente."
+      }
+    },
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "vehiculo": "C2M10",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "resumen": false,
+        "modo_viaje": "CARGADO"
+      },
+      "status": 503,
+      "response": {
+        "detail": "No hay parámetros normativos publicados para este vehículo en el modo detallado. Use resumen=true, que entrega el consolidado oficial SICETAC vigente."
+      }
+    }
+  ]
+}

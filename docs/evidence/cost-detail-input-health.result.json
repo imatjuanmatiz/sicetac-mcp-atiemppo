@@ -1,0 +1,109 @@
+{
+  "checks": [
+    {
+      "evidence": {
+        "bytes": 1847296,
+        "modified_at": "2026-09-01T14:22:59.080901+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+        "sha256": "74447c8ffad05d738b4cc773eef87e03b0fa011d77b323fec25fc5e5ec2b0c1e"
+      },
+      "id": "snapshot-trazable",
+      "required": true,
+      "status": "OK",
+      "type": "file"
+    },
+    {
+      "evidence": {
+        "bytes": 1847296,
+        "first_value": 13,
+        "modified_at": "2026-09-01T14:22:59.080901+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+        "query": "select count(distinct tipo_vehiculo) from parametros_vigentes_202609 where mes_codigo=202609",
+        "row_returned": true
+      },
+      "id": "parametros-septiembre",
+      "required": true,
+      "status": "OK",
+      "type": "duckdb_query"
+    },
+    {
+      "evidence": {
+        "bytes": 1847296,
+        "first_value": 13,
+        "modified_at": "2026-09-01T14:22:59.080901+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+        "query": "select count(distinct p.tipo_vehiculo) from parametros_vigentes_202609 p join costos_fijos_vigentes_202609 f on f.tipo_vehiculo=p.tipo_vehiculo and f.mes_codigo<=p.mes_codigo and f.tipo_carroceria=case when p.tipo_vehiculo in ('V2','V3','V4') then 'GRANEL SOLIDO - VOLCO' else 'GENERAL' end where f.costo_fijo>0",
+        "row_returned": true
+      },
+      "id": "costos-fijos-aplicables",
+      "required": true,
+      "status": "OK",
+      "type": "duckdb_query"
+    },
+    {
+      "evidence": {
+        "bytes": 73436,
+        "keys": [
+          "checked_at",
+          "quality",
+          "supabase",
+          "tolls"
+        ],
+        "modified_at": "2026-09-23T00:14:49.896792+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-sources-2026-09-22.json"
+      },
+      "id": "evidencia-supabase",
+      "required": true,
+      "status": "OK",
+      "type": "json"
+    },
+    {
+      "evidence": {
+        "bytes": 44468,
+        "keys": [
+          "cases",
+          "cases_count",
+          "checked_at",
+          "method",
+          "passed",
+          "policy_authority",
+          "scope",
+          "source"
+        ],
+        "modified_at": "2026-09-23T00:19:01.412706+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-asof-2026-09-22.json"
+      },
+      "id": "prueba-modelo-asof",
+      "required": true,
+      "status": "OK",
+      "type": "json"
+    },
+    {
+      "evidence": {
+        "bytes": 2069,
+        "keys": [
+          "cases",
+          "checked_at"
+        ],
+        "modified_at": "2026-09-23T00:14:56.111543+00:00",
+        "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-live-2026-09-22.json"
+      },
+      "id": "prueba-api-publicada",
+      "required": true,
+      "status": "OK",
+      "type": "json"
+    }
+  ],
+  "cut_id": "2026-09-asof",
+  "evaluated_at": "2026-09-23T00:19:01.574389+00:00",
+  "project_id": "sicetac_api_mcp_detalle_costos",
+  "schema_version": "data_cut_health_result.v1",
+  "status": "OK",
+  "summary": {
+    "blocked": 0,
+    "checks": 6,
+    "ok": 6,
+    "stale": 0,
+    "warnings": 0
+  }
+}

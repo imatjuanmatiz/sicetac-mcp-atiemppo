@@ -1,0 +1,69 @@
+{
+  "schema_version": "data_cut_health.v1",
+  "project_id": "sicetac_api_mcp_detalle_costos",
+  "cut_id": "2026-09-asof",
+  "description": "Input health only; fixed costs remain valid until replaced per user clarification. API/MCP delivery readiness is assessed separately.",
+  "checks": [
+    {
+      "id": "snapshot-trazable",
+      "type": "file",
+      "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+      "sha256": "74447c8ffad05d738b4cc773eef87e03b0fa011d77b323fec25fc5e5ec2b0c1e",
+      "required": true
+    },
+    {
+      "id": "parametros-septiembre",
+      "type": "duckdb_query",
+      "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+      "query": "select count(distinct tipo_vehiculo) from parametros_vigentes_202609 where mes_codigo=202609",
+      "expect": {
+        "equals": 13
+      },
+      "required": true
+    },
+    {
+      "id": "costos-fijos-aplicables",
+      "type": "duckdb_query",
+      "path": "/Users/atiemppoia/codex/SICETAC-SIMULADOR-LOCAL/data/sicetac_modelo_local_202609.duckdb",
+      "query": "select count(distinct p.tipo_vehiculo) from parametros_vigentes_202609 p join costos_fijos_vigentes_202609 f on f.tipo_vehiculo=p.tipo_vehiculo and f.mes_codigo<=p.mes_codigo and f.tipo_carroceria=case when p.tipo_vehiculo in ('V2','V3','V4') then 'GRANEL SOLIDO - VOLCO' else 'GENERAL' end where f.costo_fijo>0",
+      "expect": {
+        "equals": 13
+      },
+      "required": true
+    },
+    {
+      "id": "evidencia-supabase",
+      "type": "json",
+      "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-sources-2026-09-22.json",
+      "required_keys": [
+        "checked_at",
+        "supabase",
+        "quality",
+        "tolls"
+      ],
+      "required": true
+    },
+    {
+      "id": "prueba-modelo-asof",
+      "type": "json",
+      "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-asof-2026-09-22.json",
+      "required_keys": [
+        "policy_authority",
+        "cases_count",
+        "passed",
+        "cases"
+      ],
+      "required": true
+    },
+    {
+      "id": "prueba-api-publicada",
+      "type": "json",
+      "path": "/Users/atiemppoia/codex/SICETAC-API-MCP/docs/evidence/cost-detail-readiness-live-2026-09-22.json",
+      "required_keys": [
+        "checked_at",
+        "cases"
+      ],
+      "required": true
+    }
+  ]
+}

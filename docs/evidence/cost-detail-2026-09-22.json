@@ -1,0 +1,406 @@
+{
+  "checked_at": "2026-09-22T23:57:51.240063+00:00",
+  "live_queries": [
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "vehiculo": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "modo_viaje": "CARGADO",
+        "resumen": true
+      },
+      "http_status": 200,
+      "response": {
+        "origen": "BOGOTÁ, D.C.",
+        "destino": "BARRANQUILLA",
+        "configuracion": "C3S3",
+        "configuracion_analisis": "3S3",
+        "mes": 202609,
+        "mes_parametros": 202609,
+        "carroceria": "GENERAL",
+        "modo_viaje": "CARGADO",
+        "tipo_contenedor": null,
+        "totales": {
+          "H2": 7638005,
+          "H4": 7821531,
+          "H8": 8188583
+        },
+        "metodo": "lookup_consolidado",
+        "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+        "ruta": "11001000-8001000",
+        "detalle_lookup": {
+          "rutasid": "93",
+          "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+          "ruta": "11001000-8001000",
+          "movilizacion": 7454479,
+          "valor_hora": 91763,
+          "columna_usada": "general_estacas_cargado",
+          "opcion_servicio": "General - Estacas"
+        },
+        "resolved_route": {
+          "input_origen": "Bogotá",
+          "input_destino": "Barranquilla",
+          "codigo_dane_origen": "11001000",
+          "codigo_dane_destino": "08001000",
+          "origen_nombre": "BOGOTÁ, D.C.",
+          "destino_nombre": "BARRANQUILLA",
+          "origen_departamento": "BOGOTÁ, D. C.",
+          "destino_departamento": "ATLÁNTICO",
+          "origen_resolution_mode": "name",
+          "destino_resolution_mode": "name",
+          "origen_dane_mismatch": false,
+          "destino_dane_mismatch": false,
+          "route_code": "11001000-08001000"
+        }
+      }
+    },
+    {
+      "request": {
+        "origen": "Bogotá",
+        "destino": "Barranquilla",
+        "codigo_dane_origen": "11001000",
+        "codigo_dane_destino": "08001000",
+        "vehiculo": "C3S3",
+        "carroceria": "GENERAL",
+        "mes": 202609,
+        "horas_logisticas": 4,
+        "modo_viaje": "CARGADO",
+        "resumen": false
+      },
+      "http_status": 503,
+      "response": {
+        "detail": "No hay parámetros normativos publicados para este vehículo en el modo detallado. Use resumen=true, que entrega el consolidado oficial SICETAC vigente."
+      }
+    }
+  ],
+  "local_reproduction": {
+    "source": "synthetic local fixtures; network SDK stubbed; not a live quote",
+    "model_fields": [
+      "origen",
+      "destino",
+      "configuracion",
+      "carroceria",
+      "mes",
+      "horas_recorrido",
+      "horas_logisticas",
+      "horas_habiles_mes",
+      "recorridos_mes",
+      "costo_fijo",
+      "combustible",
+      "peajes",
+      "mantenimiento",
+      "imprevistos",
+      "otros_costos",
+      "total_viaje",
+      "detalle_via"
+    ],
+    "service_fields": [
+      "origen",
+      "destino",
+      "configuracion",
+      "mes",
+      "carroceria",
+      "modo_viaje",
+      "totales",
+      "manual_mode_applied",
+      "manual_input"
+    ],
+    "model_detail": {
+      "plano": {
+        "km": 100,
+        "horas": 2,
+        "gal": 10
+      },
+      "ondulado": {
+        "km": 20,
+        "horas": 0.4,
+        "gal": 2
+      },
+      "montaña": {
+        "km": 10,
+        "horas": 0.2,
+        "gal": 1
+      },
+      "urbano": {
+        "km": 5,
+        "horas": 0.1,
+        "gal": 0.5
+      },
+      "despavimentado": {
+        "km": 0,
+        "horas": 0,
+        "gal": 0
+      }
+    },
+    "service_totals": {
+      "H2": 732411.31,
+      "H4": 838917.47,
+      "H8": 1051931.49
+    },
+    "detail_is_discarded": true,
+    "same_H4_total": true
+  },
+  "commit": "5d179c28420cb1da82806674dd97e45cbf3a3fc1",
+  "scope": "Evaluation only; no runtime, database, deployment or messaging changes",
+  "supabase": {
+    "series": [
+      {
+        "mes_codigo": 202609
+      }
+    ],
+    "parametros": [
+      {
+        "filas": 13,
+        "vehiculos": [
+          "C257",
+          "C279",
+          "C2910",
+          "C2M10",
+          "C2S2",
+          "C2S3",
+          "C3",
+          "C3S2",
+          "C3S3",
+          "CA",
+          "V2",
+          "V3",
+          "V4"
+        ],
+        "mes_codigo": 202609
+      }
+    ],
+    "costos_fijos": [
+      {
+        "filas": 138,
+        "vehiculos": [
+          "C257",
+          "C278",
+          "C279",
+          "C289",
+          "C2910",
+          "C2M10",
+          "C2S2",
+          "C2S3",
+          "C3",
+          "C3S2",
+          "C3S3",
+          "CA",
+          "V2",
+          "V3",
+          "V4"
+        ],
+        "mes_codigo": 202608
+      }
+    ],
+    "ruta_ejemplo": {
+      "via": "El Rosal,La Vega,Villeta,Guaduas,San Alberto,San Martin,Aguachica,Pelaya,Pailitas,Curumani,Bosconia,El Copey,Cienaga,Puebloviejo",
+      "ruta": "11001000-8001000",
+      "id_sice": 93,
+      "km_plano": 879.75,
+      "total_km": 1010.56,
+      "km_urbano": 21,
+      "created_at": "2026-02-08T01:02:31.92133+00:00",
+      "dep_origen": "BOGOTÁ, D. C.",
+      "mun_origen": "BOGOTÁ, D.C.",
+      "updated_at": "2026-03-04T03:41:04.104288+00:00",
+      "dep_destino": "ATLÁNTICO",
+      "km_ondulado": 72.08,
+      "mun_destino": "BARRANQUILLA",
+      "nombre_sice": "BOGOTÁ _ BARRANQUILLA",
+      "km_montanoso": 37.73,
+      "km_despavimentado": 0,
+      "codigo_dane_origen": 11001000,
+      "codigo_dane_destino": 8001000
+    },
+    "parametro_ejemplo": {
+      "id": 94,
+      "created_at": "2026-09-01T14:21:54.587223+00:00",
+      "fuente_url": "https://plc.mintransporte.gov.co/Runtime/empresa/ctl/SiceTAC/mid/417",
+      "mes_codigo": 202609,
+      "updated_at": "2026-09-02T11:18:52.977387+00:00",
+      "mes_vigencia": "2026-09-01",
+      "tipo_vehiculo": "C3S3",
+      "imprevistos_km": 1596.55889803673,
+      "vel_plano_vacio": 70.03,
+      "costos_variables": 1596.55889803673,
+      "imprevistos_tasa": 0.075,
+      "tipo_consolidado": "202609C3S3",
+      "vel_urbano_vacio": 29.34,
+      "horas_habiles_mes": 230,
+      "vel_montana_vacio": 29.34,
+      "vel_plano_cargado": 56.25,
+      "ejes_configuracion": "3S3",
+      "vel_afirmado_vacio": 18.68,
+      "vel_ondulado_vacio": 41.25,
+      "vel_urbano_cargado": 23.57,
+      "consumo_plano_vacio": 15.55,
+      "vel_montana_cargado": 23.57,
+      "consumo_urbano_vacio": 7.82,
+      "costo_hora_adicional": 91763,
+      "fecha_captura_fuente": "2026-09-01",
+      "vel_afirmado_cargado": 15,
+      "vel_ondulado_cargado": 33.13,
+      "consumo_montana_vacio": 7.82,
+      "consumo_plano_cargado": 6.48,
+      "consumo_afirmado_vacio": 4.97,
+      "consumo_ondulado_vacio": 11.52,
+      "consumo_urbano_cargado": 3.26,
+      "costos_variables_vacio": 1596.5588715622,
+      "consumo_montana_cargado": 3.26,
+      "toneladas_configuracion": 34,
+      "consumo_afirmado_cargado": 2.07,
+      "consumo_ondulado_cargado": 4.8,
+      "imprevistos_costo_km_vacio": 119.741915367165,
+      "imprevistos_costo_km_cargado": 119.741917352755,
+      "valor_combustible_galon_acpm": 11616
+    },
+    "costo_fijo_ejemplo": [
+      {
+        "costo_fijo": 17231281.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "ESTIBA"
+      },
+      {
+        "costo_fijo": 20192073.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "FURGON"
+      },
+      {
+        "costo_fijo": 26294595.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "FURGON REFRIGERADO"
+      },
+      {
+        "costo_fijo": 17231281.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GENERAL"
+      },
+      {
+        "costo_fijo": 19530932.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL LIQUIDO - TANQUE"
+      },
+      {
+        "costo_fijo": 17455728.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL SOLIDO - ESTACAS"
+      },
+      {
+        "costo_fijo": 17455728.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL SOLIDO - ESTIBAS"
+      },
+      {
+        "costo_fijo": 20416520.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL SOLIDO - FURGON"
+      },
+      {
+        "costo_fijo": 17455728.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL SOLIDO - PLATAFORMA"
+      },
+      {
+        "costo_fijo": 17815237.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "GRANEL SOLIDO - VOLCO"
+      },
+      {
+        "costo_fijo": 17231281.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "PLATAFORMA"
+      },
+      {
+        "costo_fijo": 17032529.82,
+        "mes_codigo": 202608,
+        "tipo_carroceria": "PORTACONTENEDORES"
+      }
+    ],
+    "view_semantics": {
+      "parametros_vigentes": "Latest global mes_vigencia from parametros_vehiculares",
+      "costos_fijos_vigentes": "Latest global mes_vigencia from costos_fijos",
+      "observed_mismatch": {
+        "parametros": 202609,
+        "costos_fijos": 202608
+      }
+    }
+  },
+  "tests": {
+    "model_tests": 4,
+    "passed": 4,
+    "suite": "tests/test_modelo_parametros_202608.py"
+  },
+  "vercel": {
+    "projects_seen": [
+      "atica",
+      "sicetac-lab",
+      "sicealinstante",
+      "reportes-vivos"
+    ],
+    "deployment_repo_link_verified": false,
+    "limitation": "get_project connector returned idOrName validation error"
+  },
+  "whatsapp": {
+    "source_reviewed": "/Users/atiemppoia/Documents/GitHub/atica-whatsapp-bridge/main.py",
+    "live_message_sent": false
+  },
+  "partial_terrain_example": {
+    "kind": "Derived audit example using published September parameters; not an official full cost reconciliation",
+    "rutasid": 93,
+    "configuracion": "C3S3",
+    "mes": 202609,
+    "acpm_cop_galon": 11616,
+    "rows": [
+      {
+        "terreno": "plano",
+        "km": 879.75,
+        "rendimiento_km_galon": 6.48,
+        "velocidad_km_h": 56.25,
+        "galones": 135.76388888888889,
+        "horas": 15.64,
+        "combustible_cop": 1577033.3333333333
+      },
+      {
+        "terreno": "ondulado",
+        "km": 72.08,
+        "rendimiento_km_galon": 4.8,
+        "velocidad_km_h": 33.13,
+        "galones": 15.016666666666667,
+        "horas": 2.1756715967401146,
+        "combustible_cop": 174433.6
+      },
+      {
+        "terreno": "montanoso",
+        "km": 37.73,
+        "rendimiento_km_galon": 3.26,
+        "velocidad_km_h": 23.57,
+        "galones": 11.57361963190184,
+        "horas": 1.600763682647433,
+        "combustible_cop": 134439.16564417176
+      },
+      {
+        "terreno": "urbano",
+        "km": 21,
+        "rendimiento_km_galon": 3.26,
+        "velocidad_km_h": 23.57,
+        "galones": 6.441717791411043,
+        "horas": 0.8909630886720408,
+        "combustible_cop": 74826.99386503067
+      },
+      {
+        "terreno": "despavimentado",
+        "km": 0,
+        "rendimiento_km_galon": 2.07,
+        "velocidad_km_h": 15,
+        "galones": 0,
+        "horas": 0,
+        "combustible_cop": 0
+      }
+    ]
+  }
+}
