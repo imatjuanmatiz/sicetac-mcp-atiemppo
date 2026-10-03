@@ -196,11 +196,18 @@ La respuesta agrega:
   "mes": 202504,
   "carroceria": "GENERAL",
   "modo_viaje": "CARGADO",
+  "toneladas_configuracion": 34,
   "totales": {
     "H2": 123456,
     "H4": 234567,
     "H8": 345678
   },
+  "totales_por_tonelada": {
+    "H2": 3631.06,
+    "H4": 6899.03,
+    "H8": 10167.0
+  },
+  "unidad_valores_por_tonelada": "$/tn",
   "resolved_route": {
     "codigo_dane_origen": "11001000",
     "codigo_dane_destino": "5001000",
@@ -219,6 +226,15 @@ La respuesta agrega:
   }
 }
 ```
+
+`totales_por_tonelada` contiene números COP/t y `unidad_valores_por_tonelada`
+identifica la unidad. En `valor_plaza.meses[]`, cada observación incluye
+`valor_por_tonelada` y `unidad_valor_por_tonelada: "$/tn"`; la raíz incluye
+`valor_plaza_por_tonelada` para el último corte. El resumen de plaza incluye
+el promedio por tonelada cuando hay promedio disponible. Por ejemplo, para
+C3S3 (34 tn), un H2 de $1.000.000 se muestra como
+`$1.000.000 ($29.412/tn)` en `/consulta_texto`. El tonelaje es una referencia
+nominal de la configuración, no el peso real transportado.
 
 ### Opción `peajes`
 

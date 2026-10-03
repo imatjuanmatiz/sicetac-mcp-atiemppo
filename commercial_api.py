@@ -734,7 +734,10 @@ def _plaza_latest(valor_plaza: Any) -> dict[str, Any]:
     return {"valor": None, "corte": None}
 
 
-def _hour_selection(totales: dict[str, Any], horas: float | None) -> dict[str, Any]:
+def _hour_selection(
+    totales: dict[str, Any], horas: float | None,
+    totales_por_tonelada: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Hora acordada (default 4). H2/H8 quedan en la ficha por si el usuario cambia."""
     h = 4.0 if horas is None else float(horas)
     if h == int(h):
@@ -746,27 +749,43 @@ def _hour_selection(totales: dict[str, Any], horas: float | None) -> dict[str, A
         key = "personalizada"
         etiqueta = f"{h:g} horas logísticas"
         horas_out = h
-    return {
+    por_tonelada = totales_por_tonelada or {}
+    selected = {
         "horas_logisticas": horas_out,
         "horas_etiqueta": etiqueta,
         "sicetac": totales.get(key),
         "sicetac_h2": totales.get("H2"),
         "sicetac_h4": totales.get("H4"),
         "sicetac_h8": totales.get("H8"),
+        "sicetac_por_tonelada": por_tonelada.get(key),
+        "sicetac_h2_por_tonelada": por_tonelada.get("H2"),
+        "sicetac_h4_por_tonelada": por_tonelada.get("H4"),
+        "sicetac_h8_por_tonelada": por_tonelada.get("H8"),
     }
+    if por_tonelada:
+        selected["unidad_valores_por_tonelada"] = "$/tn"
+    return selected
 
 
 def _leg_search(leg: Any, horas: float | None = None) -> dict[str, Any]:
     row = leg if isinstance(leg, dict) else {}
     plaza = _plaza_latest(row.get("valor_plaza"))
     totals = row.get("totales") if isinstance(row.get("totales"), dict) else {}
-    hours = _hour_selection(totals, horas)
+    per_ton_totals = row.get("totales_por_tonelada")
+    hours = _hour_selection(
+        totals,
+        horas,
+        per_ton_totals if isinstance(per_ton_totals, dict) else {},
+    )
     return {
         "ruta": _route_display_name(row),
         "kilometros": row.get("total_km"),
         "estimado": bool(row.get("estimado")),
         "sicetac_corte": row.get("mes"),
+        "toneladas_configuracion": row.get("toneladas_configuracion"),
         "valor_plaza": plaza["valor"],
+        "valor_plaza_por_tonelada": row.get("valor_plaza_por_tonelada"),
+        "unidad_valor_plaza_por_tonelada": row.get("unidad_valor_plaza_por_tonelada"),
         "valor_plaza_corte": plaza["corte"],
         **hours,
     }
@@ -801,7 +820,10 @@ def _search_card(
             "kilometros": ida.get("kilometros"),
             "configuracion": configuration,
             "sicetac_corte": ida.get("sicetac_corte"),
+            "toneladas_configuracion": ida.get("toneladas_configuracion"),
             "valor_plaza": ida.get("valor_plaza"),
+            "valor_plaza_por_tonelada": ida.get("valor_plaza_por_tonelada"),
+            "unidad_valor_plaza_por_tonelada": ida.get("unidad_valor_plaza_por_tonelada"),
             "valor_plaza_corte": ida.get("valor_plaza_corte"),
             "ida": ida,
             "regreso": regreso,
@@ -811,12 +833,22 @@ def _search_card(
             "sicetac_h2": ida.get("sicetac_h2"),
             "sicetac_h4": ida.get("sicetac_h4"),
             "sicetac_h8": ida.get("sicetac_h8"),
+            "sicetac_por_tonelada": ida.get("sicetac_por_tonelada"),
+            "sicetac_h2_por_tonelada": ida.get("sicetac_h2_por_tonelada"),
+            "sicetac_h4_por_tonelada": ida.get("sicetac_h4_por_tonelada"),
+            "sicetac_h8_por_tonelada": ida.get("sicetac_h8_por_tonelada"),
+            "unidad_valores_por_tonelada": ida.get("unidad_valores_por_tonelada"),
         }
     ref = sicetac_reference if isinstance(sicetac_reference, dict) else {}
     plaza = _plaza_latest(ref.get("valor_plaza"))
     price_reference = ref.get("sicetac_tradicional") or ref
     totals = price_reference.get("totales") if isinstance(price_reference.get("totales"), dict) else {}
-    hours = _hour_selection(totals, horas_logisticas)
+    per_ton_totals = price_reference.get("totales_por_tonelada")
+    hours = _hour_selection(
+        totals,
+        horas_logisticas,
+        per_ton_totals if isinstance(per_ton_totals, dict) else {},
+    )
     return {
         "ruta": _route_display_name(ref) or (f"{ref['origen']} a {ref['destino']}" if ref.get("origen") and ref.get("destino") else None),
         "kilometros": ref.get("total_km"),
@@ -824,7 +856,10 @@ def _search_card(
         "supuestos": ref.get("supuestos", []),
         "configuracion": configuration,
         "sicetac_corte": price_reference.get("mes"),
+        "toneladas_configuracion": price_reference.get("toneladas_configuracion"),
         "valor_plaza": plaza["valor"],
+        "valor_plaza_por_tonelada": ref.get("valor_plaza_por_tonelada"),
+        "unidad_valor_plaza_por_tonelada": ref.get("unidad_valor_plaza_por_tonelada"),
         "valor_plaza_corte": plaza["corte"],
         **hours,
     }

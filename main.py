@@ -98,9 +98,15 @@ def _valor_plaza_text(valor_plaza, format_cop) -> str:
 
     mes = ultimo.get("mes_label") or ultimo.get("mes_codigo")
     valor = format_cop(ultimo.get("valor"))
+    valor_por_tonelada = ultimo.get("valor_por_tonelada")
+    sufijo_por_tonelada = (
+        f" ({format_cop(valor_por_tonelada)}/tn)"
+        if valor_por_tonelada not in (None, "")
+        else ""
+    )
     tipo = ultimo.get("tipo_carga_usado")
     sufijo_tipo = f" ({tipo})" if tipo else ""
-    return f", valor en plaza {mes} {valor}{sufijo_tipo}"
+    return f", valor en plaza {mes} {valor}{sufijo_por_tonelada}{sufijo_tipo}"
 
 @app.post("/consulta")
 def calcular_sicetac_endpoint(data: ConsultaInput):
@@ -228,6 +234,13 @@ def calcular_sicetac_texto(data: ConsultaInput):
             # Formato COP sin decimales, con separadores
             return f"${v:,.0f}".replace(",", ".")
 
+        def _format_total_con_tonelada(totales, por_tonelada, hora):
+            valor = _format_cop(totales.get(hora))
+            por_tonelada = (por_tonelada or {}).get(hora)
+            if por_tonelada in (None, ""):
+                return valor
+            return f"{valor} ({_format_cop(por_tonelada)}/tn)"
+
         if data.detalle_costos or data.detalle_consumo or not data.resumen:
             r = calcular_sicetac_service(data)
             c = r["detalle_costos"]
@@ -236,7 +249,15 @@ def calcular_sicetac_texto(data: ConsultaInput):
                 lines.append("VALOR ESTIMADO: 30 km en terreno ondulado.")
             tradicional = r["sicetac_tradicional"]
             etiqueta = "Total SICETAC estimado" if tradicional["estimado"] else "Total SICETAC"
-            lines.append(f"{etiqueta}: {_format_cop(tradicional['total_viaje'])} ({tradicional['horas_logisticas']:g} horas logísticas; período {tradicional['mes']})")
+            horas_total = float(tradicional["horas_logisticas"])
+            hora_key = f"H{int(horas_total)}" if horas_total.is_integer() else "personalizada"
+            por_tonelada = (tradicional.get("totales_por_tonelada") or {}).get(hora_key)
+            sufijo_por_tonelada = (
+                f" · {_format_cop(por_tonelada)}/tn"
+                if por_tonelada not in (None, "")
+                else ""
+            )
+            lines.append(f"{etiqueta}: {_format_cop(tradicional['total_viaje'])}{sufijo_por_tonelada} ({tradicional['horas_logisticas']:g} horas logísticas; período {tradicional['mes']})")
             if data.detalle_consumo:
                 for terreno, item in r["detalle_consumo"]["por_terreno"].items():
                     lines.append(f"{terreno}: {item['km']:g} km, {item['gal']:.2f} gal, {_format_cop(item['costo_combustible'])}")
@@ -254,9 +275,12 @@ def calcular_sicetac_texto(data: ConsultaInput):
                 partes = []
                 for v in r["variantes"]:
                     tot = v.get("totales", {})
+                    totales_por_tonelada = v.get("totales_por_tonelada", {})
                     linea = (
                         f"{v.get('NOMBRE_SICE','RUTA')} (ID {v.get('ID_SICE')}): "
-                        f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
+                        f"H2 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H2')}, "
+                        f"H4 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H4')}, "
+                        f"H8 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H8')}"
                     )
                     aumento = v.get("aumento") or {}
                     if aumento.get("activo"):
@@ -275,9 +299,12 @@ def calcular_sicetac_texto(data: ConsultaInput):
                 texto = " | ".join(partes)
             else:
                 tot = r.get("totales", {})
+                totales_por_tonelada = r.get("totales_por_tonelada", {})
                 texto = (
                     f"{r.get('origen')}->{r.get('destino')} {r.get('configuracion')} "
-                    f"H2 {_format_cop(tot.get('H2'))}, H4 {_format_cop(tot.get('H4'))}, H8 {_format_cop(tot.get('H8'))}"
+                    f"H2 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H2')}, "
+                    f"H4 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H4')}, "
+                    f"H8 {_format_total_con_tonelada(tot, totales_por_tonelada, 'H8')}"
                 )
                 aumento = r.get("aumento") or {}
                 if aumento.get("activo"):

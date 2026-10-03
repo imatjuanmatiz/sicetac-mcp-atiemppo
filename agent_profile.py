@@ -81,10 +81,11 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
         },
         "output_policy": {
             "view": "search",
-            "present": "Sólo data.search: ruta (NOMBRE_SICE), configuración, kilómetros, referencia SICETAC de la hora acordada (default H4) y valor en plaza, con cortes.",
+            "present": "Sólo data.search: ruta (NOMBRE_SICE), configuración, kilómetros, referencia SICETAC de la hora acordada (default H4) y su valor por tonelada con unidad $/tn; valor en plaza y valor por tonelada con unidad $/tn, con cortes. Si piden comparar H2, H4 y H8, use los tres totales y sus campos por tonelada.",
             "omit": "No presente tara, PBV, regla provisional, el menú H2/H8, alternativas de ruta, capacity_only_alternatives ni el ensayo de market_analysis. Eso es view=detail, no la búsqueda.",
             "route_name": "Use search.ruta. Nunca RUTASID, ID_SICE ni el par DANE como nombre.",
             "plaza_missing": "Si search.valor_plaza es null, diga que no hay valor en plaza. No invente ni ponga cero.",
+            "toneladas_configuracion": "El valor por tonelada usa el tonelaje nominal de la configuración; no equivale al peso real transportado.",
             "disclaimer": "Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.",
         },
         "cost_detail_policy": {

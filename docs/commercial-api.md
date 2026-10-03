@@ -100,6 +100,14 @@ La respuesta tiene contrato estable:
 }
 ```
 
+Las respuestas incluyen `toneladas_configuracion`,
+`totales_por_tonelada` y `unidad_valores_por_tonelada: "$/tn"`. En
+`POST /v1/prequotes`, `data.search` expone los valores por tonelada de la hora
+acordada y de H2, H4 y H8; `valor_plaza_por_tonelada` lleva su unidad en
+`unidad_valor_plaza_por_tonelada`. Las observaciones mensuales de plaza incluyen
+también `valor_por_tonelada` y `unidad_valor_por_tonelada: "$/tn"`. El divisor
+es el tonelaje nominal de configuración, no el peso real del viaje.
+
 ## Perfil vigente del agente
 
 `GET /v1/agent-profile` es la fuente operativa central para instalaciones de

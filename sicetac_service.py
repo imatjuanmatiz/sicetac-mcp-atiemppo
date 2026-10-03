@@ -573,6 +573,112 @@ def _valor_plaza_selector(carroceria: str | None) -> tuple[str, str, str | None]
     return ("valor_en_plaza_carga_normal", "Carga normal", "fuente_carga_normal")
 
 
+# Toneladas de referencia del modelo SICETAC, conservadas en la evidencia de
+# cálculo de `docs/evidence/cost-detail-readiness-sources-2026-09-22.json`.
+# Son denominadores nominales para expresar COP/t; no representan la carga real.
+_TONELADAS_POR_CONFIGURACION = {
+    "V2": 8.0,
+    "V3": 16.0,
+    "V4": 20.0,
+    "CA": 1.9,
+    "CA355": 1.9,
+    "C257": 2.4,
+    "257": 2.4,
+    "C279": 4.0,
+    "279": 4.0,
+    "C2910": 6.0,
+    "C2L1": 6.0,
+    "2L1": 6.0,
+    "C2M10": 9.0,
+    "C2": 9.0,
+    "2": 9.0,
+    "C3": 16.0,
+    "3": 16.0,
+    "C2S2": 22.0,
+    "2S2": 22.0,
+    "C2S3": 27.0,
+    "2S3": 27.0,
+    "C3S2": 31.0,
+    "3S2": 31.0,
+    "C3S3": 34.0,
+    "3S3": 34.0,
+}
+
+
+def _toneladas_configuracion(configuracion: str | None) -> float | None:
+    compact = re.sub(r"[^A-Z0-9]", "", str(configuracion or "").strip().upper())
+    return _TONELADAS_POR_CONFIGURACION.get(compact)
+
+
+def _dividir_por_toneladas(valor: Any, toneladas: float) -> float | None:
+    try:
+        number = float(valor)
+    except (TypeError, ValueError):
+        return None
+    if not pd.notna(number):
+        return None
+    return round(number / toneladas, 2)
+
+
+def _adjuntar_valores_por_tonelada(
+    respuesta: dict[str, Any], configuracion: str | None
+) -> dict[str, Any]:
+    toneladas = _toneladas_configuracion(configuracion)
+    if toneladas is None or toneladas <= 0:
+        return respuesta
+
+    def enriquecer(nodo: Any) -> None:
+        if isinstance(nodo, list):
+            for item in nodo:
+                enriquecer(item)
+            return
+        if not isinstance(nodo, dict):
+            return
+
+        totales = nodo.get("totales")
+        if isinstance(totales, dict):
+            por_tonelada = {
+                hora: dividido
+                for hora, valor in totales.items()
+                if (dividido := _dividir_por_toneladas(valor, toneladas)) is not None
+            }
+            if por_tonelada:
+                nodo["toneladas_configuracion"] = toneladas
+                nodo["totales_por_tonelada"] = por_tonelada
+                nodo["unidad_valores_por_tonelada"] = "$/tn"
+
+        plaza = nodo.get("valor_plaza")
+        if isinstance(plaza, dict):
+            meses = plaza.get("meses")
+            if isinstance(meses, list):
+                for observacion in meses:
+                    if isinstance(observacion, dict):
+                        por_tonelada = _dividir_por_toneladas(
+                            observacion.get("valor"), toneladas
+                        )
+                        if por_tonelada is not None:
+                            observacion["valor_por_tonelada"] = por_tonelada
+                            observacion["unidad_valor_por_tonelada"] = "$/tn"
+                if meses and isinstance(meses[0], dict):
+                    ultimo_por_tonelada = meses[0].get("valor_por_tonelada")
+                    if ultimo_por_tonelada is not None:
+                        nodo["valor_plaza_por_tonelada"] = ultimo_por_tonelada
+                        nodo["unidad_valor_plaza_por_tonelada"] = "$/tn"
+            promedio_por_tonelada = _dividir_por_toneladas(
+                plaza.get("promedio_ultimos_meses"), toneladas
+            )
+            if promedio_por_tonelada is not None:
+                plaza["promedio_ultimos_meses_por_tonelada"] = promedio_por_tonelada
+                plaza["unidad_valores_por_tonelada"] = "$/tn"
+
+        for value in nodo.values():
+            enriquecer(value)
+
+    respuesta["toneladas_configuracion"] = toneladas
+    enriquecer(respuesta)
+    return respuesta
+
+
 PORT_ORIGIN_CODES = {
     "76109000",  # Buenaventura
     "47001000",  # Santa Marta
@@ -1876,7 +1982,7 @@ def calcular_sicetac(data: ConsultaInput) -> dict:
         _promover_variante_principal(respuesta)
     else:
         adjuntar_referencia(respuesta)
-    return respuesta
+    return _adjuntar_valores_por_tonelada(respuesta, data.vehiculo)
 
 
 def _totales_de_respuesta(respuesta: dict[str, Any], rutasid: str | None = None) -> dict[str, Any] | None:
@@ -2025,13 +2131,15 @@ def _adjuntar_modo_aumento(data: ConsultaInput, respuesta: dict[str, Any]) -> di
 def calcular_sicetac_resumen(data: ConsultaInput) -> dict:
     """Calcula el resumen y, opcionalmente, la variación frente a diciembre de 2025."""
     if data.detalle_costos or data.detalle_consumo:
-        return calcular_sicetac(data)
-    if bool(getattr(data, "modo_aumento", False)):
+        respuesta = calcular_sicetac(data)
+    elif bool(getattr(data, "modo_aumento", False)):
         if data.viaje_redondo:
             raise SicetacError(400, "modo_aumento aún no está habilitado para viaje_redondo.")
         respuesta = _calcular_sicetac_resumen_base(data)
-        return _adjuntar_modo_aumento(data, respuesta)
-    return _calcular_sicetac_resumen_base(data)
+        respuesta = _adjuntar_modo_aumento(data, respuesta)
+    else:
+        respuesta = _calcular_sicetac_resumen_base(data)
+    return _adjuntar_valores_por_tonelada(respuesta, data.vehiculo)
 
 
 def generar_snapshot(
