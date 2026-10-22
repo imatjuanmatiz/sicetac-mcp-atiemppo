@@ -103,6 +103,8 @@ class ClientTests(unittest.TestCase):
         self.assertFalse(quote.annotations.idempotentHint)
         self.assertFalse(quote.annotations.readOnlyHint)
         prequote = tools["precotizar_transporte"]
+        self.assertIn("valores calculados", prequote.description.casefold())
+        self.assertNotIn("pre-cotización", prequote.description.casefold())
         self.assertNotIn("cargo_weight_value", prequote.inputSchema.get("required") or [])
         self.assertNotIn("cargo_weight_unit", prequote.inputSchema.get("required") or [])
         self.assertIn("origen", prequote.inputSchema["required"])

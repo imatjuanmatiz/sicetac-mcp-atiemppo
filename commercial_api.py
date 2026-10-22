@@ -974,7 +974,7 @@ def _search_card(
     return result
 
 
-@router.post("/prequotes", summary="Pre-cotización técnica: Core de vehículos más SICETAC")
+@router.post("/prequotes", summary="Cálculo técnico SICETAC: selección vehicular y valores calculados")
 def market_prequote(
     data: PrequoteInput,
     request: Request,
@@ -1108,7 +1108,7 @@ def market_prequote(
         raise
     except Exception:
         status_code = 500
-        raise HTTPException(status_code=500, detail="No fue posible calcular la pre-cotización técnica.")
+        raise HTTPException(status_code=500, detail="No fue posible calcular la referencia SICETAC.")
     finally:
         _record_usage(consumer, request, request_id, month, status_code)
 

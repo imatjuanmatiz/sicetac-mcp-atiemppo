@@ -1,4 +1,4 @@
-# Handoff local: paridad SICETAC al Instante y Cotizador
+# Handoff local: paridad SICETAC al Instante y cálculo en MCP
 
 **Fecha:** 21 de octubre de 2026, America/Bogota.
 **Owners:** SICETAC-AL-INSTANTE y SICETAC-API-MCP.
@@ -23,10 +23,9 @@ El skill del complemento y `llms.txt` se alinearon con ese flujo. En SICETAC-API
 Para uso de una fuerza comercial, `POST /v1/prequotes` con `view=search`
 devuelve ruta, referencia SICETAC, valor en plaza cuando existe y `capacidad`
 (tope neto de mercancía, peso solicitado, compatibilidad y provisionalidad).
-Sirve como base de precotización; no produce precio de venta, margen,
-disponibilidad ni oferta. Esas reglas deben aprobarse y configurarse en el
-proyecto consumidor. El perfil reduce vueltas: resuelve automáticamente la
-configuración y solicita solo el dato crítico que falte.
+El perfil entrega esos valores calculados para análisis y procesos, resuelve
+automáticamente la configuración y solicita solo el dato crítico que falte.
+La generación de textos de cotización queda para una definición posterior.
 
 El puente `precotizar_transporte` ahora entrega `view=search` por defecto y
 expone `weight_includes_tare`, ida/regreso, variante y códigos DANE de retorno.
@@ -67,7 +66,7 @@ El warehouse local tiene el corte SICETAC mensual 202610, pero la tabla de pará
 - MCP aislado, fixtures sintéticos, sin red/secretos/clientes: **96/96**; dependencias del motor coinciden con `engine/SOURCE.json` y cero intentos bloqueados.
 - Gateway Node: **4/4**.
 - API: las cuatro suites previas más las siete regresiones R01–R07: **61/61**; `tests/test_commercial_api.py`: **10/10**, incluido el perfil 40′→2S3 del ruleset publicado.
-- MCP cliente, precotización, perfil, aliases/capacidad y contrato R01–R07: suite dirigida **60/60**. Incluye selección C2S3 para 40′, peso total de 18 t con tara incluida → 13,9 t de mercancía, y ficha `view=search` con tope neto y compatibilidad para ventas.
+- MCP cliente, cálculo, perfil, aliases/capacidad y contrato R01–R07: suite dirigida **60/60**. Incluye selección C2S3 para 40′, peso total de 18 t con tara incluida → 13,9 t de mercancía, y ficha `view=search` con tope neto y compatibilidad.
 - MCP cliente → API → Core → SICETAC: incluido en la suite del puente; se verifica `view=search`, 40′→C2S3 y normalización de 18 t con tara incluida a 13,9 t netas.
 - Descubrimiento completo: **137 pruebas pasaron**; una suite opcional no se pudo importar porque `tests/test_sicetac_route_indices.py` requiere `duckdb`, ausente en `.venv`. No se instaló una dependencia nueva.
 - Una copia temporal del verificador forense del 16-oct mostró R01–R06 como `NO_REPRODUCIDO`; su prueba R07 quedó `ERROR_HARNESS` porque ahora `ConsultaInput("Infinity")` produce `ValidationError` donde el probe antiguo esperaba que se aceptara. Las suites base pasaron; la regresión actual confirma rechazo con HTTP 422. Los recibos históricos no se modificaron.

@@ -1,6 +1,6 @@
 # Piloto CCL: inicio rápido con OpenClaw
 
-Este kit permite a CCL usar la pre-cotización técnica SICETAC de ATIEMPPO desde
+Este kit permite a CCL consultar los valores calculados por SICETAC de ATIEMPPO desde
 su propio OpenClaw. No entrega acceso a Supabase, OpenClaw de ATIEMPPO, reglas
 comerciales ni al endpoint público legado.
 
@@ -49,10 +49,12 @@ Esta operación no consume cuota y devuelve la política, reglas técnicas y
 versión actuales desde ATIEMPPO; así el ZIP no se convierte en una instrucción
 congelada.
 
-## Herramienta de cotización del piloto
+## Herramienta de cálculo del piloto
 
 Después de consultar las instrucciones vigentes, el agente usa
-`precotizar_transporte`. Necesita origen, destino, peso y unidad.
+`precotizar_transporte`. Necesita origen y destino. En carga general sin
+vehículo/configuración solicita peso y unidad; para contenedor solicita el
+tamaño, y el peso sirve para validar la capacidad.
 Si el usuario no menciona contenedor, usa carga general/suelta sin preguntar
 por tara. Si declara contenedor, solicita tamaño de 20 o 40 pies; el motor
 aplica la tara y la configuración técnica.
@@ -69,10 +71,10 @@ vehículo viaja sin carga ni contenedor.
 
 ## Límites del piloto
 
-- Cada pre-cotización admitida consume una unidad de la cuota CCL.
+- Cada consulta admitida consume una unidad de la cuota CCL.
 - `consultar_consumo` muestra consumo y saldo sin gastar cuota.
-- El resultado es referencia técnica SICETAC; no es tarifa, oferta,
-  disponibilidad, margen ni regla comercial de CCL.
+- El MCP entrega valores calculados para análisis y procesos; no redacta textos
+  de cotización.
 - Ante `401`, `429` o `503`, el agente informa la situación y no reintenta
   automáticamente.
 
@@ -80,7 +82,7 @@ vehículo viaja sin carga ni contenedor.
 
 1. Ejecutar `GET /v1/health`.
 2. Confirmar `consultar_consumo`.
-3. Probar una pre-cotización de carga general.
+3. Probar un cálculo de carga general.
 4. Probar un contenedor cargado y su retorno con contenedor vacío.
 5. Conservar el `request_id`, sin guardar ni compartir la clave.
 

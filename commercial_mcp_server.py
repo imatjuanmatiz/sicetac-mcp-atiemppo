@@ -82,16 +82,16 @@ def precotizar_transporte(
     codigo_dane_destino_regreso: str | None = None,
     view: str = "search", horas_logisticas: float | None = None, rutasid: str | None = None,
 ) -> dict:
-    """Aplica el Core técnico y luego SICETAC. Consume una unidad y no emite precio comercial.
+    """Aplica el Core técnico y luego SICETAC. Consume una unidad y devuelve valores calculados.
 
     Para carga general sin vehículo, solicite el peso. Para contenedor, si hay
-    tamaño pero no peso, cotice con el default por tamaño y marque la capacidad
+    tamaño pero no peso, calcule con el default por tamaño y marque la capacidad
     como no validada; si hay peso, selecciónelo con la tara publicada.
     Con requested_configuration búsquelo directo y calcule; el peso es
-    opcional para validar capacidad, no para poder cotizar.
+    opcional para validar capacidad; el cálculo de referencia no lo requiere.
     Envíe weight_includes_tare cuando el peso informado ya incluya la tara del
     contenedor. El resultado search presenta referencia, plaza y capacidad neta
-    de mercancía para apoyar una precotización de ventas.
+    de mercancía para que ventas presente los valores calculados.
     Para un contenedor vacío transportado use modo_viaje=CARGADO y
     tipo_contenedor=VACIO; para ida cargada y regreso vacío use viaje_redondo,
     tipo_contenedor=CARGADO y tipo_contenedor_regreso=VACIO. VACIO en

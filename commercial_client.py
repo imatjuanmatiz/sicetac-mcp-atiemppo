@@ -103,7 +103,7 @@ class CommercialClient:
     def prequote(self, payload: dict) -> dict:
         """Solicita decisión técnica y referencia SICETAC en una sola unidad."""
         if not isinstance(payload, dict):
-            raise ValueError("La pre-cotización debe ser un objeto JSON.")
+            raise ValueError("La solicitud de cálculo técnico debe ser un objeto JSON.")
         for name, code in (("origen", "codigo_dane_origen"), ("destino", "codigo_dane_destino")):
             if not any(isinstance(payload.get(key), str) and payload[key].strip() for key in (name, code)):
                 raise ValueError(f"Falta {name} o {code} como texto.")
@@ -123,7 +123,7 @@ class CommercialClient:
             )
         result = self._request("POST", "/v1/prequotes", payload)
         if not isinstance(result.get("data"), dict) or not isinstance(result.get("meta"), dict):
-            raise CommercialClientError("La pre-cotización no contiene data y meta del contrato comercial v1.")
+            raise CommercialClientError("La respuesta del cálculo no contiene data y meta del contrato comercial v1.")
         return result
 
     def record_term_observation(self, payload: dict) -> dict:

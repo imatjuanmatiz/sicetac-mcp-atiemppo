@@ -121,10 +121,10 @@ inventar reglas a partir de un ZIP anterior. El ZIP solo requiere actualización
 cuando cambie el puente MCP o exista una incompatibilidad declarada por
 `minimum_bridge_version`.
 
-## Core técnico de pre-cotización
+## Cálculo técnico SICETAC
 
 `POST /v1/prequotes` es la superficie para agentes, integraciones y equipos de
-ventas que necesitan una precotización técnica en una consulta. Recibe origen,
+ventas que necesitan consultar los valores calculados en una llamada. Recibe origen,
 destino, peso, unidad, servicio, contenedor, ejes y, si aplica, una
 configuración solicitada. También devuelve `market_analysis`: valor en plaza/
 valor pagado observado de RNDC por ruta y configuración, con corte, fuente,
@@ -145,11 +145,10 @@ del vehículo. La API responde cuatro bloques en `view=detail`:
   `emission_allowed: false`. Márgenes, disponibilidad, precio y aprobación
   pertenecen al proyecto consumidor.
 
-Una fuerza comercial puede usar la salida como base de precotización:
-referencia SICETAC + benchmark de plaza + tope de carga. El motor no calcula
-precio de venta ni emite oferta. Cada empresa debe aplicar sus márgenes,
-condiciones, disponibilidad, vigencia y aprobaciones en su propio sistema; el
-agente debe decir cuándo el valor es solo referencia técnica.
+Una fuerza comercial puede presentar directamente la referencia SICETAC, el
+valor en plaza observado y el tope neto de carga cuando estén disponibles. El
+motor entrega los valores calculados para análisis y procesos; no redacta
+textos de cotización.
 
 El ruleset publicado se obtiene server-side desde Supabase bajo el alcance
 `mercado_colombia_tecnico`. No se aceptan reglas ni un alcance elegido por el
@@ -170,7 +169,7 @@ publicada son obligatorias antes de modificar equivalencias o reglas.
 3. Configurar `api_key`, registro de consumidores y persistencia de uso en
    Render.
 4. Configurar `SICETAC_COMMERCIAL_API_URL` y la clave server-side en Vercel.
-5. Probar health, una cotización, pre-cotización, cuota, clave inválida,
+5. Probar health, una consulta de cálculo, cuota, clave inválida,
    vencimiento y revocación.
 
 No se debe publicar `SUPABASE_SERVICE_ROLE_KEY`, API keys ni secretos en

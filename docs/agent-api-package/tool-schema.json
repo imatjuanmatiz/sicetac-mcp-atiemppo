@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "prequote_technical_transport",
-  "description": "Obtiene una pre-cotización técnica SICETAC: selecciona configuración vehicular y devuelve una referencia no comercial.",
+  "description": "Calcula valores SICETAC para la ruta y configuración vehicular solicitadas; devuelve la referencia y el valor en plaza cuando existen.",
   "type": "object",
   "additionalProperties": false,
   "required": ["origen", "destino"],

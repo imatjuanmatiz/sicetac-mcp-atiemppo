@@ -16,8 +16,9 @@ Instant no usa este contrato: allí el usuario ya eligió en listas. Su API
 | **Cotización documento** | Tomar la ficha (y reglas comerciales del cliente) y armar la oferta | Documento / PDF / Word de cotizados |
 
 El de búsqueda **no** calcula precio de venta, no pone margen, no arma el documento
-ni promete cupo. Sí devuelve una base de precotización técnica y de mercado
-para que ventas aplique reglas aprobadas del cliente. El de documento **no** llama al catálogo a adivinar la ruta:
+ni promete cupo. Devuelve los valores calculados de SICETAC y el valor de
+mercado observado cuando existe, para que el consumidor los use en sus análisis
+y procesos. El de documento **no** llama al catálogo a adivinar la ruta:
 parte de `data.search` ya resuelta.
 
 ## Qué hace el de búsqueda

@@ -40,7 +40,7 @@ ruleset publicado y las instrucciones que deben prevalecer sobre esta copia
 del paquete. Así las mejoras compatibles del motor se reflejan sin reemplazar
 el ZIP ni el prompt del cliente.
 
-La única operación que consume cuota en el flujo de pre-cotización es:
+La única operación que consume cuota en el flujo de cálculo es:
 
 `POST {SICETAC_API_BASE_URL}/v1/prequotes`
 
@@ -72,10 +72,9 @@ C2S3 Patineta, y escala por el máximo SICETAC publicado: para 20′ C2S2 → C2
 descuenta la tara del contenedor del tonelaje de configuración. La selección
 y los topes son técnicos y provisionales; no representan PBV legal.
 
-Una fuerza comercial puede usar la ficha como base de precotización: referencia
-SICETAC + contraste de valor en plaza + capacidad. No es el precio que se ofrece
-al cliente. Margen, disponibilidad, condiciones, vigencia y aprobación se
-configuran en el proyecto consumidor, nunca se inventan en el motor.
+La fuerza comercial puede presentar directamente los valores calculados:
+referencia SICETAC, valor en plaza cuando existe y capacidad neta. El motor
+entrega datos para análisis y procesos; no redacta textos de cotización.
 
 Para el retorno con
 contenedor vacío, se mantiene `modo_viaje: "CARGADO"` y se envía
@@ -112,7 +111,7 @@ el agente de documento no sustituyen esta ficha.
 
 | HTTP | Significado | Conducta del bot |
 | --- | --- | --- |
-| `200` | Pre-cotización técnica disponible | Explicar resultado y limitaciones. |
+| `200` | Cálculo técnico disponible | Presentar los valores devueltos. |
 | `401` | Clave ausente, inválida, inactiva o vencida | Detenerse; pedir al administrador revisar acceso. |
 | `422` | Faltan o no validan datos | Pedir solo el dato faltante/corregido. |
 | `429` | Cuota agotada | Informar límite; no reintentar. |
