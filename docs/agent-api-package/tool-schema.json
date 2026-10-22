@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "prequote_technical_transport",
-  "description": "Calcula valores SICETAC para la ruta y configuración vehicular solicitadas; devuelve la referencia y el valor en plaza cuando existen.",
+  "description": "Herramienta opcional del Core para selección por peso, capacidad y análisis adicionales. La referencia publicada de toda ruta se consulta directamente en SICETAC al Instante; no ejecute esta operación como paso previo rutinario.",
   "type": "object",
   "additionalProperties": false,
   "required": ["origen", "destino"],
@@ -24,7 +24,7 @@
     "carroceria": {"type": "string", "default": "General - Estacas", "description": "Envíe el término declarado. El Core lo homologa contra el ruleset publicado antes de consultar SICETAC."},
     "mes": {"type": ["integer", "null"], "description": "Periodo YYYYMM opcional."},
     "peajes": {"type": "boolean", "default": false},
-    "view": {"type": "string", "enum": ["search", "detail", "costs", "consumption"], "default": "search", "description": "search = ficha breve con configuración, referencia SICETAC, valor en plaza cuando existe y capacidad neta de mercancía. detail = detalle técnico de la búsqueda. costs = modelo completo de costos. consumption = consumo y combustible por terreno. En costs/consumption muestre como único total del viaje sicetac_tradicional.total_viaje, nunca el total interno del modelo."},
+    "view": {"type": "string", "enum": ["search", "detail", "costs", "consumption"], "default": "search", "description": "search = campos de la selección/análisis del Core. detail, costs o consumption solo si el usuario pide expresamente detalle. La referencia SICETAC publicada se obtiene con consultar_referencia de SICETAC al Instante. En costs/consumption muestre como único total del viaje sicetac_tradicional.total_viaje, nunca el total interno del modelo."},
     "horas_logisticas": {"type": ["number", "null"], "minimum": 0, "maximum": 48, "description": "Horas logísticas. Default 4 (H4). Envíe 2, 8 u otra cifra si el usuario la pidió y consérvela en el hilo."},
     "modo_viaje": {"type": "string", "enum": ["CARGADO", "VACIO"], "default": "CARGADO", "description": "VACIO significa vehículo sin carga ni contenedor."},
     "tipo_contenedor": {"type": ["string", "null"], "enum": ["CARGADO", "VACIO", null], "description": "Solo para Portacontenedores. Un contenedor vacío transportado usa tipo_contenedor=VACIO y modo_viaje=CARGADO."},

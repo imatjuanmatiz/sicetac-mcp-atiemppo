@@ -90,7 +90,7 @@ class CommercialApiTests(unittest.TestCase):
             usage = self.client.get("/v1/usage", headers={"X-API-Key": self.api_key})
         self.assertEqual(missing.status_code, 401)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["agent_policy_version"], "2026.10.21.2")
+        self.assertEqual(response.json()["agent_policy_version"], "2026.10.21.3")
         self.assertEqual(response.json()["minimum_bridge_version"], "1.2.1")
         self.assertEqual(response.json()["ruleset"]["version"], "test-1")
         self.assertEqual(response.json()["input_policy"]["container"]["automatic_configuration_by_size_ft"]["20"], "2S2")
@@ -99,6 +99,17 @@ class CommercialApiTests(unittest.TestCase):
         self.assertIn("data.search", response.json()["output_policy"]["present"])
         self.assertIn("valores calculados", response.json()["output_policy"]["present"])
         self.assertNotIn("pre-cotización", response.json()["output_policy"]["present"].casefold())
+        self.assertEqual(
+            response.json()["search_workflow"]["canonical_reference_source"],
+            "SICETAC al Instante MCP",
+        )
+        self.assertEqual(response.json()["search_workflow"]["reference_tool"], "consultar_referencia")
+        self.assertIn("No ejecute antes precotizar_transporte", response.json()["search_workflow"]["normal_search"])
+        self.assertIn("únicamente si el usuario solicita", response.json()["search_workflow"]["components"])
+        self.assertIn("no pida peso", response.json()["input_policy"]["conditional"]["without_declared_vehicle"])
+        self.assertIn("sin llamar al Core", response.json()["input_policy"]["conditional"]["with_declared_vehicle"])
+        self.assertEqual(response.json()["reference_output_policy"]["source"], "SICETAC al Instante MCP consultar_referencia")
+        self.assertEqual(response.json()["session_start"]["frequency"], "once_per_session_before_first_core_call")
         self.assertFalse(response.json()["quota"]["consumes_units"])
         self.assertEqual(usage.json()["used"], 0)
 

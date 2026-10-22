@@ -53,12 +53,12 @@ def cotizar_sicetac(
     detalle_peajes: bool = False, modo_aumento: bool = False,
     detalle_costos: bool = False, detalle_consumo: bool = False, rutasid: str | None = None,
 ) -> dict:
-    """Consulta SICETAC por API. Consume una unidad; no reintentar automáticamente.
+    """Consulta la API SICETAC heredada; consume una unidad y no se reintenta.
 
-    Elige vehiculo y carroceria del catálogo. No presupone capacidad útil.
-    Comprueba data.resolved_route, periodo y variantes antes de recomendar.
-    Devuelve data y meta sin modificar los cálculos ni su trazabilidad.
-    Para códigos DANE, envía los códigos como texto y los nombres vacíos.
+    La referencia habitual de rutas se obtiene con consultar_referencia de
+    SICETAC al Instante. No use esta herramienta como paso previo ni para
+    reemplazar esa referencia. Se conserva para integraciones que soliciten
+    expresamente este contrato API.
     """
     payload = {key: value for key, value in locals().items() if value is not None}
     return CommercialClient.from_env().quote(payload)
@@ -82,8 +82,12 @@ def precotizar_transporte(
     codigo_dane_destino_regreso: str | None = None,
     view: str = "search", horas_logisticas: float | None = None, rutasid: str | None = None,
 ) -> dict:
-    """Aplica el Core técnico y luego SICETAC. Consume una unidad y devuelve valores calculados.
+    """Aplica el Core técnico para decisiones de configuración/capacidad y análisis adicionales.
 
+    La búsqueda normal de referencia se hace directamente con consultar_referencia
+    de SICETAC al Instante. Use esta herramienta solo cuando el usuario pida
+    selección/validación por peso, capacidad u otro cálculo del Core; no la ejecute
+    antes de cada consulta de ruta. Consume una unidad.
     Para carga general sin vehículo, solicite el peso. Para contenedor, si hay
     tamaño pero no peso, calcule con el default por tamaño y marque la capacidad
     como no validada; si hay peso, selecciónelo con la tara publicada.
@@ -109,9 +113,9 @@ def detalle_costos_sicetac(
     mes: int | None = None, rutasid: str | None = None,
     horas_logisticas: float = 4, modo_viaje: str = "CARGADO",
 ) -> dict:
-    """Ejecuta el modelo completo: galones, tiempos, rotaciones, fijos, variables y otros.
+    """Detalle API de costos. Use el detalle de SICETAC al Instante solo cuando el usuario lo pida.
 
-    Conserve ruta, variante, vehículo, carrocería, mes y horas de la consulta.
+    No lo ejecute en una búsqueda normal. Conserve ruta, variante, vehículo, carrocería, mes y horas.
     Muestre como único total del viaje sicetac_tradicional.total_viaje;
     no presente el total interno del modelo. Consume una unidad.
     Origen=destino usa 30 km ondulados y devuelve estimado=true.
@@ -127,9 +131,9 @@ def detalle_consumo_sicetac(
     mes: int | None = None, rutasid: str | None = None,
     horas_logisticas: float = 4, modo_viaje: str = "CARGADO",
 ) -> dict:
-    """Devuelve galones y costo de combustible por terreno y total desde el modelo.
+    """Detalle API de consumo. Use el detalle de SICETAC al Instante solo cuando el usuario lo pida.
 
-    Muestre como único total del viaje sicetac_tradicional.total_viaje.
+    No lo ejecute en una búsqueda normal. Muestre como único total del viaje sicetac_tradicional.total_viaje.
     Conserve el contexto de la ruta. Consume una unidad; no reintente automáticamente.
     """
     payload = {key: value for key, value in locals().items() if value is not None}

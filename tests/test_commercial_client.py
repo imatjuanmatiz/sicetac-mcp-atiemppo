@@ -105,6 +105,8 @@ class ClientTests(unittest.TestCase):
         prequote = tools["precotizar_transporte"]
         self.assertIn("valores calculados", prequote.description.casefold())
         self.assertNotIn("pre-cotización", prequote.description.casefold())
+        self.assertIn("antes de cada consulta de ruta", prequote.description.casefold())
+        self.assertIn("consultar_referencia", prequote.description)
         self.assertNotIn("cargo_weight_value", prequote.inputSchema.get("required") or [])
         self.assertNotIn("cargo_weight_unit", prequote.inputSchema.get("required") or [])
         self.assertIn("origen", prequote.inputSchema["required"])
@@ -115,6 +117,9 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(prequote.inputSchema["properties"]["view"].get("default"), "search")
         self.assertFalse(prequote.annotations.idempotentHint)
         self.assertTrue(tools["consultar_instrucciones_vigentes"].annotations.readOnlyHint)
+        self.assertIn("No use esta herramienta como paso previo", quote.description)
+        self.assertIn("solo cuando el usuario lo pida", tools["detalle_costos_sicetac"].description.casefold())
+        self.assertIn("No lo ejecute en una búsqueda normal", tools["detalle_consumo_sicetac"].description)
 
     def test_mcp_agent_profile_delegates_without_prequote(self):
         client = Mock()

@@ -1,13 +1,15 @@
 """Full-model arithmetic and matching traditional totals for direct detail requests."""
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import pandas as pd
 from fastapi.testclient import TestClient
-from main import app
 import sicetac_service as svc
+from main import app
 from modelo_utils import costo_fijo_vigente
 from commercial_api import PrequoteInput, _prequote_sicetac_input, _search_card
 import commercial_mcp_server as mcp
+
+_refresh_cache_unpatched = svc._refresh_cache
 
 
 class CostDetailTests(unittest.TestCase):
@@ -196,3 +198,69 @@ class CostDetailTests(unittest.TestCase):
             self.assertFalse(supabase_data.get_table_df('costos_fijos').empty)
             self.assertFalse(supabase_data.get_table_df('costos_fijos').empty)
         self.assertEqual(fetch.call_count,2)
+
+    def test_refresh_invalidates_general_and_port_value_plaza_caches(self):
+        import supabase_data
+
+        getters = (supabase_data.get_valor_plaza_df, supabase_data.get_valor_plaza_puertos_df)
+        for getter in getters:
+            getter.cache_clear()
+            self.addCleanup(getter.cache_clear)
+        with patch.object(
+            supabase_data,
+            "_fetch_table_filtered",
+            return_value=[{"mes_codigo": 202610, "valor_en_plaza": 1, "viajes_reportados": 1}],
+        ):
+            supabase_data.get_valor_plaza_df("11001000-08001000", "3S3")
+            supabase_data.get_valor_plaza_puertos_df("76109000-08001000", "3S3", "carga_general", "carga_normal")
+
+        self.assertEqual(supabase_data.get_valor_plaza_df.cache_info().currsize, 1)
+        self.assertEqual(supabase_data.get_valor_plaza_puertos_df.cache_info().currsize, 1)
+        with patch.object(svc, "_LAST_REFRESH_TS", None):
+            _refresh_cache_unpatched(force=True)
+        self.assertEqual(supabase_data.get_valor_plaza_df.cache_info().currsize, 0)
+        self.assertEqual(supabase_data.get_valor_plaza_puertos_df.cache_info().currsize, 0)
+        self.assertEqual(supabase_data.get_table_df.cache_info().maxsize, 64)
+
+    def test_filtered_supabase_query_supports_single_in_request(self):
+        import supabase_data
+
+        query = Mock()
+        query.in_.return_value = query
+        query.execute.return_value = Mock(data=[{"tipo_carga": "carga_normal"}])
+        table = Mock()
+        table.select.return_value = query
+        client = Mock()
+        client.table.return_value = table
+        with patch.object(supabase_data, "get_client", return_value=client):
+            rows = supabase_data._fetch_table_filtered(
+                "valor_en_plaza_puertos_desagregada",
+                filters=[("tipo_carga", "in", ["refrigerada", "carga_normal"])],
+            )
+
+        self.assertEqual(rows, [{"tipo_carga": "carga_normal"}])
+        query.in_.assert_called_once_with("tipo_carga", ["refrigerada", "carga_normal"])
+        query.execute.assert_called_once_with()
+
+    def test_refrigerated_port_lookup_fetches_both_types_in_one_read(self):
+        rows = pd.DataFrame([{
+            "tipo_carga": "carga_normal", "mes_codigo": 202610, "valor_en_plaza": 900,
+            "fuente_valor_en_plaza": "fixture", "viajes_reportados": 2,
+        }])
+        with (
+            patch.object(svc, "get_valor_plaza_puertos_df", return_value=rows) as fetch_port,
+            patch.object(svc, "get_valor_plaza_df") as fetch_general,
+        ):
+            summary = svc._build_valor_plaza_summary(
+                route_code="76109000-08001000",
+                configuracion_lookup="3S3",
+                carroceria="Camión refrigerado",
+            )
+
+        fetch_port.assert_called_once_with(
+            "76109000-08001000", "3S3", "carga_general", ("refrigerada", "carga_normal")
+        )
+        fetch_general.assert_not_called()
+        self.assertTrue(summary["fallback_to_carga_normal"])
+        self.assertEqual(summary["meses"][0]["valor"], 900)
+        self.assertEqual(summary["meses"][0]["tipo_carga_usado"], "Carga normal")

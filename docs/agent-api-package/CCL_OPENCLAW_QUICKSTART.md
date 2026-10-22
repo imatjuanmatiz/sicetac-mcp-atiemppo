@@ -44,20 +44,34 @@ revocarse o reemplazarse sin cambiar sus instrucciones ni reinstalar el kit.
    agente. Aunque el nombre del archivo menciona Grok, el contenido es
    independiente del modelo.
 
-El agente debe usar `consultar_instrucciones_vigentes` una vez por sesión.
-Esta operación no consume cuota y devuelve la política, reglas técnicas y
-versión actuales desde ATIEMPPO; así el ZIP no se convierte en una instrucción
-congelada.
+6. Habilitar también la conexión MCP independiente de SICETAC al Instante en
+   el cliente OpenClaw, con sus permisos de usuario. La clave del API comercial
+   no habilita esa conexión. La herramienta `consultar_referencia` de Instant
+   es obligatoria para cada importe de ruta; si no está conectada, el agente
+   debe reportar que falta esa capacidad y no cambiar de fuente en silencio.
 
-## Herramienta de cálculo del piloto
+El agente usa `consultar_instrucciones_vigentes` una vez antes de su primera
+llamada al Core. No es un paso previo a la consulta directa de SICETAC al
+Instante.
 
-Después de consultar las instrucciones vigentes, el agente usa
-`precotizar_transporte`. Necesita origen y destino. En carga general sin
-vehículo/configuración solicita peso y unidad; para contenedor solicita el
-tamaño, y el peso sirve para validar la capacidad.
-Si el usuario no menciona contenedor, usa carga general/suelta sin preguntar
-por tara. Si declara contenedor, solicita tamaño de 20 o 40 pies; el motor
-aplica la tara y la configuración técnica.
+## Consulta de una ruta
+
+Para la búsqueda normal, llama directamente `consultar_referencia` de SICETAC
+al Instante con origen y destino. No enumera municipios ni variantes antes de
+esa llamada; usa los defaults autorizados de la conexión para los datos que el
+usuario omitió.
+
+El agente usa `precotizar_transporte` solo cuando el usuario pide selección por
+peso, validación de capacidad o un análisis adicional que requiera el Core. Si
+el Core elige vehículo, la referencia publicada se consulta después en SICETAC
+al Instante.
+
+Las variantes de ruta se consultan solo cuando el usuario pide comparar
+recorridos. Los componentes y el consumo se consultan solo cuando pide detalle.
+No se hace esa segunda consulta en una búsqueda ordinaria.
+
+Si declara contenedor y no indicó el tamaño, se pregunta 20 o 40 pies. El
+ruleset publicado resuelve la tara y configuración; no se le solicita la tara.
 
 Para un contenedor vacío transportado, el agente debe enviar:
 

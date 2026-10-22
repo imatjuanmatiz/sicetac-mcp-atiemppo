@@ -739,20 +739,25 @@ def _build_valor_plaza_summary(
     port_load_type = _port_layer_load_type(carroceria) if port_layer else None
     port_fallback_used = False
     if port_layer:
+        requested_load_types = (
+            (port_load_type, "carga_normal")
+            if port_load_type and port_load_type != "carga_normal"
+            else ("carga_normal",)
+        )
         df_plaza = get_valor_plaza_puertos_df(
             route_norm,
             configuracion_norm,
             port_segment or "carga_general",
-            port_load_type or "carga_normal",
+            requested_load_types,
         )
-        if df_plaza.empty and port_load_type != "carga_normal":
-            df_plaza = get_valor_plaza_puertos_df(
-                route_norm,
-                configuracion_norm,
-                port_segment or "carga_general",
-                "carga_normal",
-            )
-            port_fallback_used = not df_plaza.empty
+        if not df_plaza.empty and "tipo_carga" in df_plaza.columns:
+            available_load_types = df_plaza["tipo_carga"].astype(str).str.strip().str.lower()
+            preferred_rows = df_plaza[available_load_types == (port_load_type or "carga_normal")]
+            if not preferred_rows.empty:
+                df_plaza = preferred_rows
+            else:
+                df_plaza = df_plaza[available_load_types == "carga_normal"]
+                port_fallback_used = not df_plaza.empty and port_load_type != "carga_normal"
         if df_plaza.empty:
             # El corte portuario es parcial (por ejemplo, un puerto sin valor
             # observado). Conserva la serie histórica general sin etiquetarla
@@ -1033,6 +1038,14 @@ def _refresh_cache(force: bool = False) -> None:
         pass
     try:
         get_peajes_resumen_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_valor_plaza_df.cache_clear()
+    except Exception:
+        pass
+    try:
+        get_valor_plaza_puertos_df.cache_clear()
     except Exception:
         pass
     # Limpiar índices

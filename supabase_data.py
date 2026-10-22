@@ -87,6 +87,8 @@ def _fetch_table_filtered(
             query = query.eq(column, value)
         elif op == "ilike":
             query = query.ilike(column, value)
+        elif op == "in":
+            query = query.in_(column, value)
         else:
             raise ValueError(f"Operador no soportado: {op}")
     if limit is not None:
@@ -163,7 +165,7 @@ def _alias_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=64)
 def _get_table_df_cached(key: str) -> pd.DataFrame:
     table = TABLES.get(key, key)
     # Exceptions must escape the cached function: an initial network error is
@@ -329,7 +331,7 @@ def get_valor_plaza_puertos_df(
     route_code: str,
     configuracion: str,
     segmento_operativo: str,
-    tipo_carga: str,
+    tipo_carga: str | tuple[str, ...],
 ) -> pd.DataFrame:
     """Consulta la capa privada desagregada para un origen portuario.
 
@@ -341,7 +343,12 @@ def get_valor_plaza_puertos_df(
     route_norm = str(route_code or "").strip()
     configuracion_norm = str(configuracion or "").strip().upper()
     segmento_norm = str(segmento_operativo or "").strip().lower()
-    tipo_carga_norm = str(tipo_carga or "").strip().lower()
+    if isinstance(tipo_carga, tuple):
+        tipo_carga_norm: str | tuple[str, ...] = tuple(
+            str(value or "").strip().lower() for value in tipo_carga if str(value or "").strip()
+        )
+    else:
+        tipo_carga_norm = str(tipo_carga or "").strip().lower()
     if not route_norm or not configuracion_norm or not segmento_norm or not tipo_carga_norm:
         return pd.DataFrame()
     try:
@@ -351,7 +358,11 @@ def get_valor_plaza_puertos_df(
                 ("ruta", "eq", route_norm),
                 ("configuracion", "ilike", configuracion_norm),
                 ("segmento_operativo", "eq", segmento_norm),
-                ("tipo_carga", "eq", tipo_carga_norm),
+                (
+                    "tipo_carga",
+                    "in" if isinstance(tipo_carga_norm, tuple) else "eq",
+                    list(tipo_carga_norm) if isinstance(tipo_carga_norm, tuple) else tipo_carga_norm,
+                ),
             ],
         )
         if not rows:
