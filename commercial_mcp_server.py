@@ -6,7 +6,7 @@ from commercial_client import CommercialClient
 
 mcp = FastMCP("sicetac-comercial")
 read_only = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True)
-BRIDGE_VERSION = "1.2.0"
+BRIDGE_VERSION = "1.2.1"
 
 
 @mcp.tool(annotations=read_only)
@@ -68,21 +68,35 @@ def cotizar_sicetac(
 def precotizar_transporte(
     origen: str, destino: str, cargo_weight_value: float | None = None,
     cargo_weight_unit: str | None = None,
+    weight_includes_tare: bool = False,
     service_code: str = "carga_general", container_size_ft: int | None = None,
     axles: int | None = None, requested_configuration: str | None = None,
     carroceria: str = "General - Estacas", mes: int | None = None,
-    peajes: bool = True, modo_viaje: str = "CARGADO",
-    tipo_contenedor: str | None = None,
-    view: str = "detail", horas_logisticas: float | None = None, rutasid: str | None = None,
+    peajes: bool = False, modo_viaje: str = "CARGADO",
+    tipo_contenedor: str | None = None, viaje_redondo: bool = False,
+    origen_regreso: str | None = None, destino_regreso: str | None = None,
+    tipo_contenedor_regreso: str | None = None,
+    rutasid_ida: str | None = None, rutasid_regreso: str | None = None,
+    codigo_dane_origen: str | None = None, codigo_dane_destino: str | None = None,
+    codigo_dane_origen_regreso: str | None = None,
+    codigo_dane_destino_regreso: str | None = None,
+    view: str = "search", horas_logisticas: float | None = None, rutasid: str | None = None,
 ) -> dict:
     """Aplica el Core técnico y luego SICETAC. Consume una unidad y no emite precio comercial.
 
-    Sin vehículo, identifique por peso de la carga y tara si es contenedor.
+    Para carga general sin vehículo, solicite el peso. Para contenedor, si hay
+    tamaño pero no peso, cotice con el default por tamaño y marque la capacidad
+    como no validada; si hay peso, selecciónelo con la tara publicada.
     Con requested_configuration búsquelo directo y calcule; el peso es
     opcional para validar capacidad, no para poder cotizar.
+    Envíe weight_includes_tare cuando el peso informado ya incluya la tara del
+    contenedor. El resultado search presenta referencia, plaza y capacidad neta
+    de mercancía para apoyar una precotización de ventas.
     Para un contenedor vacío transportado use modo_viaje=CARGADO y
-    tipo_contenedor=VACIO; VACIO solo significa vehículo sin carga ni contenedor.
-    El agente debe explicar PBV, SICE y advertencias como referencia técnica.
+    tipo_contenedor=VACIO; para ida cargada y regreso vacío use viaje_redondo,
+    tipo_contenedor=CARGADO y tipo_contenedor_regreso=VACIO. VACIO en
+    modo_viaje solo significa vehículo sin carga ni contenedor.
+    Nunca afirme cumplimiento de PBV legal: falta la tara real del vehículo.
     No inventa disponibilidad, margen, tarifa propia ni condiciones de negocio.
     """
     payload = {key: value for key, value in locals().items() if value is not None}

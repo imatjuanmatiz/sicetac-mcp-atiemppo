@@ -107,6 +107,10 @@ class ClientTests(unittest.TestCase):
         self.assertNotIn("cargo_weight_unit", prequote.inputSchema.get("required") or [])
         self.assertIn("origen", prequote.inputSchema["required"])
         self.assertIn("destino", prequote.inputSchema["required"])
+        self.assertIn("weight_includes_tare", prequote.inputSchema["properties"])
+        self.assertIn("viaje_redondo", prequote.inputSchema["properties"])
+        self.assertIn("origen_regreso", prequote.inputSchema["properties"])
+        self.assertEqual(prequote.inputSchema["properties"]["view"].get("default"), "search")
         self.assertFalse(prequote.annotations.idempotentHint)
         self.assertTrue(tools["consultar_instrucciones_vigentes"].annotations.readOnlyHint)
 
@@ -132,8 +136,8 @@ class ClientTests(unittest.TestCase):
         ruleset = load_ruleset({
             "schema_version": 1, "scope_id": "mercado_colombia_tecnico", "ruleset_id": "e2e",
             "version": "1", "status": "published", "source_snapshot_id": "test", "emission_allowed": False,
-            "container_tares_kg": {"40": 4100}, "configuration_aliases": {}, "vehicle_equivalences": [],
-            "vehicle_rules": [{"rule_id": "c2s2", "service_code": "contenedor", "sicetac_configuration": "2S2", "commercial_label": "C2S2", "priority": 1, "min_operating_weight_kg": 17001, "max_operating_weight_kg": 28000, "max_cargo_kg": 22000, "axle_count": 4, "container_sizes_ft": [40], "provisional": True}],
+            "container_tares_kg": {"40": 4100}, "configuration_aliases": {"C2S3": "2S3"}, "vehicle_equivalences": [],
+            "vehicle_rules": [{"rule_id": "container_2s3_40", "service_code": "contenedor", "sicetac_configuration": "2S3", "commercial_label": "C2S3 Patineta 40 pies", "priority": 10, "min_operating_weight_kg": None, "max_operating_weight_kg": None, "max_cargo_kg": 22900, "max_configuration_load_kg": 27000, "axle_count": 5, "vehicle_model_code": "C2S3", "container_sizes_ft": [40], "provisional": True}],
         })
         commercial_api._memory_usage.clear()
         with patch.dict(os.environ, {
@@ -146,24 +150,35 @@ class ClientTests(unittest.TestCase):
             commercial_api, "load_published_market_ruleset", return_value=ruleset
         ), patch.object(commercial_api, "calcular_sicetac_resumen", return_value={"totales": {"H8": 30}}) as calculator:
             result = commercial_mcp_server.precotizar_transporte(
-                "Bogotá", "Medellín", 18, "t", service_code="contenedor", container_size_ft=40, axles=4,
-                peajes=False, carroceria="Portacontenedores", modo_viaje="CARGADO", tipo_contenedor="VACIO"
+                "Bogotá", "Medellín", 18, "t", weight_includes_tare=True,
+                service_code="contenedor", container_size_ft=40, axles=4,
+                peajes=False, carroceria="Portacontenedores", modo_viaje="CARGADO",
+                tipo_contenedor="CARGADO",
             )
         self.assertEqual(paths, ["/v1/prequotes"])
-        self.assertEqual(result["data"]["technical_decision"]["recommendation"]["sicetac_configuration"], "2S2")
-        self.assertEqual(calculator.call_args.args[0].vehiculo, "2S2")
-        self.assertEqual(calculator.call_args.args[0].tipo_contenedor, "VACIO")
+        self.assertEqual(result["data"]["search"]["configuracion"], "C2S3")
+        self.assertEqual(result["data"]["search"]["capacidad"]["mercancia_solicitada_t"], 13.9)
+        self.assertEqual(result["data"]["search"]["capacidad"]["max_mercancia_t"], 22.9)
+        self.assertEqual(calculator.call_args.args[0].vehiculo, "C2S3")
+        self.assertEqual(calculator.call_args.args[0].tipo_contenedor, "CARGADO")
 
     def test_mcp_prequote_delegates_to_private_client_contract(self):
         client = Mock()
         client.prequote.return_value = {"data": {"technical_decision": {}}, "meta": {}}
         with patch.object(CommercialClient, "from_env", return_value=client):
             result = commercial_mcp_server.precotizar_transporte(
-                "Bogotá", "Medellín", 18, "t", service_code="contenedor", container_size_ft=40, axles=4
+                "Bogotá", "Medellín", 18, "t", weight_includes_tare=True,
+                service_code="contenedor", container_size_ft=40,
+                viaje_redondo=True, origen_regreso="Buenaventura", destino_regreso="Bogotá",
+                tipo_contenedor="CARGADO", tipo_contenedor_regreso="VACIO",
             )
         self.assertIn("data", result)
         self.assertEqual(client.prequote.call_args.args[0]["cargo_weight_value"], 18)
         self.assertEqual(client.prequote.call_args.args[0]["container_size_ft"], 40)
+        self.assertTrue(client.prequote.call_args.args[0]["weight_includes_tare"])
+        self.assertTrue(client.prequote.call_args.args[0]["viaje_redondo"])
+        self.assertEqual(client.prequote.call_args.args[0]["origen_regreso"], "Buenaventura")
+        self.assertEqual(client.prequote.call_args.args[0]["tipo_contenedor_regreso"], "VACIO")
 
     def test_prequote_allows_declared_vehicle_without_cargo_weight(self):
         client = CommercialClient(
@@ -185,6 +200,23 @@ class ClientTests(unittest.TestCase):
         client = CommercialClient("https://example.test", "test-only")
         with self.assertRaises(ValueError):
             client.prequote({"origen": "Buenaventura", "destino": "Valledupar"})
+
+    def test_prequote_allows_container_size_default_without_cargo_weight(self):
+        client = CommercialClient(
+            "https://example.test",
+            "test-only",
+            transport=httpx.MockTransport(lambda req: httpx.Response(
+                200, json={"data": {"search": {"configuracion": "C2S3"}}, "meta": {}},
+            )),
+        )
+        result = client.prequote({
+            "origen": "Bogotá",
+            "destino": "Buenaventura",
+            "service_code": "contenedor",
+            "container_size_ft": 40,
+            "carroceria": "Portacontenedores",
+        })
+        self.assertEqual(result["data"]["search"]["configuracion"], "C2S3")
 
     def test_prequote_rejects_weight_unit_without_value(self):
         client = CommercialClient("https://example.test", "test-only")

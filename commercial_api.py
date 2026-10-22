@@ -30,6 +30,7 @@ from sicetac_service import (
     calcular_sicetac_resumen,
     consulta_solicita_peajes,
     get_sice_column_options,
+    normalizar_modo_viaje,
 )
 from sicetac_helper import format_dane_municipality
 from supabase_data import get_client, get_table_df
@@ -438,7 +439,7 @@ def commercial_quote(
 
 # La ruta pública /consulta no importa ni llama este bloque. Estas herramientas
 # pertenecen exclusivamente al contrato autenticado /v1 para agentes y APIs pagas.
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from cotizador_core import RuleSetValidationError, evaluate_quote
 from cotizador_rules import (
     MARKET_SCOPE,
@@ -478,7 +479,12 @@ class PrequoteInput(BaseModel):
     rutasid_regreso: str | None = Field(None, max_length=64)
     rutasid: str | None = Field(None, max_length=64)
     view: str = Field("detail", max_length=20)
-    horas_logisticas: float | None = Field(None, ge=0, le=48)
+    horas_logisticas: float | None = Field(None, ge=0, le=48, allow_inf_nan=False)
+
+    @field_validator("modo_viaje", mode="before")
+    @classmethod
+    def _validar_modo_viaje(cls, value: Any) -> str:
+        return normalizar_modo_viaje(value)
 
 
 class TermObservationInput(BaseModel):
@@ -630,7 +636,7 @@ def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]
     if isinstance(sicetac_reference, dict) and sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
         ida_analysis = _market_analysis(sicetac_reference.get("ida"))
         regreso_analysis = _market_analysis(sicetac_reference.get("regreso"))
-        return {
+        result = {
             **ida_analysis,
             "legs": {
                 "ida": ida_analysis,
@@ -638,6 +644,7 @@ def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]
             },
             "note": "El valor de mercado se informa para la ida cuando existe; el retorno vacío no usa proxy de mercado cargado.",
         }
+        return result
     if not isinstance(sicetac_reference, dict):
         return {
             "available": False,
@@ -677,14 +684,15 @@ def _market_analysis(sicetac_reference: dict[str, Any] | None) -> dict[str, Any]
         "fallback_to_general_cargo": bool(plaza.get("fallback_to_carga_normal")),
         "disclaimer": "Es un valor observado/proxy de mercado; no es oferta, tarifa comercial ni disponibilidad.",
     }
-    h4 = (sicetac_reference.get("totales") or {}).get("H4")
+    price_reference = sicetac_reference.get("sicetac_tradicional") or sicetac_reference
+    h4 = (price_reference.get("totales") or {}).get("H4")
     try:
         h4_value = float(h4)
         market_value = float(latest["valor"])
     except (TypeError, ValueError, KeyError):
         return analysis
 
-    sicetac_month = sicetac_reference.get("mes")
+    sicetac_month = price_reference.get("mes") or sicetac_reference.get("mes")
     market_month = latest.get("mes_codigo")
     difference = market_value - h4_value
     analysis["comparison_to_sicetac_h4"] = {
@@ -734,11 +742,61 @@ def _plaza_latest(valor_plaza: Any) -> dict[str, Any]:
     return {"valor": None, "corte": None}
 
 
+def _sales_capacity_card(decision: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Resume el tope operativo publicado para una ficha que pueda leer ventas."""
+    decision = decision if isinstance(decision, dict) else {}
+    recommendation = decision.get("recommendation") or {}
+    normalized = decision.get("normalized_input") or {}
+    max_cargo_kg = recommendation.get("max_cargo_kg")
+    max_configuration_load_kg = recommendation.get("max_configuration_load_kg")
+    if max_cargo_kg is None and max_configuration_load_kg is None:
+        return None
+
+    def tonnes(value: Any) -> float | None:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(parsed):
+            return None
+        return round(parsed / 1000, 3)
+
+    return {
+        "max_mercancia_kg": max_cargo_kg,
+        "max_mercancia_t": tonnes(max_cargo_kg),
+        "max_configuracion_sicetac_kg": max_configuration_load_kg,
+        "max_configuracion_sicetac_t": tonnes(max_configuration_load_kg),
+        "mercancia_solicitada_kg": normalized.get("cargo_kg"),
+        "mercancia_solicitada_t": tonnes(normalized.get("cargo_kg")),
+        "cumple_maximo_sice": recommendation.get("sice_cargo_compatible"),
+        "regla_provisional": recommendation.get("provisional"),
+        "nota": (
+            "El máximo de mercancía sigue la regla publicada para la configuración; "
+            "en contenedor descuenta su tara. No valida PBV ni incluye la tara del vehículo."
+        ),
+    }
+
+
+def _sicetac_is_estimated(reference: dict[str, Any]) -> bool:
+    """Resuelve la procedencia de SICETAC, sin usar el flag de distancia urbana."""
+    tradicional = reference.get("sicetac_tradicional")
+    if isinstance(tradicional, dict) and "estimado" in tradicional:
+        return bool(tradicional["estimado"])
+    method = str(reference.get("metodo") or "").casefold()
+    if method.startswith("lookup"):
+        return False
+    if method == "modelo_completo":
+        return True
+    return bool(reference.get("estimado"))
+
+
 def _hour_selection(
     totales: dict[str, Any], horas: float | None,
     totales_por_tonelada: dict[str, Any] | None = None,
+    detalle_lookup: dict[str, Any] | None = None,
+    toneladas_configuracion: Any = None,
 ) -> dict[str, Any]:
-    """Hora acordada (default 4). H2/H8 quedan en la ficha por si el usuario cambia."""
+    """Selecciona la hora solicitada y deriva importes de la referencia publicada."""
     h = 4.0 if horas is None else float(horas)
     if h == int(h):
         key = f"H{int(h)}"
@@ -750,14 +808,31 @@ def _hour_selection(
         etiqueta = f"{h:g} horas logísticas"
         horas_out = h
     por_tonelada = totales_por_tonelada or {}
+    importe = totales.get(key)
+    if importe is None and isinstance(detalle_lookup, dict):
+        try:
+            movilizacion = float(detalle_lookup["movilizacion"])
+            valor_hora = float(detalle_lookup["valor_hora"])
+            if math.isfinite(movilizacion) and math.isfinite(valor_hora):
+                importe = round(movilizacion + h * valor_hora, 2)
+        except (KeyError, TypeError, ValueError):
+            pass
+    importe_por_tonelada = por_tonelada.get(key)
+    if importe_por_tonelada is None and importe is not None:
+        try:
+            toneladas = float(toneladas_configuracion)
+            if toneladas > 0 and math.isfinite(toneladas):
+                importe_por_tonelada = round(float(importe) / toneladas, 2)
+        except (TypeError, ValueError):
+            pass
     selected = {
         "horas_logisticas": horas_out,
         "horas_etiqueta": etiqueta,
-        "sicetac": totales.get(key),
+        "sicetac": importe,
         "sicetac_h2": totales.get("H2"),
         "sicetac_h4": totales.get("H4"),
         "sicetac_h8": totales.get("H8"),
-        "sicetac_por_tonelada": por_tonelada.get(key),
+        "sicetac_por_tonelada": importe_por_tonelada,
         "sicetac_h2_por_tonelada": por_tonelada.get("H2"),
         "sicetac_h4_por_tonelada": por_tonelada.get("H4"),
         "sicetac_h8_por_tonelada": por_tonelada.get("H8"),
@@ -770,19 +845,22 @@ def _hour_selection(
 def _leg_search(leg: Any, horas: float | None = None) -> dict[str, Any]:
     row = leg if isinstance(leg, dict) else {}
     plaza = _plaza_latest(row.get("valor_plaza"))
-    totals = row.get("totales") if isinstance(row.get("totales"), dict) else {}
-    per_ton_totals = row.get("totales_por_tonelada")
+    price_reference = row.get("sicetac_tradicional") or row
+    totals = price_reference.get("totales") if isinstance(price_reference.get("totales"), dict) else {}
+    per_ton_totals = price_reference.get("totales_por_tonelada") or row.get("totales_por_tonelada")
     hours = _hour_selection(
         totals,
         horas,
         per_ton_totals if isinstance(per_ton_totals, dict) else {},
+        price_reference.get("detalle_lookup") or row.get("detalle_lookup"),
+        price_reference.get("toneladas_configuracion") or row.get("toneladas_configuracion"),
     )
     return {
         "ruta": _route_display_name(row),
         "kilometros": row.get("total_km"),
-        "estimado": bool(row.get("estimado")),
-        "sicetac_corte": row.get("mes"),
-        "toneladas_configuracion": row.get("toneladas_configuracion"),
+        "estimado": _sicetac_is_estimated(row),
+        "sicetac_corte": price_reference.get("mes") or row.get("mes"),
+        "toneladas_configuracion": price_reference.get("toneladas_configuracion") or row.get("toneladas_configuracion"),
         "valor_plaza": plaza["valor"],
         "valor_plaza_por_tonelada": row.get("valor_plaza_por_tonelada"),
         "unidad_valor_plaza_por_tonelada": row.get("unidad_valor_plaza_por_tonelada"),
@@ -815,11 +893,39 @@ def _search_card(
     if isinstance(sicetac_reference, dict) and sicetac_reference.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
         ida = _leg_search(sicetac_reference.get("ida"), horas_logisticas)
         regreso = _leg_search(sicetac_reference.get("regreso"), horas_logisticas)
-        return {
+        trip_totals = sicetac_reference.get("totales") or {}
+
+        def combined_value(key: str) -> Any:
+            if trip_totals.get(key) is not None:
+                return trip_totals[key]
+            outbound = ida.get(key)
+            inbound = regreso.get(key)
+            if outbound is None or inbound is None:
+                return None
+            try:
+                return round(float(outbound) + float(inbound), 2)
+            except (TypeError, ValueError):
+                return None
+
+        combined = {
+            "sicetac": combined_value("sicetac"),
+            "sicetac_h2": combined_value("sicetac_h2") or trip_totals.get("H2"),
+            "sicetac_h4": combined_value("sicetac_h4") or trip_totals.get("H4"),
+            "sicetac_h8": combined_value("sicetac_h8") or trip_totals.get("H8"),
+            "sicetac_por_tonelada": combined_value("sicetac_por_tonelada"),
+            "sicetac_h2_por_tonelada": combined_value("sicetac_h2_por_tonelada"),
+            "sicetac_h4_por_tonelada": combined_value("sicetac_h4_por_tonelada"),
+            "sicetac_h8_por_tonelada": combined_value("sicetac_h8_por_tonelada"),
+        }
+        result = {
             "ruta": ida.get("ruta"),
             "kilometros": ida.get("kilometros"),
             "configuracion": configuration,
             "sicetac_corte": ida.get("sicetac_corte"),
+            "tipo_consulta": "VIAJE_REDONDO_CONTENEDOR",
+            "rutasid_ida": (sicetac_reference.get("ida") or {}).get("rutasid"),
+            "rutasid_regreso": (sicetac_reference.get("regreso") or {}).get("rutasid"),
+            "estimado": ida.get("estimado", False) or regreso.get("estimado", False),
             "toneladas_configuracion": ida.get("toneladas_configuracion"),
             "valor_plaza": ida.get("valor_plaza"),
             "valor_plaza_por_tonelada": ida.get("valor_plaza_por_tonelada"),
@@ -829,16 +935,13 @@ def _search_card(
             "regreso": regreso,
             "horas_logisticas": ida.get("horas_logisticas"),
             "horas_etiqueta": ida.get("horas_etiqueta"),
-            "sicetac": ida.get("sicetac"),
-            "sicetac_h2": ida.get("sicetac_h2"),
-            "sicetac_h4": ida.get("sicetac_h4"),
-            "sicetac_h8": ida.get("sicetac_h8"),
-            "sicetac_por_tonelada": ida.get("sicetac_por_tonelada"),
-            "sicetac_h2_por_tonelada": ida.get("sicetac_h2_por_tonelada"),
-            "sicetac_h4_por_tonelada": ida.get("sicetac_h4_por_tonelada"),
-            "sicetac_h8_por_tonelada": ida.get("sicetac_h8_por_tonelada"),
+            **combined,
             "unidad_valores_por_tonelada": ida.get("unidad_valores_por_tonelada"),
         }
+        capacity = _sales_capacity_card(decision)
+        if capacity is not None:
+            result["capacidad"] = capacity
+        return result
     ref = sicetac_reference if isinstance(sicetac_reference, dict) else {}
     plaza = _plaza_latest(ref.get("valor_plaza"))
     price_reference = ref.get("sicetac_tradicional") or ref
@@ -848,11 +951,13 @@ def _search_card(
         totals,
         horas_logisticas,
         per_ton_totals if isinstance(per_ton_totals, dict) else {},
+        price_reference.get("detalle_lookup") or ref.get("detalle_lookup"),
+        price_reference.get("toneladas_configuracion") or ref.get("toneladas_configuracion"),
     )
-    return {
+    result = {
         "ruta": _route_display_name(ref) or (f"{ref['origen']} a {ref['destino']}" if ref.get("origen") and ref.get("destino") else None),
         "kilometros": ref.get("total_km"),
-        "estimado": bool(price_reference.get("estimado")),
+        "estimado": _sicetac_is_estimated(ref),
         "supuestos": ref.get("supuestos", []),
         "configuracion": configuration,
         "sicetac_corte": price_reference.get("mes"),
@@ -863,6 +968,10 @@ def _search_card(
         "valor_plaza_corte": plaza["corte"],
         **hours,
     }
+    capacity = _sales_capacity_card(decision)
+    if capacity is not None:
+        result["capacidad"] = capacity
+    return result
 
 
 @router.post("/prequotes", summary="Pre-cotización técnica: Core de vehículos más SICETAC")

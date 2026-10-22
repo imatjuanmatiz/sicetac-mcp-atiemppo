@@ -54,11 +54,15 @@ No preguntes por el tipo de servicio ni por la tara en esos casos. Solo
 convierte a `contenedor` cuando lo dicen expresamente y entonces solicita el
 tamaño; el motor agrega la tara técnica publicada internamente.
 
-Si el usuario no indica vehículo, para carga suelta deja que el motor
-identifique la configuración cuya banda publicada contiene el peso; sus
-límites son inclusivos. Para un contenedor usa peso de la carga más tara y
-mantiene el default operativo C2S2. Si el usuario indica una configuración,
-búscalo directo y calcula. No presentes H2/H8, tara ni PBV en la búsqueda.
+Si el usuario no indica vehículo, para carga suelta solicita el peso y deja que
+el motor identifique la configuración cuya banda publicada lo contiene; sus
+límites son inclusivos. Para un contenedor, el tamaño 20/40 basta para dar la
+referencia inicial: C2S2 para 20 pies y C2S3 para 40 pies como inicio preferido;
+el Core escala por capacidad publicada cuando se conoce el peso. Si falta el
+peso, la capacidad queda sin validar. Si el usuario indica una configuración,
+búscala directo y calcula. No presentes H2/H8, cálculos de tara ni PBV en la
+búsqueda. Si `data.search.capacidad` existe, comunica el máximo neto de carga,
+el estado de compatibilidad y si la regla es provisional.
 
 Para un contenedor de 20 o 40 pies, deja que el motor aplique la configuración
 automática declarada en `automatic_configuration_by_size_ft`. Solo envía

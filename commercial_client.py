@@ -112,10 +112,14 @@ class CommercialClient:
         if (weight_value in (None, "")) != (weight_unit in (None, "")):
             raise ValueError("cargo_weight_value y cargo_weight_unit deben informarse juntos")
         declared_vehicle = str(payload.get("requested_configuration") or "").strip()
-        if weight_value in (None, "") and not declared_vehicle:
+        service_code = str(payload.get("service_code") or "carga_general").strip().lower()
+        size = payload.get("container_size_ft")
+        container_default_is_sufficient = service_code == "contenedor" and size in (20, 40)
+        if weight_value in (None, "") and not declared_vehicle and not container_default_is_sufficient:
             raise ValueError(
-                "Falta cargo_weight_value para aplicar el motor técnico, "
-                "o declare requested_configuration."
+                "Informe cargo_weight_value para carga general, o declare "
+                "requested_configuration; para contenedor también puede "
+                "informar container_size_ft."
             )
         result = self._request("POST", "/v1/prequotes", payload)
         if not isinstance(result.get("data"), dict) or not isinstance(result.get("meta"), dict):

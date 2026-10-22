@@ -55,14 +55,34 @@ class CommercialApiTests(unittest.TestCase):
             "schema_version": 1, "scope_id": "mercado_colombia_tecnico",
             "ruleset_id": "profile-test", "version": "test-1", "status": "published",
             "source_snapshot_id": "test-source", "emission_allowed": False,
-            "container_tares_kg": {"20": 2300}, "configuration_aliases": {},
-            "vehicle_equivalences": [], "vehicle_rules": [{
-                "rule_id": "container_2s2", "service_code": "contenedor",
-                "sicetac_configuration": "2S2", "commercial_label": "C2S2", "priority": 1,
-                "min_operating_weight_kg": None, "max_operating_weight_kg": None,
-                "max_cargo_kg": 22000, "axle_count": 4, "container_sizes_ft": [20],
-                "provisional": True,
-            }],
+            "container_tares_kg": {"20": 2300, "40": 4100}, "configuration_aliases": {},
+            "vehicle_equivalences": [], "vehicle_rules": [
+                {
+                    "rule_id": "container_2s2_20", "service_code": "contenedor",
+                    "sicetac_configuration": "2S2", "commercial_label": "C2S2 Patineta 20 pies", "priority": 10,
+                    "min_operating_weight_kg": None, "max_operating_weight_kg": None,
+                    "max_cargo_kg": 19700, "max_configuration_load_kg": 22000,
+                    "axle_count": 4, "container_sizes_ft": [20],
+                    "vehicle_model_code": "C2S2",
+                    "provisional": True,
+                },
+                {
+                    "rule_id": "container_2s3_40", "service_code": "contenedor",
+                    "sicetac_configuration": "2S3", "commercial_label": "C2S3 Patineta 40 pies", "priority": 10,
+                    "min_operating_weight_kg": None, "max_operating_weight_kg": None,
+                    "max_cargo_kg": 22900, "max_configuration_load_kg": 27000,
+                    "axle_count": 5, "container_sizes_ft": [40],
+                    "vehicle_model_code": "C2S3",
+                    "provisional": True,
+                },
+                {
+                    "rule_id": "container_3s3", "service_code": "contenedor",
+                    "sicetac_configuration": "3S3", "commercial_label": "C3S3", "priority": 30,
+                    "min_operating_weight_kg": None, "max_operating_weight_kg": None,
+                    "max_cargo_kg": 34000, "axle_count": 6, "vehicle_model_code": "C3S3",
+                    "container_sizes_ft": [20, 40], "provisional": True,
+                },
+            ],
         })
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=ruleset):
             missing = self.client.get("/v1/agent-profile")
@@ -70,8 +90,11 @@ class CommercialApiTests(unittest.TestCase):
             usage = self.client.get("/v1/usage", headers={"X-API-Key": self.api_key})
         self.assertEqual(missing.status_code, 401)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["agent_policy_version"], "2026.10.21.2")
+        self.assertEqual(response.json()["minimum_bridge_version"], "1.2.1")
         self.assertEqual(response.json()["ruleset"]["version"], "test-1")
         self.assertEqual(response.json()["input_policy"]["container"]["automatic_configuration_by_size_ft"]["20"], "2S2")
+        self.assertEqual(response.json()["input_policy"]["container"]["automatic_configuration_by_size_ft"]["40"], "2S3")
         self.assertEqual(response.json()["output_policy"]["view"], "search")
         self.assertIn("data.search", response.json()["output_policy"]["present"])
         self.assertFalse(response.json()["quota"]["consumes_units"])

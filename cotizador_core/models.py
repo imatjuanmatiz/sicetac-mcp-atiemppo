@@ -101,6 +101,7 @@ class VehicleRule:
     min_operating_weight_kg: int | None
     max_operating_weight_kg: int | None
     max_cargo_kg: int | None
+    max_configuration_load_kg: int | None
     axle_count: int | None
     provisional: bool
     requires_explicit_request: bool = False
@@ -119,6 +120,7 @@ class VehicleRule:
             min_operating_weight_kg=(int(raw["min_operating_weight_kg"]) if raw.get("min_operating_weight_kg") is not None else None),
             max_operating_weight_kg=(int(raw["max_operating_weight_kg"]) if raw.get("max_operating_weight_kg") is not None else None),
             max_cargo_kg=(int(raw["max_cargo_kg"]) if raw.get("max_cargo_kg") is not None else None),
+            max_configuration_load_kg=(int(raw["max_configuration_load_kg"]) if raw.get("max_configuration_load_kg") is not None else None),
             axle_count=(int(raw["axle_count"]) if raw.get("axle_count") is not None else None),
             provisional=bool(raw.get("provisional", True)),
             requires_explicit_request=bool(raw.get("requires_explicit_request", False)),
@@ -167,7 +169,7 @@ class RuleSet:
         """Resuelve una carrocería sólo con aliases publicados en el ruleset."""
         return self.body_type_aliases.get(_alias_key(value), value)
 
-    def normalize_configuration(self, value: str) -> str:
+    def normalize_configuration(self, value: str, container_size_ft: int | None = None) -> str:
         """Resuelve una configuración sólo con aliases publicados en el ruleset.
 
         Acepta el alias exacto o un término compuesto (p. ej. «Patineta 2S2»).
@@ -177,6 +179,10 @@ class RuleSet:
         key = _alias_key(value)
         if not key:
             return value
+        if key == "PATINETA" and container_size_ft in (20, 40):
+            size_alias = self.configuration_aliases.get(f"PATINETA {container_size_ft}")
+            if size_alias:
+                return size_alias
         exact = self.configuration_aliases.get(key)
         if exact:
             return exact

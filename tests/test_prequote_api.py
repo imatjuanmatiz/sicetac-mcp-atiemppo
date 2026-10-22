@@ -20,8 +20,11 @@ RULESET = {
     "status": "published",
     "source_snapshot_id": "test-source",
     "emission_allowed": False,
-    "container_tares_kg": {"40": 4100},
-    "configuration_aliases": {"C2S2": "2S2", "C3S3": "3S3"},
+    "container_tares_kg": {"20": 2300, "40": 4100},
+    "configuration_aliases": {
+        "C2S2": "2S2", "C2S3": "2S3", "C3S2": "3S2", "C3S3": "3S3",
+        "PATINETA 20": "2S2", "PATINETA 40": "2S3",
+    },
     "body_type_aliases": {"FURGON SECO": "General - Furgon"},
     "location_aliases": {
         "ZF SANTANDER": {"municipality": "Floridablanca", "department": "Santander"},
@@ -31,12 +34,60 @@ RULESET = {
     "vehicle_equivalences": [],
     "vehicle_rules": [
         {
-            "rule_id": "container_2s2", "service_code": "contenedor",
-            "sicetac_configuration": "2S2", "commercial_label": "C2S2",
-            "priority": 1, "min_operating_weight_kg": 17001,
-            "max_operating_weight_kg": 28000, "max_cargo_kg": 22000,
-            "axle_count": 4, "vehicle_model_code": "C2S2",
-            "container_sizes_ft": [40], "provisional": True,
+            "rule_id": "container_2s2_20", "service_code": "contenedor",
+            "sicetac_configuration": "2S2", "commercial_label": "C2S2 Patineta 20 pies",
+            "priority": 10, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 19700,
+            "max_configuration_load_kg": 22000, "axle_count": 4,
+            "vehicle_model_code": "C2S2", "container_sizes_ft": [20], "provisional": True,
+        },
+        {
+            "rule_id": "container_2s3_20", "service_code": "contenedor",
+            "sicetac_configuration": "2S3", "commercial_label": "C2S3 Patineta 20 pies",
+            "priority": 20, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 24700,
+            "max_configuration_load_kg": 27000, "axle_count": 5,
+            "vehicle_model_code": "C2S3", "container_sizes_ft": [20], "provisional": True,
+        },
+        {
+            "rule_id": "container_3s2_20", "service_code": "contenedor",
+            "sicetac_configuration": "3S2", "commercial_label": "C3S2 Minimula 20 pies",
+            "priority": 30, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 28700,
+            "max_configuration_load_kg": 31000, "axle_count": 5,
+            "vehicle_model_code": "C3S2", "container_sizes_ft": [20], "provisional": True,
+        },
+        {
+            "rule_id": "container_3s3_20", "service_code": "contenedor",
+            "sicetac_configuration": "3S3", "commercial_label": "C3S3 Mula 20 pies",
+            "priority": 40, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 31700,
+            "max_configuration_load_kg": 34000, "axle_count": 6,
+            "vehicle_model_code": "C3S3", "container_sizes_ft": [20], "provisional": True,
+        },
+        {
+            "rule_id": "container_2s3_40", "service_code": "contenedor",
+            "sicetac_configuration": "2S3", "commercial_label": "C2S3 Patineta 40 pies",
+            "priority": 10, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 22900,
+            "max_configuration_load_kg": 27000, "axle_count": 5,
+            "vehicle_model_code": "C2S3", "container_sizes_ft": [40], "provisional": True,
+        },
+        {
+            "rule_id": "container_3s2_40", "service_code": "contenedor",
+            "sicetac_configuration": "3S2", "commercial_label": "C3S2 Minimula 40 pies",
+            "priority": 20, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 26900,
+            "max_configuration_load_kg": 31000, "axle_count": 5,
+            "vehicle_model_code": "C3S2", "container_sizes_ft": [40], "provisional": True,
+        },
+        {
+            "rule_id": "container_3s3_40", "service_code": "contenedor",
+            "sicetac_configuration": "3S3", "commercial_label": "C3S3 Mula 40 pies",
+            "priority": 30, "min_operating_weight_kg": None,
+            "max_operating_weight_kg": None, "max_cargo_kg": 29900,
+            "max_configuration_load_kg": 34000, "axle_count": 6,
+            "vehicle_model_code": "C3S3", "container_sizes_ft": [40], "provisional": True,
         },
         {
             "rule_id": "general_2s2", "service_code": "carga_general",
@@ -88,10 +139,10 @@ class PrequoteApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 200)
         body = response.json()
-        self.assertEqual(body["data"]["technical_decision"]["recommendation"]["sicetac_configuration"], "2S2")
+        self.assertEqual(body["data"]["technical_decision"]["recommendation"]["sicetac_configuration"], "2S3")
         self.assertEqual(body["data"]["sicetac_reference"]["totales"]["H8"], 123)
         self.assertFalse(body["data"]["commercial"]["emission_allowed"])
-        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S3")
 
     def test_declared_vehicle_and_body_are_enough_to_request_a_reference(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
@@ -104,7 +155,7 @@ class PrequoteApiTests(unittest.TestCase):
                 "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
                     "origen": "Bogotá", "destino": "Buenaventura",
                     "service_code": "contenedor", "container_size_ft": 40,
-                    "requested_configuration": "C2S2", "peajes": False,
+                    "requested_configuration": "C2S3", "peajes": False,
                     "carroceria": "Portacontenedores",
                 },
             )
@@ -113,46 +164,121 @@ class PrequoteApiTests(unittest.TestCase):
         self.assertEqual(decision["recommendation"]["selection_basis"], "declared_configuration")
         self.assertIsNone(decision["normalized_input"]["cargo_kg"])
         self.assertEqual(decision["normalized_input"]["weight_validation"], "not_provided")
-        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S2")
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S3")
         self.assertEqual(sicetac.call_args.args[0].carroceria, "Portacontenedores")
         search = response.json()["data"]["search"]
-        self.assertEqual(search["configuracion"], "C2S2")
+        self.assertEqual(search["configuracion"], "C2S3")
         self.assertEqual(search["sicetac_h4"], 123)
 
     def test_view_search_returns_only_the_route_card(self):
-        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
-            commercial_api, "calcular_sicetac_resumen", return_value={
-                "nombre_sice": "BOGOTA-BUENAVENTURA",
-                "mes": 202609,
-                "totales": {"H2": 1, "H4": 4500000, "H8": 3},
-                "valor_plaza": {"meses": [{"valor": 4100000, "mes_codigo": 202608, "mes_label": "2026-08"}]},
-            }
-        ):
-            response = self.client.post(
-                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
-                    "origen": "Bogotá", "destino": "Buenaventura",
-                    "service_code": "carga_general",
-                    "requested_configuration": "C2S2", "peajes": False,
-                    "view": "search",
-                },
-            )
-        self.assertEqual(response.status_code, 200)
-        body = response.json()["data"]
-        self.assertEqual(set(body), {"search"})
-        self.assertEqual(body["search"], {
+        reference = {
+            "nombre_sice": "BOGOTA-BUENAVENTURA",
+            "mes": 202609,
+            "totales": {"H2": 1000000, "H4": 4500000, "H8": 6000000},
+            "valor_plaza": {"meses": [{"valor": 4100000, "mes_codigo": 202608, "mes_label": "2026-08"}]},
+        }
+        expected = {
             "kilometros": None, "estimado": False, "supuestos": [],
             "ruta": "BOGOTA-BUENAVENTURA",
             "configuracion": "C2S2",
             "sicetac_corte": 202609,
+            "toneladas_configuracion": None,
             "valor_plaza": 4100000,
+            "valor_plaza_por_tonelada": None,
+            "unidad_valor_plaza_por_tonelada": None,
             "valor_plaza_corte": "2026-08",
             "horas_logisticas": 4,
             "horas_etiqueta": "H4, 4 horas logísticas",
             "sicetac": 4500000,
-            "sicetac_h2": 1,
+            "sicetac_h2": 1000000,
             "sicetac_h4": 4500000,
-            "sicetac_h8": 3,
-        })
+            "sicetac_h8": 6000000,
+            "sicetac_por_tonelada": None,
+            "sicetac_h2_por_tonelada": None,
+            "sicetac_h4_por_tonelada": None,
+            "sicetac_h8_por_tonelada": None,
+            "capacidad": {
+                "max_mercancia_kg": 22000,
+                "max_mercancia_t": 22.0,
+                "max_configuracion_sicetac_kg": None,
+                "max_configuracion_sicetac_t": None,
+                "mercancia_solicitada_kg": None,
+                "mercancia_solicitada_t": None,
+                "cumple_maximo_sice": None,
+                "regla_provisional": True,
+                "nota": (
+                    "El máximo de mercancía sigue la regla publicada para la configuración; "
+                    "en contenedor descuenta su tara. No valida PBV ni incluye la tara del vehículo."
+                ),
+            },
+        }
+        for has_per_ton_values in (False, True):
+            with self.subTest(has_per_ton_values=has_per_ton_values):
+                enriched_reference = dict(reference)
+                expected_card = dict(expected)
+                if has_per_ton_values:
+                    enriched_reference.update({
+                        "toneladas_configuracion": 22,
+                        "totales_por_tonelada": {
+                            "H2": 45454.55, "H4": 204545.45, "H8": 272727.27,
+                        },
+                        "valor_plaza_por_tonelada": 186363.64,
+                        "unidad_valor_plaza_por_tonelada": "$/tn",
+                    })
+                    expected_card.update({
+                        "toneladas_configuracion": 22,
+                        "valor_plaza_por_tonelada": 186363.64,
+                        "unidad_valor_plaza_por_tonelada": "$/tn",
+                        "sicetac_por_tonelada": 204545.45,
+                        "sicetac_h2_por_tonelada": 45454.55,
+                        "sicetac_h4_por_tonelada": 204545.45,
+                        "sicetac_h8_por_tonelada": 272727.27,
+                        "unidad_valores_por_tonelada": "$/tn",
+                    })
+                with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+                    commercial_api, "calcular_sicetac_resumen", return_value=enriched_reference,
+                ):
+                    response = self.client.post(
+                        "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                            "origen": "Bogotá", "destino": "Buenaventura",
+                            "service_code": "carga_general",
+                            "requested_configuration": "C2S2", "peajes": False,
+                            "view": "search",
+                        },
+                    )
+                self.assertEqual(response.status_code, 200)
+                body = response.json()["data"]
+                self.assertEqual(set(body), {"search"})
+                self.assertEqual(body["search"], expected_card)
+
+    def test_container_search_card_exposes_capacity_for_sales(self):
+        reference = {
+            "nombre_sice": "BOGOTA-BUENAVENTURA",
+            "mes": 202610,
+            "totales": {"H4": 4724726},
+        }
+        with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
+            commercial_api, "calcular_sicetac_resumen", return_value=reference,
+        ) as sicetac:
+            response = self.client.post(
+                "/v1/prequotes", headers={"X-API-Key": self.api_key}, json={
+                    "origen": "Bogotá", "destino": "Buenaventura",
+                    "cargo_weight_value": 18, "cargo_weight_unit": "t",
+                    "service_code": "contenedor", "container_size_ft": 40,
+                    "carroceria": "Portacontenedores", "peajes": False,
+                    "view": "search",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        search = response.json()["data"]["search"]
+        self.assertEqual(search["configuracion"], "C2S3")
+        self.assertEqual(search["sicetac"], 4724726)
+        self.assertEqual(search["capacidad"]["max_mercancia_t"], 22.9)
+        self.assertEqual(search["capacidad"]["max_configuracion_sicetac_t"], 27.0)
+        self.assertEqual(search["capacidad"]["mercancia_solicitada_t"], 18.0)
+        self.assertTrue(search["capacidad"]["cumple_maximo_sice"])
+        self.assertTrue(search["capacidad"]["regla_provisional"])
+        self.assertEqual(sicetac.call_args.args[0].vehiculo, "C2S3")
 
     def test_declared_c2s2_general_cargo_quotes_without_net_weight(self):
         with patch.object(commercial_api, "load_published_market_ruleset", return_value=load_ruleset(RULESET)), patch.object(
@@ -273,7 +399,7 @@ class PrequoteApiTests(unittest.TestCase):
                     "origen": "Bogotá", "destino": "Zona Franca Santander",
                     "origen_regreso": "Zona Franca Santander", "destino_regreso": "Buenaventura",
                     "cargo_weight_value": 0, "cargo_weight_unit": "kg", "service_code": "contenedor",
-                    "container_size_ft": 40, "requested_configuration": "C2S2",
+                    "container_size_ft": 40, "requested_configuration": "C2S3",
                     "carroceria": "Portacontenedores", "viaje_redondo": True,
                     "tipo_contenedor": "CARGADO", "tipo_contenedor_regreso": "VACIO", "peajes": False,
                 },
@@ -375,7 +501,7 @@ class PrequoteApiTests(unittest.TestCase):
                     "origen_regreso": "Sincelejo", "destino_regreso": "Cartagena",
                     "cargo_weight_value": 23900, "cargo_weight_unit": "kg",
                     "service_code": "contenedor", "container_size_ft": 40,
-                    "requested_configuration": "C2S2", "peajes": False,
+                    "requested_configuration": "C2S3", "peajes": False,
                     "carroceria": "Portacontenedores", "modo_viaje": "CARGADO",
                     "viaje_redondo": True, "tipo_contenedor": "CARGADO",
                     "tipo_contenedor_regreso": "VACIO",

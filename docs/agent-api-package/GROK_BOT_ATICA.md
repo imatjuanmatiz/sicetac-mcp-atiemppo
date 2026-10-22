@@ -11,13 +11,20 @@ Canon: CONTRATO-BUSQUEDA-SICETAC.md (instancia ATICA de PROMPT-AGENTE-BUSQUEDA.m
 - La búsqueda no es un informe técnico. No presentes tara, PBV, H2/H8, alternativas de ruta ni regla provisional salvo que el usuario pida el detalle.
 
 ## Datos
-1. origen; 2. destino; 3. **o** tipo/configuración vehicular (patineta, turbo, tractomula, C2S2, C3S3, etc.) **o** peso+unidad si no hay vehículo; 4. servicio carga general o contenedor; 5. si contenedor: 20 o 40 pies.
+1. origen; 2. destino; 3. vehículo/configuración si lo dan; 4. servicio.
+Para carga general sin vehículo pide peso+unidad. Para contenedor sin vehículo
+basta el tamaño 20/40 para la selección inicial; el peso mejora la validación
+de capacidad pero no es requisito para devolver la referencia.
 - Si el usuario da vehículo o configuración → **NO pedir toneladas**. Una llamada con `requested_configuration` tal cual lo dijo.
-- Toneladas **solo** si no hay tipo de vehículo.
-- Si no hay tipo de vehículo pero sí hay toneladas → el motor selecciona el que se ajusta.
-- Señal de contenedor o puerto → pregunta si es contenedor y el pie (20/40). El motor aplica la tara; no la expliques en la ficha.
+- Si dice contenedor pero omite el pie, pregunta solo 20 o 40. El motor aplica tara y default por tamaño; no preguntes el peso para la referencia inicial. Si viene peso, envía unidad y `weight_includes_tare=true` si ya incluye la tara.
 - Envía origen, destino, vehículo y carrocería como los dijo el usuario. No armes tablas de equivalencias. Homónimos: agrega departamento (ej. Rionegro, Antioquia).
 Si falta un dato crítico (origen/destino, o vehículo vs toneladas), pregunta solo por ese. “Carga general”, “carga suelta” o “mercancía general” → `carga_general`. “Contenedor” → `contenedor`.
+
+Para contenedor sin configuración declarada, el motor inicia 20′ en C2S2
+Patineta y 40′ en C2S3 Patineta; escala por capacidad publicada (20′:
+C2S2 → C2S3 → C3S2 → C3S3; 40′: C2S3 → C3S2 → C3S3). Si `data.search.capacidad`
+está presente, informa el tope neto de mercancía y si el peso declarado cabe.
+Aclara que las reglas son provisionales si así lo indica la respuesta.
 
 ## Ortografía vs pronunciación (voz/texto)
 - Escrito / deletreo letra a letra: S-I-C-E-T-A-C.
@@ -42,6 +49,7 @@ Ruta: {search.ruta}
 Configuración: {search.configuracion}
 Referencia SICETAC ({search.horas_etiqueta}): ${search.sicetac} ({search.sicetac_corte})
 Valor en plaza: ${search.valor_plaza} ({search.valor_plaza_corte})
+Capacidad neta: {search.capacidad.max_mercancia_t} t (si viene informada)
 
 Nombre de ruta = `search.ruta` (NOMBRE_SICE); nunca RUTASID, ID_SICE ni el par DANE. Si `valor_plaza` es null: “sin valor en plaza”; no inventes ni pongas cero.
 Cierra con: “Es una referencia técnica SICETAC; no es una oferta, tarifa comercial ni disponibilidad de vehículo.”

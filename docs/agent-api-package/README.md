@@ -45,8 +45,10 @@ La única operación que consume cuota en el flujo de pre-cotización es:
 `POST {SICETAC_API_BASE_URL}/v1/prequotes`
 
 Los agentes envían `view=search`. La ficha de búsqueda es `data.search`:
-ruta (`NOMBRE_SICE`), configuración, SICETAC H4 y valor en plaza. Tara, PBV,
-H2/H8 y reglas provisionales quedan en `view=detail`.
+ruta (`NOMBRE_SICE`), configuración, SICETAC de la hora acordada, valor en
+plaza cuando exista y capacidad máxima de mercancía cuando haya regla. La
+capacidad indica si el peso declarado cabe y si la regla es provisional; el
+motor no valida PBV legal porque no conoce la tara del vehículo.
 
 Header:
 
@@ -55,16 +57,27 @@ Content-Type: application/json
 X-API-Key: <SICETAC_API_KEY>
 ```
 
-Solicita: origen, destino, peso y unidad. Si no se menciona un contenedor, el
-servicio es `carga_general` por defecto (incluye “carga suelta”) y no se debe
-preguntar por tara. Solo para un contenedor declarado expresamente requiere 20
-o 40 pies; el motor incorpora la tara técnica publicada. La operación consume
-una unidad de la cuota una vez admitida para cálculo; no se debe reintentar
-automáticamente ante timeout.
+Solicita origen y destino. En carga general, si no hay vehículo/configuración,
+solicita peso y unidad. Para un contenedor declarado, solicita 20 o 40 pies si
+falta el tamaño; el motor aplica el default por tamaño aunque no den el peso y
+marca capacidad como no validada. Si informan peso, envía unidad y marca
+`weight_includes_tare` cuando ya incluya la tara del contenedor. El servicio
+`carga_general` es el default (incluye “carga suelta”). La operación consume una
+unidad de cuota una vez admitida para cálculo; no la reintentes ante timeout.
 
-El motor inicia contenedores de 20 y 40 pies en Portacontenedor C2S2 como
-regla técnica operativa. Un equipo menor solo se consulta cuando el usuario lo
-solicita expresamente mediante `requested_configuration`. Para el retorno con
+Para contenedores, solicita 20 o 40 pies solo si el usuario no lo indicó y usa
+carrocería `Portacontenedores`. El motor inicia 20′ en C2S2 Patineta y 40′ en
+C2S3 Patineta, y escala por el máximo SICETAC publicado: para 20′ C2S2 → C2S3
+→ C3S2 → C3S3; para 40′ C2S3 → C3S2 → C3S3. La capacidad de mercancía ya
+descuenta la tara del contenedor del tonelaje de configuración. La selección
+y los topes son técnicos y provisionales; no representan PBV legal.
+
+Una fuerza comercial puede usar la ficha como base de precotización: referencia
+SICETAC + contraste de valor en plaza + capacidad. No es el precio que se ofrece
+al cliente. Margen, disponibilidad, condiciones, vigencia y aprobación se
+configuran en el proyecto consumidor, nunca se inventan en el motor.
+
+Para el retorno con
 contenedor vacío, se mantiene `modo_viaje: "CARGADO"` y se envía
 `tipo_contenedor: "VACIO"`; `modo_viaje: "VACIO"` corresponde a un vehículo
 sin carga ni contenedor. Para una ida cargada y un vacío que no regresa al
@@ -86,10 +99,14 @@ Con `view=search` el cuerpo útil es `data.search`:
 | `configuracion` | La que usó el motor |
 | `sicetac_h4` + `sicetac_corte` | Referencia principal |
 | `valor_plaza` + `valor_plaza_corte` | Último valor en plaza; null → “sin valor en plaza” |
+| `capacidad.max_mercancia_t` | Tope neto de mercancía publicado para esa configuración |
+| `capacidad.max_configuracion_sicetac_t` | Toneladas nominales de la configuración cuando la regla las publica |
+| `capacidad.cumple_maximo_sice` | Si el peso informado cabe en el tope técnico; null si no se informó peso |
+| `capacidad.regla_provisional` | Indica que el tope requiere validación operativa |
 
-`view=detail` conserva tara, PBV, H2/H8 y análisis de mercado. El agente de
-búsqueda no lo pide ni lo redacta. Instant y el agente de documento no
-sustituyen esta ficha.
+`view=detail` conserva el detalle de modelo y análisis de mercado. El agente de
+búsqueda no necesita ese detalle para responder una consulta normal. Instant y
+el agente de documento no sustituyen esta ficha.
 
 ## Errores y comportamiento del agente
 

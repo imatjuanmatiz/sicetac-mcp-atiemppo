@@ -123,14 +123,18 @@ cuando cambie el puente MCP o exista una incompatibilidad declarada por
 
 ## Core técnico de pre-cotización
 
-`POST /v1/prequotes` es la superficie para agentes y procesos pagos que
-necesitan elegir una configuración antes de consultar SICETAC. Recibe origen,
+`POST /v1/prequotes` es la superficie para agentes, integraciones y equipos de
+ventas que necesitan una precotización técnica en una consulta. Recibe origen,
 destino, peso, unidad, servicio, contenedor, ejes y, si aplica, una
 configuración solicitada. También devuelve `market_analysis`: valor en plaza/
 valor pagado observado de RNDC por ruta y configuración, con corte, fuente,
 promedio y, cuando es posible, brecha frente a H4. No es una tarifa comercial
-y no se produce para un retorno de contenedor vacío. La API responde cuatro
-bloques:
+y no se produce para un retorno de contenedor vacío. En `view=search`,
+`data.search.capacidad` resume el máximo neto de mercancía, el máximo nominal
+SICETAC de configuración cuando existe, el peso declarado, la compatibilidad y
+si la regla es provisional. Para contenedor, el neto ya descuenta la tara
+publicada del contenedor. Esto no valida PBV legal porque falta la tara real
+del vehículo. La API responde cuatro bloques en `view=detail`:
 
 - `technical_decision`: configuración recomendada, PBV, SICE, tara,
   advertencias y versión exacta del ruleset.
@@ -140,6 +144,12 @@ bloques:
 - `commercial`: siempre indica `configured: false` y
   `emission_allowed: false`. Márgenes, disponibilidad, precio y aprobación
   pertenecen al proyecto consumidor.
+
+Una fuerza comercial puede usar la salida como base de precotización:
+referencia SICETAC + benchmark de plaza + tope de carga. El motor no calcula
+precio de venta ni emite oferta. Cada empresa debe aplicar sus márgenes,
+condiciones, disponibilidad, vigencia y aprobaciones en su propio sistema; el
+agente debe decir cuándo el valor es solo referencia técnica.
 
 El ruleset publicado se obtiene server-side desde Supabase bajo el alcance
 `mercado_colombia_tecnico`. No se aceptan reglas ni un alcance elegido por el

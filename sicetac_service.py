@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 import os
 import re
 from typing import Any
 import unicodedata
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 import time
 
 from supabase_data import (
@@ -36,6 +37,14 @@ from modelo_sicetac import calcular_modelo_sicetac_extendido
 from modelo_sicetac_vacio import calcular_modelo_sicetac_extendido_vacio
 
 
+def normalizar_modo_viaje(value: Any) -> str:
+    """Normaliza el modo de viaje y rechaza valores fuera del contrato."""
+    modo = "CARGADO" if value is None else str(value).strip().upper()
+    if modo not in {"CARGADO", "VACIO"}:
+        raise ValueError("modo_viaje debe ser CARGADO o VACIO.")
+    return modo
+
+
 class ConsultaInput(BaseModel):
     origen: str | None = None
     destino: str | None = None
@@ -53,8 +62,8 @@ class ConsultaInput(BaseModel):
     tipo_contenedor_regreso: str | None = None
     rutasid_ida: str | None = None
     rutasid_regreso: str | None = None
-    valor_peaje_manual: float = 0.0
-    valor_peajes_manual: float = 0.0
+    valor_peaje_manual: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    valor_peajes_manual: float = Field(default=0.0, ge=0, allow_inf_nan=False)
 
     # LEGACY: sigue existiendo para no romper nada
     horas_logisticas: float | None = Field(default=None, ge=0, le=48, allow_inf_nan=False)
@@ -63,14 +72,14 @@ class ConsultaInput(BaseModel):
     horas_logisticas_personalizadas: float | None = Field(default=None, ge=0, le=48, allow_inf_nan=False)
 
     # NUEVO: tarifa de stand by por hora > 8h
-    tarifa_standby: float = 150000.0
+    tarifa_standby: float = Field(default=150000.0, ge=0, allow_inf_nan=False)
 
-    km_plano: float = 0
-    km_ondulado: float = 0
-    km_montañoso: float = 0
-    km_montanoso: float = 0
-    km_urbano: float = 0
-    km_despavimentado: float = 0
+    km_plano: float = Field(default=0, ge=0, allow_inf_nan=False)
+    km_ondulado: float = Field(default=0, ge=0, allow_inf_nan=False)
+    km_montañoso: float = Field(default=0, ge=0, allow_inf_nan=False)
+    km_montanoso: float = Field(default=0, ge=0, allow_inf_nan=False)
+    km_urbano: float = Field(default=0, ge=0, allow_inf_nan=False)
+    km_despavimentado: float = Field(default=0, ge=0, allow_inf_nan=False)
     modo_viaje: str = "CARGADO"
 
     # NUEVO: modo escenarios de tiempos logísticos
@@ -93,6 +102,11 @@ class ConsultaInput(BaseModel):
     peajes: bool = False
     incluir_peajes: bool = False
     detalle_peajes: bool = False
+
+    @field_validator("modo_viaje", mode="before")
+    @classmethod
+    def _validar_modo_viaje(cls, value: Any) -> str:
+        return normalizar_modo_viaje(value)
 
 
 @dataclass
@@ -1195,48 +1209,64 @@ def _promover_variante_principal(respuesta: dict[str, Any]) -> dict[str, Any]:
 def _seleccionar_variante_tramo(
     respuesta: dict[str, Any], rutasid: str | None, nombre_tramo: str
 ) -> dict[str, Any] | None:
+    variantes = respuesta.get("variantes", [])
+    if rutasid and variantes:
+        rutasid_normalizado = _clean_id(rutasid)
+        variante = next(
+            (
+                item
+                for item in variantes
+                if _clean_id(item.get("RUTASID") or item.get("ID_SICE")) == rutasid_normalizado
+            ),
+            None,
+        )
+        if not variante:
+            opciones = ", ".join(
+                _clean_id(item.get("RUTASID") or item.get("ID_SICE"))
+                for item in variantes
+            )
+            raise SicetacError(
+                400,
+                f"rutasid_{nombre_tramo}={rutasid} no es válido. Opciones: {opciones}.",
+            )
+
+        seleccionado = {key: value for key, value in respuesta.items() if key != "variantes"}
+        seleccionado.update(variante)
+        rutasid_seleccionado = _clean_id(variante.get("RUTASID") or variante.get("ID_SICE"))
+        detalle = dict(variante.get("detalle_lookup") or {})
+        detalle.update(
+            {
+                "rutasid": rutasid_seleccionado,
+                "nombre_sice": variante.get("NOMBRE_SICE"),
+                "ruta": variante.get("RUTA"),
+            }
+        )
+        seleccionado.update(
+            {
+                "rutasid": rutasid_seleccionado,
+                "nombre_sice": variante.get("NOMBRE_SICE"),
+                "ruta": variante.get("RUTA"),
+                "totales": variante.get("totales") or {},
+                "detalle_lookup": detalle,
+                "seleccion_variante": {
+                    **(respuesta.get("seleccion_variante") or {}),
+                    "rutasid_seleccionado": rutasid_seleccionado,
+                    "criterio_seleccion": "rutasid_explicito",
+                },
+            }
+        )
+        return seleccionado
+
     if "totales" in respuesta:
         rutasid_actual = _clean_id(respuesta.get("detalle_lookup", {}).get("rutasid"))
-        if rutasid and rutasid_actual and _clean_id(rutasid) != rutasid_actual:
+        if rutasid and _clean_id(rutasid) != rutasid_actual:
             raise SicetacError(400, f"rutasid_{nombre_tramo} no corresponde a la ruta resuelta.")
         return respuesta
 
-    variantes = respuesta.get("variantes", [])
     if not variantes:
         raise SicetacError(404, f"No hay una tarifa oficial para el tramo de {nombre_tramo}.")
     if not rutasid:
         return _promover_variante_principal(respuesta)
-
-    rutasid_normalizado = _clean_id(rutasid)
-    variante = next(
-        (
-            item
-            for item in variantes
-            if _clean_id(item.get("RUTASID") or item.get("ID_SICE")) == rutasid_normalizado
-        ),
-        None,
-    )
-    if not variante:
-        opciones = ", ".join(
-            _clean_id(item.get("RUTASID") or item.get("ID_SICE"))
-            for item in variantes
-        )
-        raise SicetacError(
-            400,
-            f"rutasid_{nombre_tramo}={rutasid} no es válido. Opciones: {opciones}.",
-        )
-
-    seleccionado = {key: value for key, value in respuesta.items() if key != "variantes"}
-    seleccionado.update(
-        {
-            "rutasid": _clean_id(variante.get("RUTASID") or variante.get("ID_SICE")),
-            "nombre_sice": variante.get("NOMBRE_SICE"),
-            "ruta": variante.get("RUTA"),
-            "totales": variante["totales"],
-            "detalle_lookup": variante.get("detalle_lookup", {}),
-        }
-    )
-    return seleccionado
 
 
 AUMENTO_MES_BASE = 202512
@@ -1360,6 +1390,12 @@ def _calcular_viaje_redondo_contenedor(data: ConsultaInput) -> dict[str, Any]:
         )
         for hora in ("H2", "H4", "H8")
     }
+    total_km = None
+    if ida_seleccionada.get("total_km") is not None and regreso_seleccionada.get("total_km") is not None:
+        total_km = round(
+            float(ida_seleccionada["total_km"]) + float(regreso_seleccionada["total_km"]),
+            2,
+        )
     return {
         "tipo_consulta": "VIAJE_REDONDO_CONTENEDOR",
         "configuracion": data.vehiculo,
@@ -1367,6 +1403,8 @@ def _calcular_viaje_redondo_contenedor(data: ConsultaInput) -> dict[str, Any]:
         "ida": ida_seleccionada,
         "regreso": regreso_seleccionada,
         "totales": totales,
+        "total_km": total_km,
+        "estimado": bool(ida_seleccionada.get("estimado") or regreso_seleccionada.get("estimado")),
         "valor_plaza_regreso_no_aplica": "CONTENEDOR_VACIO",
     }
 
@@ -1540,12 +1578,12 @@ def _calcular_modelo_completo(data: ConsultaInput) -> dict:
     }
 
     for _k, _v in manual_distancias.items():
-        if _v < 0:
-            raise SicetacError(400, f"Distancia manual inválida en {_k}: no puede ser negativa")
+        if not math.isfinite(_v) or _v < 0:
+            raise SicetacError(400, f"Distancia manual inválida en {_k}: debe ser finita y no negativa")
 
     manual_peaje = _manual_valor_peaje(data)
-    if manual_peaje < 0:
-        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual no puede ser negativo")
+    if not math.isfinite(manual_peaje) or manual_peaje < 0:
+        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual debe ser finito y no negativo")
 
     es_urbana = False
     if manual_mode:
@@ -1776,12 +1814,12 @@ def _calcular_sicetac_resumen_base(data: ConsultaInput) -> dict:
     }
 
     for _k, _v in manual_distancias.items():
-        if _v < 0:
-            raise SicetacError(400, f"Distancia manual inválida en {_k}: no puede ser negativa")
+        if not math.isfinite(_v) or _v < 0:
+            raise SicetacError(400, f"Distancia manual inválida en {_k}: debe ser finita y no negativa")
 
     manual_peaje = _manual_valor_peaje(data)
-    if manual_peaje < 0:
-        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual no puede ser negativo")
+    if not math.isfinite(manual_peaje) or manual_peaje < 0:
+        raise SicetacError(400, "valor_peaje_manual/valor_peajes_manual debe ser finito y no negativo")
 
     if manual_mode:
         ruta = pd.DataFrame()

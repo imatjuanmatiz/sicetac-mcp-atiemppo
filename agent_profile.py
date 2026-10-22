@@ -13,8 +13,8 @@ from cotizador_core.models import RuleSet
 
 
 CONTRACT_VERSION = "v1"
-AGENT_POLICY_VERSION = "2026.09.23.1"
-MINIMUM_BRIDGE_VERSION = "1.2.0"
+AGENT_POLICY_VERSION = "2026.10.21.2"
+MINIMUM_BRIDGE_VERSION = "1.2.1"
 
 
 def _automatic_container_configuration(ruleset: RuleSet, size_ft: int) -> str | None:
@@ -26,7 +26,10 @@ def _automatic_container_configuration(ruleset: RuleSet, size_ft: int) -> str | 
     ]
     if not candidates:
         return None
-    selected = min(candidates, key=lambda rule: (rule.priority, rule.rule_id))
+    selected = min(
+        candidates,
+        key=lambda rule: (rule.priority, rule.max_cargo_kg or 10**12, rule.rule_id),
+    )
     return selected.sicetac_configuration
 
 
@@ -51,14 +54,14 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
             "required": ["origen", "destino"],
             "conditional": {
                 "with_declared_vehicle": "Busque requested_configuration directo y calcule. Una recomendación o alternativa no sustituye el cálculo ni espera peso. Nunca derive el peso desde la capacidad máxima.",
-                "without_declared_vehicle": "Identifique el vehículo por peso de la carga; si es contenedor, use también la tara publicada. En carga_general solicite cargo_weight_value y cargo_weight_unit.",
+                "without_declared_vehicle": "En carga_general solicite cargo_weight_value y cargo_weight_unit. En contenedor solicite container_size_ft (20 o 40); el peso es opcional para la referencia inicial y, si viene, valida capacidad con la tara publicada.",
                 "weight_validation": "Si se informa peso, envíe cargo_weight_value y cargo_weight_unit juntos para validar capacidad SICE.",
             },
             "default_service_code": "carga_general",
             "general_aliases": ["carga_suelta", "general", "mercancia_general", "suelta"],
-            "vehicle_selection": "Sin vehículo, identifique por peso de la carga y tara si es contenedor. Con vehículo solicitado, búsquelo directo, calcule y, si aplica, recomiende una alternativa; el cálculo no espera peso. El peso jamás se infiere desde la capacidad máxima.",
+            "vehicle_selection": "Sin vehículo, en carga_general identifique por peso; en contenedor use el default por tamaño y escale por capacidad cuando se informe el peso. Con vehículo solicitado, búsquelo directo y calcule; el peso opcional valida capacidad. El peso jamás se infiere desde la capacidad máxima.",
             "published_homologation": "Envíe los términos declarados. El Core usa la tabla de equivalencias para nombrar el municipio y después el helper confirma el DANE del catálogo. No use un código SICE del alias como llave de búsqueda ni replique esa tabla en el agente.",
-            "view": "Los agentes envían view=search. La ficha de búsqueda es data.search e incluye kilometros. Para detalle de costos use view=costs; para detalle de consumo use view=consumption. Ambos ejecutan el modelo completo, independiente de la tarifa publicada. view=detail conserva el detalle de la búsqueda.",
+            "view": "Los agentes envían view=search. data.search incluye ruta, configuración, referencia de la hora acordada, valor en plaza cuando existe y capacidad neta/compatibilidad cuando hay regla. Para detalle de costos use view=costs; para detalle de consumo use view=consumption. Ambos ejecutan el modelo completo, independiente de la tarifa publicada. view=detail conserva el detalle de la búsqueda.",
             "horas_logisticas": "Default 4 (H4). No pregunte la hora si el usuario no la dijo. Si pide 2, 8 u otra, envíe horas_logisticas y recuérdela en el hilo hasta que pida otra. Presente solo esa hora.",
             "axles": "Si hay requested_configuration completa, no envíe axles: una cifra aislada puede describir sólo el tracto. Si no hay configuración completa, axles sirve como señal secundaria para selección automática.",
             "container": {
@@ -81,8 +84,8 @@ def build_agent_profile(ruleset: RuleSet) -> dict[str, Any]:
         },
         "output_policy": {
             "view": "search",
-            "present": "Sólo data.search: ruta (NOMBRE_SICE), configuración, kilómetros, referencia SICETAC de la hora acordada (default H4) y su valor por tonelada con unidad $/tn; valor en plaza y valor por tonelada con unidad $/tn, con cortes. Si piden comparar H2, H4 y H8, use los tres totales y sus campos por tonelada.",
-            "omit": "No presente tara, PBV, regla provisional, el menú H2/H8, alternativas de ruta, capacity_only_alternatives ni el ensayo de market_analysis. Eso es view=detail, no la búsqueda.",
+            "present": "Sólo data.search: ruta (NOMBRE_SICE), configuración, kilómetros, referencia SICETAC de la hora acordada (default H4) y su valor por tonelada con unidad $/tn; capacidad máxima de mercancía y compatibilidad cuando existan, con aviso si la regla es provisional; valor en plaza y valor por tonelada con unidad $/tn, con cortes. Si piden comparar H2, H4 y H8, use los tres totales y sus campos por tonelada.",
+            "omit": "No presente tara, PBV, el menú H2/H8, alternativas de ruta, capacity_only_alternatives ni el ensayo de market_analysis. Eso es view=detail, no la búsqueda.",
             "route_name": "Use search.ruta. Nunca RUTASID, ID_SICE ni el par DANE como nombre.",
             "plaza_missing": "Si search.valor_plaza es null, diga que no hay valor en plaza. No invente ni ponga cero.",
             "toneladas_configuracion": "El valor por tonelada usa el tonelaje nominal de la configuración; no equivale al peso real transportado.",

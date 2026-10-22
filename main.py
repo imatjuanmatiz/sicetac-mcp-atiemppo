@@ -271,7 +271,52 @@ def calcular_sicetac_texto(data: ConsultaInput):
             r = calcular_sicetac_resumen(data)
             if consulta_solicita_peajes(data):
                 r = adjuntar_peajes_a_respuesta(r, data.vehiculo)
-            if "variantes" in r:
+            if r.get("tipo_consulta") == "VIAJE_REDONDO_CONTENEDOR":
+                def _round_trip_leg_text(label, leg):
+                    leg = leg if isinstance(leg, dict) else {}
+                    route = leg.get("nombre_sice") or leg.get("ruta")
+                    if not route and leg.get("origen") and leg.get("destino"):
+                        route = f"{leg['origen']}->{leg['destino']}"
+                    route_id = leg.get("rutasid") or (leg.get("detalle_lookup") or {}).get("rutasid")
+                    identity = f"{label} {route or 'ruta seleccionada'}"
+                    if route_id:
+                        identity += f" (ID {route_id})"
+
+                    totals = leg.get("totales") or {}
+                    if not totals and leg.get("variantes"):
+                        alternatives = "; ".join(
+                            f"{item.get('NOMBRE_SICE') or 'Ruta'} (ID {item.get('RUTASID') or item.get('ID_SICE')})"
+                            for item in leg["variantes"]
+                        )
+                        return f"Seleccione {label.lower()}: {alternatives}"
+                    if totals:
+                        per_ton = leg.get("totales_por_tonelada") or {}
+                        values = ", ".join(
+                            f"{hour} {_format_total_con_tonelada(totals, per_ton, hour)}"
+                            for hour in ("H2", "H4", "H8") if totals.get(hour) is not None
+                        )
+                        if values:
+                            identity += f": {values}"
+                    return identity
+
+                trip_totals = r.get("totales") or {}
+                ida_totals = (r.get("ida") or {}).get("totales") or {}
+                regreso_totals = (r.get("regreso") or {}).get("totales") or {}
+                total_parts = []
+                for hour in ("H2", "H4", "H8"):
+                    value = trip_totals.get(hour)
+                    if value is None and ida_totals.get(hour) is not None and regreso_totals.get(hour) is not None:
+                        value = float(ida_totals[hour]) + float(regreso_totals[hour])
+                    if value is not None:
+                        total_parts.append(f"{hour} {_format_cop(value)}")
+                texto = "; ".join(
+                    part for part in (
+                        _round_trip_leg_text("Ida", r.get("ida")),
+                        _round_trip_leg_text("Regreso", r.get("regreso")),
+                        f"Total viaje redondo: {', '.join(total_parts)}" if total_parts else None,
+                    ) if part
+                )
+            elif "variantes" in r:
                 partes = []
                 for v in r["variantes"]:
                     tot = v.get("totales", {})
